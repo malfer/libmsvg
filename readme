@@ -1,0 +1,117 @@
+Welcome to libmsvg version 0.01
+
+libmsvg is a work in progress for making a minimal and generic library to read
+and write SVG files.
+
+SVG stand for Scalable Vector Graphics and is a standard defined by the World
+Wide Web Consortium. See http://www.w3.org/Graphics/SVG/
+
+Supported platforms
+===================
+
+libmsvg is programmed in ANSI-C, so it must compile in every plattform, you
+only have to build the makefiles. We provide the makefiles for these three
+supported platforms:
+
+  Linux using the gcc compiler and gmake
+  DOS using the DJGPP compiler and gmake
+  Win32 using the Mingw compiler and gmake
+
+Dependencies
+============
+
+libmsvg only depends of libexpat 1.2 (http://www.jclark.com/xml/expat.html),
+but we include our own copy of the expat library, so there are no depndencies
+at all.
+
+libmsvg installation instructions
+=================================
+
+Requirements:
+-------------
+
+  The source files:  libmsvg0001.tar.gz or msvg0001.zip
+  This document:     readme
+
+A. Unpacking the libmsvg archive
+--------------------------------
+
+  1) Choose and download the .tar.gz or .zip package. You can use either.
+     Usually Linux users choose the .tar.gz and DJGPP/Mingw users choose
+     the .zip.
+
+  2) 'cd' to a directory where you want the libmsvg file tree to be created
+     as a subdirectory. Examples are:
+
+       DJGPP : cd C:\DJGPP\contrib
+       Mingw : cd C:\MINGW\contrib
+       Linux : cd /usr/local/src
+
+  3) unpack the libmsvg archive:
+
+         tar xzvf libmsvg0001.tar.gz
+     or
+         unzip msvg0001.zip
+
+     This will create the subdirectory 'libmsvg'.
+
+B. Compiling libmsvg
+--------------------
+
+  1) Go to libmsvg base dir.
+
+  2) Edit the "makedefs" file and set to 'y' only one of this variables:
+
+     LINUX_VERSION
+     DJGPP_VERSION
+     MINGW_VERSION
+
+     By default the LINUX_VERSION is checked
+
+  3) Run 'make' ('mingw32-make' for Mingw users)
+
+     Note for DJGPP/Mingw users: Do _not_ use an environment variable
+     `SHELL' leading to `bash', e.g. `SHELL=/djgpp/bin/bash.exe'.
+     Some parts of the DJGPP/Mingw Makefiles require `command.com'.
+
+C. Testing libmsvg
+------------------
+
+  1) Go to the 'test'.
+
+  2) run the test programs.
+
+
+D. Installing libmsvg
+---------------------
+
+  Copy the library from <libnsvg base>/src> to the compiler library
+  directory.
+
+  Copy the header file msvg.h from <libmsvg base>/include> to your
+  compiler include directory.
+
+  Or you can let makefiles do it for you, running 'make install'.
+
+  You can uninstall the library running 'make uninstall'.
+
+  Note for Linux users: probably you must be root to do that.
+
+Help
+====
+
+  Because libmsvg is in an early stage there is not much documentation, so
+  use the source!!
+
+  See the libmsvg site (libsvg.fgrim.com) for updates, tips, ... 
+
+  Send me a mail (malfer at telefonica.net)
+
+License
+=======
+
+  libmsvg is free software. You can redistribute it and/or modify it under
+  the LGPL license. See the "copying.txt" file for details.
+
+Enjoy, Mariano Alvarez <malfer at telefonica.net>
+

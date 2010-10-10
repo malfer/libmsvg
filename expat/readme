@@ -1,0 +1,8 @@
+This directory contents a minimal version of expat 1.2 for libmsvg use.
+
+Expat 1.2 full version can be downloaded from the James Clark page:
+
+http://www.jclark.com/xml/expat.html
+
+Expat is freely available with source under a very liberal license (the
+MIT license), see copying.txt file for details.

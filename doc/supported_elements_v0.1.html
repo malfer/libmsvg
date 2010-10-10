@@ -1,0 +1,235 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE></TITLE>
+</HEAD>
+
+<BODY>
+<H1>libmsvg v0.1 supported elements table</H1>
+<P>This table lists the SVG elementes and attributes that will be
+supported in libmsvg version 0.1</P>
+<P>Each row lists an element, his supported attributes and the
+elements that may be sons.</P>
+<P>For each element, attributes can be &quot;S&quot; (specific) if
+they are translates to specific variables or &quot;G&quot; (generic)
+if they are stored like a key-value pair.</P>
+
+<TABLE WIDTH=100% BORDER=1 CELLPADDING=4 CELLSPACING=3 STYLE="page-break-before: always">
+	<COL WIDTH=64*>
+	<COL WIDTH=113*>
+	<COL WIDTH=79*>
+	<TR VALIGN=TOP>
+		<TH WIDTH=25%>
+			<P>Element</P>
+		</TH>
+		<TH WIDTH=44%>
+			<P>Attributes (type)</P>
+		</TH>
+		<TH WIDTH=31%>
+			<P>Son elements</P>
+		</TH>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=25%>
+			<P>&lt;svg&gt;</P>
+		</TD>
+		<TD WIDTH=44%>
+			<P STYLE="margin-bottom: 0cm">viewBox=&quot;min-x min-y width
+			height&quot; (S)</P>
+			<P STYLE="margin-bottom: 0cm">width=&quot;width&quot; (S)</P>
+			<P STYLE="margin-bottom: 0cm">height=&quot;height&quot; (S)</P>
+			<P STYLE="margin-bottom: 0cm">viewport-fill=&quot;color&quot; (S)</P>
+			<P STYLE="margin-bottom: 0cm">viewport-fill-opacity=&quot;n&quot;
+			(S)</P>
+			<P STYLE="margin-bottom: 0cm">version=&quot;valor&quot; (G)</P>
+			<P STYLE="margin-bottom: 0cm">baseProfile=&quot;valor&quot; (G)</P>
+			<P>preserveAspectRatio=&quot;valor&quot; (G)</P>
+		</TD>
+		<TD WIDTH=31%>
+			<P>&lt;g&gt;, &lt;rect&gt;, &lt;circle&gt;, &lt;ellipse&gt;,
+			&lt;line&gt;, &lt;polyline&gt;, &lt;polygon&gt;</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=25%>
+			<P>&lt;g&gt;</P>
+		</TD>
+		<TD WIDTH=44%>
+			<P STYLE="margin-bottom: 0cm">id=&quot;valor&quot; (S)</P>
+			<P STYLE="margin-bottom: 0cm">transform=&quot;translate(x,y)&quot;
+			(G)</P>
+			<P STYLE="margin-bottom: 0cm">transform=&quot;rotate(angulo)&quot;
+			(G)</P>
+			<P STYLE="margin-bottom: 0cm">transform=&quot;scale(factor)&quot;
+			(G)</P>
+			<P STYLE="margin-bottom: 0cm">fill=&quot;color&quot; (G)</P>
+			<P STYLE="margin-bottom: 0cm">fill-opacity=&quot;n&quot; (G)</P>
+			<P STYLE="margin-bottom: 0cm">stroke=&quot;color&quot; (G)</P>
+			<P STYLE="margin-bottom: 0cm">stroke-width=&quot;n&quot; (G)</P>
+			<P>stroke-opacity=&quot;n&quot; (G)</P>
+		</TD>
+		<TD WIDTH=31%>
+			<P>&lt;g&gt;, &lt;rect&gt;, &lt;circle&gt;, &lt;ellipse&gt;,
+			&lt;line&gt;, &lt;polyline&gt;, &lt;polygon&gt;</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=25%>
+			<P>&lt;rect&gt;</P>
+		</TD>
+		<TD WIDTH=44%>
+			<P STYLE="margin-bottom: 0cm">x=&quot;n&quot; (S)</P>
+			<P STYLE="margin-bottom: 0cm">y=&quot;n&quot; (S)</P>
+			<P STYLE="margin-bottom: 0cm">width=&quot;n&quot; (S)</P>
+			<P STYLE="margin-bottom: 0cm">height=&quot;n&quot; (S)</P>
+			<P STYLE="margin-bottom: 0cm">rx=&quot;n&quot; (S)</P>
+			<P STYLE="margin-bottom: 0cm">ry=&quot;n&quot; (S)</P>
+			<P STYLE="margin-bottom: 0cm">id=&quot;valor&quot; (S)</P>
+			<P STYLE="margin-bottom: 0cm">transform=&quot;translate(x,y)&quot;
+			(G)</P>
+			<P STYLE="margin-bottom: 0cm">transform=&quot;rotate(angulo)&quot;
+			(G)</P>
+			<P STYLE="margin-bottom: 0cm">transform=&quot;scale(factor)&quot;
+			(G)</P>
+			<P STYLE="margin-bottom: 0cm">fill=&quot;color&quot; (G)</P>
+			<P STYLE="margin-bottom: 0cm">fill-opacity=&quot;n&quot; (G)</P>
+			<P STYLE="margin-bottom: 0cm">stroke=&quot;color&quot; (G)</P>
+			<P STYLE="margin-bottom: 0cm">stroke-width=&quot;n&quot; (G)</P>
+			<P>stroke-opacity=&quot;n&quot; (G)</P>
+		</TD>
+		<TD WIDTH=31%>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=25%>
+			<P>&lt;circle&gt;</P>
+		</TD>
+		<TD WIDTH=44%>
+			<P STYLE="margin-bottom: 0cm">cx=&quot;n&quot; (S)</P>
+			<P STYLE="margin-bottom: 0cm">cy=&quot;n&quot; (S)</P>
+			<P STYLE="margin-bottom: 0cm">r=&quot;n&quot; (S)</P>
+			<P STYLE="margin-bottom: 0cm">id=&quot;valor&quot; (S)</P>
+			<P STYLE="margin-bottom: 0cm">transform=&quot;translate(x,y)&quot;
+			(G)</P>
+			<P STYLE="margin-bottom: 0cm">transform=&quot;rotate(angulo)&quot;
+			(G)</P>
+			<P STYLE="margin-bottom: 0cm">transform=&quot;scale(factor)&quot;
+			(G)</P>
+			<P STYLE="margin-bottom: 0cm">fill=&quot;color&quot; (G)</P>
+			<P STYLE="margin-bottom: 0cm">fill-opacity=&quot;n&quot; (G)</P>
+			<P STYLE="margin-bottom: 0cm">stroke=&quot;color&quot; (G)</P>
+			<P STYLE="margin-bottom: 0cm">stroke-width=&quot;n&quot; (G)</P>
+			<P>stroke-opacity=&quot;n&quot; (G)</P>
+		</TD>
+		<TD WIDTH=31%>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=25%>
+			<P>&lt;ellipse&gt;</P>
+		</TD>
+		<TD WIDTH=44%>
+			<P STYLE="margin-bottom: 0cm">cx=&quot;n&quot; (S)</P>
+			<P STYLE="margin-bottom: 0cm">cy=&quot;n&quot; (S)</P>
+			<P STYLE="margin-bottom: 0cm">rx=&quot;n&quot; (S)</P>
+			<P STYLE="margin-bottom: 0cm">ry=&quot;n&quot; (S)</P>
+			<P STYLE="margin-bottom: 0cm">id=&quot;valor&quot; (S)</P>
+			<P STYLE="margin-bottom: 0cm">transform=&quot;translate(x,y)&quot;
+			(G)</P>
+			<P STYLE="margin-bottom: 0cm">transform=&quot;rotate(angulo)&quot;
+			(G)</P>
+			<P STYLE="margin-bottom: 0cm">transform=&quot;scale(factor)&quot;
+			(G)</P>
+			<P STYLE="margin-bottom: 0cm">fill=&quot;color&quot; (G)</P>
+			<P STYLE="margin-bottom: 0cm">fill-opacity=&quot;n&quot; (G)</P>
+			<P STYLE="margin-bottom: 0cm">stroke=&quot;color&quot; (G)</P>
+			<P STYLE="margin-bottom: 0cm">stroke-width=&quot;n&quot; (G)</P>
+			<P>stroke-opacity=&quot;n&quot; (G)</P>
+		</TD>
+		<TD WIDTH=31%>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=25%>
+			<P>&lt;line&gt;</P>
+		</TD>
+		<TD WIDTH=44%>
+			<P STYLE="margin-bottom: 0cm">x1=&quot;n&quot; (S)</P>
+			<P STYLE="margin-bottom: 0cm">y1=&quot;n&quot; (S)</P>
+			<P STYLE="margin-bottom: 0cm">x2=&quot;n&quot; (S)</P>
+			<P STYLE="margin-bottom: 0cm">y2=&quot;n&quot; (S)</P>
+			<P STYLE="margin-bottom: 0cm">id=&quot;valor&quot; (S)</P>
+			<P STYLE="margin-bottom: 0cm">transform=&quot;translate(x,y)&quot;
+			(G)</P>
+			<P STYLE="margin-bottom: 0cm">transform=&quot;rotate(angulo)&quot;
+			(G)</P>
+			<P STYLE="margin-bottom: 0cm">transform=&quot;scale(factor)&quot;
+			(G)</P>
+			<P STYLE="margin-bottom: 0cm">stroke=&quot;color&quot; (G)</P>
+			<P STYLE="margin-bottom: 0cm">stroke-width=&quot;n&quot; (G)</P>
+			<P>stroke-opacity=&quot;n&quot; (G)</P>
+		</TD>
+		<TD WIDTH=31%>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=25%>
+			<P>&lt;polyline&gt;</P>
+		</TD>
+		<TD WIDTH=44%>
+			<P STYLE="margin-bottom: 0cm">points=&quot;data&quot; (S)</P>
+			<P STYLE="margin-bottom: 0cm">id=&quot;valor&quot; (S)</P>
+			<P STYLE="margin-bottom: 0cm">transform=&quot;translate(x,y)&quot;
+			(G)</P>
+			<P STYLE="margin-bottom: 0cm">transform=&quot;rotate(angulo)&quot;
+			(G)</P>
+			<P STYLE="margin-bottom: 0cm">transform=&quot;scale(factor)&quot;
+			(G)</P>
+			<P STYLE="margin-bottom: 0cm">stroke=&quot;color&quot; (G)</P>
+			<P STYLE="margin-bottom: 0cm">stroke-width=&quot;n&quot; (G)</P>
+			<P>stroke-opacity=&quot;n&quot; (G)</P>
+		</TD>
+		<TD WIDTH=31%>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=25%>
+			<P>&lt;polygon&gt;</P>
+		</TD>
+		<TD WIDTH=44%>
+			<P STYLE="margin-bottom: 0cm">points=&quot;data&quot; (S)</P>
+			<P STYLE="margin-bottom: 0cm">id=&quot;valor&quot; (S)</P>
+			<P STYLE="margin-bottom: 0cm">transform=&quot;translate(x,y)&quot;
+			(G)</P>
+			<P STYLE="margin-bottom: 0cm">transform=&quot;rotate(angulo)&quot;
+			(G)</P>
+			<P STYLE="margin-bottom: 0cm">transform=&quot;scale(factor)&quot;
+			(G)</P>
+			<P STYLE="margin-bottom: 0cm">fill=&quot;color&quot; (G)</P>
+			<P STYLE="margin-bottom: 0cm">fill-opacity=&quot;n&quot; (G)</P>
+			<P STYLE="margin-bottom: 0cm">stroke=&quot;color&quot; (G)</P>
+			<P STYLE="margin-bottom: 0cm">stroke-width=&quot;n&quot; (G)</P>
+			<P>stroke-opacity=&quot;n&quot; (G)</P>
+		</TD>
+		<TD WIDTH=31%>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+</TABLE>
+
+<P><BR><BR>
+</P>
+</BODY>
+</HTML>

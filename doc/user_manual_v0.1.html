@@ -1,0 +1,94 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+<TITLE></TITLE>
+</HEAD>
+
+<BODY>
+<H1>libmsvg v0.01 user manual</H1>
+
+<H2>Abstract</H2>
+<P>libmsvg is a minimal library to read and write SVG files.</P>
+
+<H2>Example 1</H2>
+<P>This example read a SVG file in a  MsvgElement struct</P>
+<PRE>
+#include &lt;stdio.h>
+#include "msvg.h"
+
+int main(int argc, char **argv)
+{
+  MsvgElement *root;
+
+  if (argc &lt;2)
+    return 0;
+
+  root = MsvgReadSvgFile(argv[1]);
+
+  if (root == NULL) {
+    printf("Error opening %s\n", argv[1]);
+    return 0;
+  }
+
+  /* Now you can process the structure. By example: */
+  MsvgPrintElementTree(stdout, root, 0);
+
+  return 1;
+}
+</PRE>
+
+<H2>Example 2</H2>
+<P>This example constructs a MsvgElement tree and writes it to a file</P>
+<PRE>
+#include &lt;stdio.h>
+#include "msvg.h"
+
+#define TESTFILE "msvgt2.svg"
+
+int main(int argc, char **argv)
+{
+  MsvgElement *root, *son;
+
+  root = MsvgNewElement(EID_SVG, NULL);
+  MsvgAddAttribute(root, "version", "1.2");
+  MsvgAddAttribute(root, "baseProfile", "tiny");
+  MsvgAddAttribute(root, "viewBox", "0 0 400 400");
+
+  son = MsvgNewElement(EID_RECT, root);
+  MsvgAddAttribute(son, "x", "1");
+  MsvgAddAttribute(son, "y", "1");
+  MsvgAddAttribute(son, "width", "398");
+  MsvgAddAttribute(son, "height", "398");
+  MsvgAddAttribute(son, "stroke", "#F00");
+  MsvgAddAttribute(son, "fill", "#FFF");
+
+  son = MsvgNewElement(EID_RECT, root);
+  MsvgAddAttribute(son, "x", "11");
+  MsvgAddAttribute(son, "y", "11");
+  MsvgAddAttribute(son, "width", "380");
+  MsvgAddAttribute(son, "height", "380");
+  MsvgAddAttribute(son, "stroke", "#0F0");
+  MsvgAddAttribute(son, "fill", "none");
+  MsvgPrintElementTree(stdout, root, 0);
+
+  if (!MsvgWriteSvgFile(root, TESTFILE)) {
+    printf("Error writing %s\n", TESTFILE);
+    return 0;
+  }
+
+  return 1;
+}
+
+</PRE>
+
+<H2>How to compile the example programs</H2>
+<P>Assuming the libmsvg library was previously installed:</P>
+<UL>
+	<LI>Linux: gcc -o example example.c -lmsvg
+	<LI>DJGPP: gcc -o example.exe example.c -lmsvg
+	<LI>Mingw: gcc -o example.exe example.c -lmsvg -mconsole
+</UL>
+
+</BODY>
+</HTML>

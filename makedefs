@@ -1,0 +1,33 @@
+### libmsvg CONFIGURATION ###############################################
+
+# This file sets variables that direct the library build for the
+# programmer needs. The file is used for the three standard plattforms
+
+# Set to 'y' only one of these
+LINUX_VERSION=y
+DJGPP_VERSION=n
+MINGW_VERSION=n
+
+# some defaults
+CC=gcc
+CFLAGS=-Wall -O2
+AR=ar
+
+### linux version defaults ##############################################
+ifeq ($(LINUX_VERSION),y)
+EXE=
+INSTALLDIR=/usr/local
+endif
+
+### djgpp version defaults ##############################################
+ifeq ($(DJGPP_VERSION),y)
+EXE=.exe
+INSTALLDIR=C:\DJGPP
+endif
+
+### mingw version defaults ##############################################
+ifeq ($(MINGW_VERSION),y)
+EXE=.exe
+INSTALLDIR=C:\MINGW
+endif
+
