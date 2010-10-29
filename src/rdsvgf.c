@@ -58,6 +58,7 @@ static void startElement(void *userData, const char *name, const char **attr)
         mudptr->svg_found = 1;
         mudptr->root = MsvgNewElement(EID_SVG, NULL);
         // comprobar error
+	mudptr->root->psvgattr->tree_type = RAW_SVGTREE;
         addAttributes(mudptr->root, attr);
         mudptr->active_element = mudptr->root;
         mudptr->svg_depth = mudptr->depth;

@@ -68,5 +68,7 @@ endif
 
 ### COMMON
 
+$(LIBOBJS): msvg.h
+
 .c.o:
 	$(CC) $(CFLAGS) -c -o $@ $<

@@ -47,9 +47,15 @@ typedef int rgbcolor;
 
 #define NO_COLOR -1
 
+/* define types of svg trees */
+
+#define RAW_SVGTREE 0      /* tree with generic attributes only */
+#define COOKED_SVGTREE 1   /* tree with specific attributes */
+
 /* specific attributes for specific elements */
 
 typedef struct _MsvgSvgAttributes {
+  int tree_type;
   float vb_min_x; /* viewBox attribute */
   float vb_min_y;
   float vb_width;
