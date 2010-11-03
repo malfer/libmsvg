@@ -1,0 +1,191 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>libmsvg programmer's guide</title>
+</head>
+
+<body>
+<h1>libmsvg v0.01</h1>
+<h2>Programmer's guide</h2>
+<p>Last update: November 3, 2010</p>
+
+<hr>
+<h2>Abstract</h2>
+<p><b>libmsvg</b> is a minimal and generic C library to read and write SVG
+files. It concentrates on a small subset of SVG to be useful.</p>
+
+<h2>Contents</h2>
+<dir>
+<li><a href="#start">Starting with examples</a>
+<li><a href="#svgtree">The MsvgElement tree</a>
+<li><a href="#element">The MsvgElement structure</a>
+</dir>
+
+<hr>
+<h2><a name="#start">Starting with examples</a></h2>
+<p>I think the best way to start with a programmer's guide is to show examples,
+so here there are.</p>
+
+<h3>Example 1</h3>
+<p>This example read a SVG file in a  MsvgElement tree</p>
+<pre>
+#include &lt;stdio.h>
+#include "msvg.h"
+
+int main(int argc, char **argv)
+{
+  MsvgElement *root;
+
+  if (argc &lt;2)
+    return 0;
+
+  root = MsvgReadSvgFile(argv[1]);
+
+  if (root == NULL) {
+    printf("Error opening %s\n", argv[1]);
+    return 0;
+  }
+
+  /* Now you can process the structure. By example: */
+  MsvgPrintElementTree(stdout, root, 0);
+
+  return 1;
+}
+</pre>
+
+<h3>Example 2</h3>
+<p>This example constructs a MsvgElement tree and writes it to a file</p>
+<pre>
+#include &lt;stdio.h>
+#include "msvg.h"
+
+#define TESTFILE "msvgt2.svg"
+
+int main(int argc, char **argv)
+{
+  MsvgElement *root, *son;
+
+  root = MsvgNewElement(EID_SVG, NULL);
+  MsvgAddAttribute(root, "version", "1.2");
+  MsvgAddAttribute(root, "baseProfile", "tiny");
+  MsvgAddAttribute(root, "viewBox", "0 0 400 400");
+
+  son = MsvgNewElement(EID_RECT, root);
+  MsvgAddAttribute(son, "x", "1");
+  MsvgAddAttribute(son, "y", "1");
+  MsvgAddAttribute(son, "width", "398");
+  MsvgAddAttribute(son, "height", "398");
+  MsvgAddAttribute(son, "stroke", "#F00");
+  MsvgAddAttribute(son, "fill", "#FFF");
+
+  son = MsvgNewElement(EID_RECT, root);
+  MsvgAddAttribute(son, "x", "11");
+  MsvgAddAttribute(son, "y", "11");
+  MsvgAddAttribute(son, "width", "380");
+  MsvgAddAttribute(son, "height", "380");
+  MsvgAddAttribute(son, "stroke", "#0F0");
+  MsvgAddAttribute(son, "fill", "none");
+  MsvgPrintElementTree(stdout, root, 0);
+
+  if (!MsvgWriteSvgFile(root, TESTFILE)) {
+    printf("Error writing %s\n", TESTFILE);
+    return 0;
+  }
+
+  return 1;
+}
+
+</pre>
+
+<h3>How to compile the example programs</h3>
+<p>Assuming the libmsvg library was previously installed:</p>
+<ul>
+	<li>Linux: gcc -o example example.c -lmsvg
+	<li>DJGPP: gcc -o example.exe example.c -lmsvg
+	<li>Mingw: gcc -o example.exe example.c -lmsvg -mconsole
+</ul>
+
+<hr>
+<h2><a name="#svgtree">The MsvgElement tree</a></h2>
+<p>The central structure of libmsvg is the MsvgElement tree. Every MsvgElement
+has a defined element id (eid), a pointer to his father, pointers to his previous
+and next siblings and a pointer to his first son. The root element must be a
+EID_SVG. In this version of libmsvg only EID_SVG and EID_G can have son elements.
+The other supported elements are EID_RECT, EID_CIRCLE, EID_ELLIPSE, EID_LINE,
+EID_POLYLINE and EID_POLYGON.</p>
+<p>This graph represents an example of a MsvgElement tree:</p>
+<p><center>
+<img src="elementtree.png" alt="MsvgElement tree example">
+</center></p>
+<p>Every MsvgElement can have attributes, they can be of two types: generic or
+specific. The type of MsvgElement attributes in a tree is determined by a variable in
+the root element: root->psvgattr->tree_type. If this variable is RAW_SVGTREE all
+attributes are generic. Generic attributes are simple key,value pairs. If it is
+COOKED_SVGTREE all attributes are specific. Specific attributes are typed variables
+specific to each element id type.</p>
+
+<h3>The RAW_SVGTREE tree type</h3>
+<p>After a SVG file is loaded to a MsvgElement tree by the MsvgReadSvgFile function
+it is marked as a RAW_SVGTREE. Only the supported elements are inserted in the tree,
+but all the read attributes are stored like generic attributes. This stage of the
+tree can suffice for some programs, elements and attributes can be added, deleted or
+reordered and finally be written to a file using the MsvgWriteSvgFile function.</p>
+
+<h3>The COOKED_SVGTREE tree type</h3>
+<p>Using a planed funtion (<font color="#aa0000">to be added to the library</font>) you
+can convert a MsvgElement tree to the COOKED_SVGTREE type. Only the supported
+attributes are processed and converted to specific attributes. In this state the tree
+is easier to be manipulated by a program.</p>
+
+<h3>The FRIED_SVGTREE tree type</h3>
+<p>A third tree type is planned, using another planned function (<font color="#aa0000">
+to be added to the library</font>) you can convert a tree from COOKED_SVGTREE to
+FRIED_SVGTREE. In this state, all the elements are serialized, resolving each posible
+EID_G element, and all coordinates are truncated to integer values. This will be the
+ideal state for drawing a MsvgElemet tree using a graphics package. </p>
+
+<hr>
+<h2><a name="#element">The MsvgElement structure</a></h2>
+<p>After reading the previous section it must be easy to undestand the MsvgElement
+structure from the msvg.h include file:</p>
+<pre>
+typedef struct _MsvgElement *MsvgElementPtr;
+
+typedef struct _MsvgElement {
+  enum EID eid;
+  MsvgElementPtr father; /* pointer to father element */
+  MsvgElementPtr psibling; /* pointer to previous sibling element */
+  MsvgElementPtr nsibling; /* pointer to next sibling element */
+  MsvgElementPtr fson; /* pointer to first son element */
+  MsvgAttributePtr fattr; /* pointer to first generic attribute */
+  union { /* specific attributes */
+    MsvgSvgAttributes *psvgattr;
+    MsvgRectAttributes *prectattr;
+    MsvgCircleAttributes *pcircleattr;
+    MsvgEllipseAttributes *pellipseattr;
+    MsvgLineAttributes *plineattr;
+    MsvgPolylineAttributes *ppolylineattr;
+    MsvgPolygonAttributes *ppolygonattr;
+  };
+} MsvgElement;
+</pre>
+
+<p>Generic attributes are stored in a simple linked list of MsvgAttribute
+variables:</p>
+<pre>
+typedef struct _MsvgAttribute *MsvgAttributePtr;
+
+typedef struct _MsvgAttribute {
+  char *key; /* key attribute */
+  char *value; /* value attribute */
+  MsvgAttributePtr nattr; /* pointer to next attribute */
+} MsvgAttribute;
+</pre>
+
+<p>Specific attributes are different for each element id and stored in a
+union, you can inspect each one in the msvg.h include file.</p>
+
+
+</body>
+</html>
