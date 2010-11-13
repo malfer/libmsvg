@@ -23,7 +23,7 @@
 #include <string.h>
 #include "msvg.h"
 
-void writeLabelElement(FILE *f, enum EID eid, int start, int depth)
+static void writeLabelElement(FILE *f, enum EID eid, int start, int depth)
 {
   int i;
 
@@ -41,7 +41,7 @@ void writeLabelElement(FILE *f, enum EID eid, int start, int depth)
     fputs(">\n", f);
 }
 
-void writeElement(FILE *f, MsvgElement *el, int depth)
+static void writeElement(FILE *f, MsvgElement *el, int depth)
 {
   MsvgAttribute *pattr;
 

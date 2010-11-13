@@ -56,50 +56,50 @@ typedef int rgbcolor;
 
 typedef struct _MsvgSvgAttributes {
   int tree_type;
-  float vb_min_x; /* viewBox attribute */
-  float vb_min_y;
-  float vb_width;
-  float vb_height;
+  double vb_min_x; /* viewBox attribute */
+  double vb_min_y;
+  double vb_width;
+  double vb_height;
   rgbcolor fill_color; /* viewport-fill attribute */
-  float opacity; /* viewport-fill-opacity attribute */
+  double opacity; /* viewport-fill-opacity attribute */
 } MsvgSvgAttributes;
 
 typedef struct _MsvgRectAttributes {
-  float x; /* x attribute */
-  float y; /* y attribute */
-  float width; /* width attribute */
-  float height; /* height attribute */
-  float rx; /* rx attribute */
-  float ry; /* ry attribute */
+  double x; /* x attribute */
+  double y; /* y attribute */
+  double width; /* width attribute */
+  double height; /* height attribute */
+  double rx; /* rx attribute */
+  double ry; /* ry attribute */
 } MsvgRectAttributes;
 
 typedef struct _MsvgCircleAttributes {
-  float cx; /* cx attribute */
-  float cy; /* cy attribute */
-  float r; /* r attribute */
+  double cx; /* cx attribute */
+  double cy; /* cy attribute */
+  double r; /* r attribute */
 } MsvgCircleAttributes;
 
 typedef struct _MsvgEllipseAttributes {
-  float cx; /* cx attribute */
-  float cy; /* cy attribute */
-  float rx; /* rx attribute */
-  float ry; /* ry attribute */
+  double cx; /* cx attribute */
+  double cy; /* cy attribute */
+  double rx; /* rx attribute */
+  double ry; /* ry attribute */
 } MsvgEllipseAttributes;
 
 typedef struct _MsvgLineAttributes {
-  float x1; /* x1 attribute */
-  float y1; /* y1 attribute */
-  float x2; /* x2 attribute */
-  float y2; /* y2 attribute */
+  double x1; /* x1 attribute */
+  double y1; /* y1 attribute */
+  double x2; /* x2 attribute */
+  double y2; /* y2 attribute */
 } MsvgLineAttributes;
 
 typedef struct _MsvgPolylineAttributes {
-  float *points; /* points attibute */
+  double *points; /* points attibute */
   int npoints; /* number of points */
 } MsvgPolylineAttributes;
 
 typedef struct _MsvgPolygonAttributes {
-  float *points; /* points attibute */
+  double *points; /* points attibute */
   int npoints; /* number of points */
 } MsvgPolygonAttributes;
 
