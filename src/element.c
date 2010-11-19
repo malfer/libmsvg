@@ -61,6 +61,15 @@ MsvgElement *MsvgNewSvgElement(MsvgElement *father)
     return NULL;
   }
 
+  element->psvgattr->width = 0;
+  element->psvgattr->height = 0;
+  element->psvgattr->vb_min_x = 0;
+  element->psvgattr->vb_min_y = 0;
+  element->psvgattr->vb_width = 0;
+  element->psvgattr->vb_height = 0;
+  element->psvgattr->fill_color = 0; /* black */
+  element->psvgattr->opacity = 1; /* solid */
+
   return element;
 }
 
@@ -71,7 +80,20 @@ MsvgElement *MsvgNewGElement(MsvgElement *father)
   element = MsvgNewGenericElement(EID_G, father);
   if (element == NULL) return NULL;
 
-  return element;
+  element->pgattr = calloc(1, sizeof(MsvgGAttributes));
+  if (element->pgattr == NULL) {
+    free(element);
+    return NULL;
+  }
+
+  element->pgattr->id = NULL;
+  element->pgattr->fill_color = NO_COLOR;
+  element->pgattr->fill_opacity = INHERIT_VALUE;
+  element->pgattr->stroke_color = NO_COLOR;
+  element->pgattr->stroke_width = INHERIT_VALUE;
+  element->pgattr->stroke_opacity = INHERIT_VALUE;
+
+return element;
 }
 
 MsvgElement *MsvgNewRectElement(MsvgElement *father)
@@ -87,6 +109,19 @@ MsvgElement *MsvgNewRectElement(MsvgElement *father)
     return NULL;
   }
 
+  element->prectattr->id = NULL;
+  element->prectattr->x = 0;
+  element->prectattr->y = 0;
+  element->prectattr->width = 0;
+  element->prectattr->height = 0;
+  element->prectattr->rx = 0;
+  element->prectattr->ry = 0;
+  element->prectattr->fill_color = NO_COLOR;
+  element->prectattr->fill_opacity = INHERIT_VALUE;
+  element->prectattr->stroke_color = NO_COLOR;
+  element->prectattr->stroke_width = INHERIT_VALUE;
+  element->prectattr->stroke_opacity = INHERIT_VALUE;
+  
   return element;
 }
 
@@ -103,6 +138,16 @@ MsvgElement *MsvgNewCircleElement(MsvgElement *father)
     return NULL;
   }
 
+  element->pcircleattr->id = NULL;
+  element->pcircleattr->cx = 0;
+  element->pcircleattr->cy = 0;
+  element->pcircleattr->r = 0;
+  element->pcircleattr->fill_color = NO_COLOR;
+  element->pcircleattr->fill_opacity = INHERIT_VALUE;
+  element->pcircleattr->stroke_color = NO_COLOR;
+  element->pcircleattr->stroke_width = INHERIT_VALUE;
+  element->pcircleattr->stroke_opacity = INHERIT_VALUE;
+  
   return element;
 }
 
@@ -118,6 +163,17 @@ MsvgElement *MsvgNewEllipseElement(MsvgElement *father)
     free(element);
     return NULL;
   }
+
+  element->pellipseattr->id = NULL;
+  element->pellipseattr->cx = 0;
+  element->pellipseattr->cy = 0;
+  element->pellipseattr->rx = 0;
+  element->pellipseattr->ry = 0;
+  element->pellipseattr->fill_color = NO_COLOR;
+  element->pellipseattr->fill_opacity = INHERIT_VALUE;
+  element->pellipseattr->stroke_color = NO_COLOR;
+  element->pellipseattr->stroke_width = INHERIT_VALUE;
+  element->pellipseattr->stroke_opacity = INHERIT_VALUE;
 
   return element;
 }
@@ -135,6 +191,15 @@ MsvgElement *MsvgNewLineElement(MsvgElement *father)
     return NULL;
   }
 
+  element->plineattr->id = NULL;
+  element->plineattr->x1 = 0;
+  element->plineattr->y1 = 0;
+  element->plineattr->x2 = 0;
+  element->plineattr->y2 = 0;
+  element->plineattr->stroke_color = NO_COLOR;
+  element->plineattr->stroke_width = INHERIT_VALUE;
+  element->plineattr->stroke_opacity = INHERIT_VALUE;
+
   return element;
 }
 
@@ -151,6 +216,13 @@ MsvgElement *MsvgNewPolylineElement(MsvgElement *father)
     return NULL;
   }
 
+  element->ppolylineattr->id = NULL;
+  element->ppolylineattr->points = NULL;
+  element->ppolylineattr->npoints = 0;
+  element->ppolylineattr->stroke_color = NO_COLOR;
+  element->ppolylineattr->stroke_width = INHERIT_VALUE;
+  element->ppolylineattr->stroke_opacity = INHERIT_VALUE;
+
   return element;
 }
 
@@ -166,6 +238,15 @@ MsvgElement *MsvgNewPolygonElement(MsvgElement *father)
     free(element);
     return NULL;
   }
+
+  element->ppolygonattr->id = NULL;
+  element->ppolygonattr->points = NULL;
+  element->ppolygonattr->npoints = 0;
+  element->ppolygonattr->fill_color = NO_COLOR;
+  element->ppolygonattr->fill_opacity = INHERIT_VALUE;
+  element->ppolygonattr->stroke_color = NO_COLOR;
+  element->ppolygonattr->stroke_width = INHERIT_VALUE;
+  element->ppolygonattr->stroke_opacity = INHERIT_VALUE;
 
   return element;
 }

@@ -13,7 +13,8 @@ LIBOBJS=tables.o \
         raw2cook.o \
         printree.o \
         rdsvgf.o \
-        wtsvgf.o
+        wtsvgf.o \
+        util.o
 
 LIB=libmsvg.a
 

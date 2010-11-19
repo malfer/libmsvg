@@ -41,21 +41,28 @@ enum EID MsvgFindElementId(const char *ename);
 char * MsvgFindElementName(enum EID eid);
 int MsvgIsSupSonElementId(enum EID fatherid, enum EID sonid);
 
-/* define the rgbcolor type */
-
-typedef int rgbcolor;
-
-#define NO_COLOR -1
-
 /* define types of svg trees */
 
 #define RAW_SVGTREE 0      /* tree with generic attributes only */
 #define COOKED_SVGTREE 1   /* tree with specific attributes */
 
+/* define the rgbcolor type */
+
+typedef int rgbcolor;
+
+#define NO_COLOR -1
+#define INHERIT_COLOR -2
+
+/* define inherit value for double attributes */
+
+#define INHERIT_VALUE -1.0
+
 /* specific attributes for specific elements */
 
 typedef struct _MsvgSvgAttributes {
   int tree_type;
+  double width; /* width attribute */
+  double height; /* height attribute */
   double vb_min_x; /* viewBox attribute */
   double vb_min_y;
   double vb_width;
@@ -64,43 +71,84 @@ typedef struct _MsvgSvgAttributes {
   double opacity; /* viewport-fill-opacity attribute */
 } MsvgSvgAttributes;
 
+typedef struct _MsvgGAttributes {
+  char *id; /* id attribute */
+  rgbcolor fill_color; /* fill attribute */
+  double fill_opacity; /* fill-opacity attribute */
+  rgbcolor stroke_color; /* stroke attribute */
+  double stroke_width; /* stroke-width attribute */
+  double stroke_opacity; /* stroke-opacity attribute */
+} MsvgGAttributes;
+
 typedef struct _MsvgRectAttributes {
+  char *id; /* id attribute */
   double x; /* x attribute */
   double y; /* y attribute */
   double width; /* width attribute */
   double height; /* height attribute */
   double rx; /* rx attribute */
   double ry; /* ry attribute */
+  rgbcolor fill_color; /* fill attribute */
+  double fill_opacity; /* fill-opacity attribute */
+  rgbcolor stroke_color; /* stroke attribute */
+  double stroke_width; /* stroke-width attribute */
+  double stroke_opacity; /* stroke-opacity attribute */
 } MsvgRectAttributes;
 
 typedef struct _MsvgCircleAttributes {
+  char *id; /* id attribute */
   double cx; /* cx attribute */
   double cy; /* cy attribute */
   double r; /* r attribute */
+  rgbcolor fill_color; /* fill attribute */
+  double fill_opacity; /* fill-opacity attribute */
+  rgbcolor stroke_color; /* stroke attribute */
+  double stroke_width; /* stroke-width attribute */
+  double stroke_opacity; /* stroke-opacity attribute */
 } MsvgCircleAttributes;
 
 typedef struct _MsvgEllipseAttributes {
+  char *id; /* id attribute */
   double cx; /* cx attribute */
   double cy; /* cy attribute */
   double rx; /* rx attribute */
   double ry; /* ry attribute */
+  rgbcolor fill_color; /* fill attribute */
+  double fill_opacity; /* fill-opacity attribute */
+  rgbcolor stroke_color; /* stroke attribute */
+  double stroke_width; /* stroke-width attribute */
+  double stroke_opacity; /* stroke-opacity attribute */
 } MsvgEllipseAttributes;
 
 typedef struct _MsvgLineAttributes {
+  char *id; /* id attribute */
   double x1; /* x1 attribute */
   double y1; /* y1 attribute */
   double x2; /* x2 attribute */
   double y2; /* y2 attribute */
+  rgbcolor stroke_color; /* stroke attribute */
+  double stroke_width; /* stroke-width attribute */
+  double stroke_opacity; /* stroke-opacity attribute */
 } MsvgLineAttributes;
 
 typedef struct _MsvgPolylineAttributes {
+  char *id; /* id attribute */
   double *points; /* points attibute */
   int npoints; /* number of points */
+  rgbcolor stroke_color; /* stroke attribute */
+  double stroke_width; /* stroke-width attribute */
+  double stroke_opacity; /* stroke-opacity attribute */
 } MsvgPolylineAttributes;
 
 typedef struct _MsvgPolygonAttributes {
+  char *id; /* id attribute */
   double *points; /* points attibute */
   int npoints; /* number of points */
+  rgbcolor fill_color; /* fill attribute */
+  double fill_opacity; /* fill-opacity attribute */
+  rgbcolor stroke_color; /* stroke attribute */
+  double stroke_width; /* stroke-width attribute */
+  double stroke_opacity; /* stroke-opacity attribute */
 } MsvgPolygonAttributes;
 
 /* generic attributes */
@@ -126,6 +174,7 @@ typedef struct _MsvgElement {
   MsvgAttributePtr fattr; /* pointer to first generic attribute */
   union { /* specific attributes */
     MsvgSvgAttributes *psvgattr;
+    MsvgGAttributes *pgattr;
     MsvgRectAttributes *prectattr;
     MsvgCircleAttributes *pcircleattr;
     MsvgEllipseAttributes *pellipseattr;
@@ -144,3 +193,5 @@ MsvgElement *MsvgReadSvgFile(const char *fname);
 int MsvgWriteSvgFile(MsvgElement *root, const char *fname);
 
 void MsvgPrintElementTree(FILE *f, MsvgElement *ptr, int depth);
+
+int MsvgRaw2CookedTree(MsvgElement *root);
