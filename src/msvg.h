@@ -188,6 +188,13 @@ int MsvgAddAttribute(MsvgElement *pelement, const char *key, const char *value);
 
 MsvgElement *MsvgNewElement(enum EID eid, MsvgElement *father);
 
+/*
+int MsvgDeleteElement(MsvgElement *el);
+int MsvgPruneElement(MsvgElement *el);
+int MsvgInsertSonElement(MsvgElement *el, MsvgElement *father, imt pos);
+int MsvgInsertSiblingElement(MsvgElement *el, MsvgElement *sibling, imt pos);
+*/
+
 MsvgElement *MsvgReadSvgFile(const char *fname);
 
 int MsvgWriteSvgFile(MsvgElement *root, const char *fname);

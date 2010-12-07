@@ -6,20 +6,36 @@
 </head>
 
 <body>
-<h1>libmsvg v0.01</h1>
+<h1>libmsvg v0.02</h1>
 <h2>Programmer's guide</h2>
-<p>Last update: November 3, 2010</p>
+<p>Last update: December 7, 2010</p>
 
 <hr>
 <h2>Abstract</h2>
 <p><b>libmsvg</b> is a minimal and generic C library to read and write SVG
-files. It concentrates on a small subset of SVG to be useful.</p>
+files.</p>
+
+<p>SVG stand for Scalable Vector Graphics and is a standard defined by the
+World Wide Web Consortium (see <a href="http://www.w3.org/Graphics/SVG/">
+http://www.w3.org/Graphics/SVG/</a>).</p>
+
+<p><b>libmsvg</b> concentrates on a small subset of SVG to be useful. More
+specifically on a subset of the <a href="http://www.w3.org/TR/SVGTiny12/">
+SVG Tiny 1.2 specification</a>. The subset is described in <a href="#appendixa">
+Appendix A</a>.</p>
 
 <h2>Contents</h2>
 <dir>
 <li><a href="#start">Starting with examples</a>
 <li><a href="#svgtree">The MsvgElement tree</a>
 <li><a href="#element">The MsvgElement structure</a>
+<li><a href="#reading">Reading SVG files</a>
+<li><a href="#buildraw">Building a RAW MsvgElement tree by program</a>
+<li><a href="#buildcooked">Building a COOKED MsvgElement tree by program</a>
+<li><a href="#manipulating">Manipulating a MsvgElement tree</a>
+<li><a href="#writing">Writing SVG files</a>
+<li><a href="#appendixa">Appendix A, the libmsvg SVG subset</a>
+
 </dir>
 
 <hr>
@@ -55,7 +71,7 @@ int main(int argc, char **argv)
 </pre>
 
 <h3>Example 2</h3>
-<p>This example constructs a MsvgElement tree and writes it to a file</p>
+<p>This example builds a MsvgElement tree and writes it to a file</p>
 <pre>
 #include &lt;stdio.h>
 #include "msvg.h"
@@ -99,7 +115,10 @@ int main(int argc, char **argv)
 </pre>
 
 <h3>How to compile the example programs</h3>
-<p>Assuming the libmsvg library was previously installed:</p>
+<p>We assume here that you have the libmsvg library previously installed. If not,
+please read the "readme" file for installation instructions.</p>
+<p>These are the command lines to compile the examples for the three supported
+platforms:</p>
 <ul>
 	<li>Linux: gcc -o example example.c -lmsvg
 	<li>DJGPP: gcc -o example.exe example.c -lmsvg
@@ -133,7 +152,7 @@ tree can suffice for some programs, elements and attributes can be added, delete
 reordered and finally be written to a file using the MsvgWriteSvgFile function.</p>
 
 <h3>The COOKED_SVGTREE tree type</h3>
-<p>Using a planed funtion (<font color="#aa0000">to be added to the library</font>) you
+<p>Using the MsvgRaw2CookedTree funtion you
 can convert a MsvgElement tree to the COOKED_SVGTREE type. Only the supported
 attributes are processed and converted to specific attributes. In this state the tree
 is easier to be manipulated by a program.</p>
@@ -161,6 +180,7 @@ typedef struct _MsvgElement {
   MsvgAttributePtr fattr; /* pointer to first generic attribute */
   union { /* specific attributes */
     MsvgSvgAttributes *psvgattr;
+    MsvgGAttributes *pgattr;
     MsvgRectAttributes *prectattr;
     MsvgCircleAttributes *pcircleattr;
     MsvgEllipseAttributes *pellipseattr;
@@ -186,6 +206,48 @@ typedef struct _MsvgAttribute {
 <p>Specific attributes are different for each element id and stored in a
 union, you can inspect each one in the msvg.h include file.</p>
 
+<hr>
+<h2><a name="#reading">Reading SVG files</a></h2>
+<p>Using the MsvgReadSvgFile function you load a SVG file in a MsvgElement
+tree.</p>
+
+<pre>
+  MsvgElement *root;
+  root = MsvgReadSvgFile("file.svg");
+</pre>
+
+<p>If the file doesn't exists or it isn't a valid SVG file root will be NULL,
+so you must check it. Only the supported elements are stored in the tree, the
+not supported ones are silently ignored. The tree will be a RAW tree, with all
+the element attributes stored as generic attributes. If you want a COOKED tree
+you can use the MsvgRaw2CookedTree funtion:</p>
+
+<pre>
+  int result;
+  result = MsvgRaw2CookedTree(root);
+</pre>
+
+<p>result will be true if all was right, false otherwise</p>
+
+<hr>
+<h2><a name="#buildraw">Building a RAW MsvgElement tree by program</a></h2>
+<p>TODO</p>
+
+<hr>
+<h2><a name="#buildcooked">Building a COOKED MsvgElement tree by program</a></h2>
+<p>TODO</p>
+
+<hr>
+<h2><a name="#manipulating">Manipulating a MsvgElement tree</a></h2>
+<p>TODO</p>
+
+<hr>
+<h2><a name="#writing">Writing SVG files</a></h2>
+<p>TODO</p>
+
+<hr>
+<h2><a name="#appendixa">Appendix A, the libmsvg SVG subset</a></h2>
+<p>TODO</p>
 
 </body>
 </html>

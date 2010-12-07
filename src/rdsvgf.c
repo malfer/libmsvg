@@ -57,7 +57,7 @@ static void startElement(void *userData, const char *name, const char **attr)
       if (strcmp(name, "svg") == 0) {
         mudptr->svg_found = 1;
         mudptr->root = MsvgNewElement(EID_SVG, NULL);
-        // comprobar error
+        // TODO: test error
 	mudptr->root->psvgattr->tree_type = RAW_SVGTREE;
         addAttributes(mudptr->root, attr);
         mudptr->active_element = mudptr->root;
@@ -71,7 +71,7 @@ static void startElement(void *userData, const char *name, const char **attr)
       } else {
         ptr = MsvgNewElement(eid, mudptr->active_element);
         addAttributes(ptr, attr);
-        // comprobar error
+        // TODO: test error
         mudptr->active_element = ptr;
 //        printf("new element %s\n",name);
       }
@@ -127,7 +127,7 @@ MsvgElement *MsvgReadSvgFile(const char *fname)
     size_t len = fread(buf, 1, sizeof(buf), f);
     done = len < sizeof(buf);
     if (!XML_Parse(parser, buf, len, done)) {
-      // liberar root
+      // TODO: free root
       XML_ParserFree(parser);
       fclose(f);
       return NULL;
