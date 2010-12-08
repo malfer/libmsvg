@@ -39,7 +39,7 @@ Appendix A</a>.</p>
 </dir>
 
 <hr>
-<h2><a name="#start">Starting with examples</a></h2>
+<h2><a name="start">Starting with examples</a></h2>
 <p>I think the best way to start with a programmer's guide is to show examples,
 so here there are.</p>
 
@@ -126,7 +126,7 @@ platforms:</p>
 </ul>
 
 <hr>
-<h2><a name="#svgtree">The MsvgElement tree</a></h2>
+<h2><a name="svgtree">The MsvgElement tree</a></h2>
 <p>The central structure of libmsvg is the MsvgElement tree. Every MsvgElement
 has a defined element id (eid), a pointer to his father, pointers to his previous
 and next siblings and a pointer to his first son. The root element must be a
@@ -165,7 +165,7 @@ EID_G element, and all coordinates are truncated to integer values. This will be
 ideal state for drawing a MsvgElemet tree using a graphics package. </p>
 
 <hr>
-<h2><a name="#element">The MsvgElement structure</a></h2>
+<h2><a name="element">The MsvgElement structure</a></h2>
 <p>After reading the previous section it must be easy to undestand the MsvgElement
 structure from the msvg.h include file:</p>
 <pre>
@@ -207,7 +207,7 @@ typedef struct _MsvgAttribute {
 union, you can inspect each one in the msvg.h include file.</p>
 
 <hr>
-<h2><a name="#reading">Reading SVG files</a></h2>
+<h2><a name="reading">Reading SVG files</a></h2>
 <p>Using the MsvgReadSvgFile function you load a SVG file in a MsvgElement
 tree.</p>
 
@@ -230,24 +230,219 @@ you can use the MsvgRaw2CookedTree funtion:</p>
 <p>result will be true if all was right, false otherwise</p>
 
 <hr>
-<h2><a name="#buildraw">Building a RAW MsvgElement tree by program</a></h2>
+<h2><a name="buildraw">Building a RAW MsvgElement tree by program</a></h2>
 <p>TODO</p>
 
 <hr>
-<h2><a name="#buildcooked">Building a COOKED MsvgElement tree by program</a></h2>
+<h2><a name="buildcooked">Building a COOKED MsvgElement tree by program</a></h2>
 <p>TODO</p>
 
 <hr>
-<h2><a name="#manipulating">Manipulating a MsvgElement tree</a></h2>
+<h2><a name="manipulating">Manipulating a MsvgElement tree</a></h2>
 <p>TODO</p>
 
 <hr>
-<h2><a name="#writing">Writing SVG files</a></h2>
+<h2><a name="writing">Writing SVG files</a></h2>
 <p>TODO</p>
 
 <hr>
-<h2><a name="#appendixa">Appendix A, the libmsvg SVG subset</a></h2>
-<p>TODO</p>
+<h2><a name="appendixa">Appendix A, the libmsvg SVG subset</a></h2>
+<p>This table lists the SVG elementes and attributes that will be
+supported when libmsvg reaches version 0.1.</p>
+<p>Each row lists an element, the supported specific attributes and the
+possible elements that may be sons.</p>
+<p>Note that specific attributes only affects to COOKED trees, RAW trees
+can have any attribute.</p>
+<p>A status mark is added to each attribute: (ok) means it is already supported,
+(TO DO) means... you know: to do.</p>
+
+<table width=100% border=1 cellpadding=4 cellspacing=3>
+  <tr valign=top>
+    <th width=25%>
+      <p>Element</p>
+    </th>
+    <th width=44%>
+      <p>Specific supported attributes (status)</p>
+    </th>
+    <th width=31%>
+      <p>Possible son elements</p>
+    </th>
+  </tr>
+  <tr valign=top>
+    <td width=25%>
+      <p>&lt;svg&gt;</p>
+    </td>
+    <td width=44%>
+      <p>viewbox=&quot;min-x min-y width height&quot; (ok)</p>
+      <p>width=&quot;width&quot; (ok)</p>
+      <p>height=&quot;height&quot; (ok)</p>
+      <p>viewport-fill=&quot;color&quot; (ok)</p>
+      <p>viewport-fill-opacity=&quot;n&quot; (ok)</p>
+      <p>version=&quot;valor&quot; (TO DO)</p>
+      <p>baseprofile=&quot;valor&quot; (TO DO)</p>
+      <p>preserveaspectratio=&quot;valor&quot; (TO DO)</p>
+    </td>
+    <td width=31%>
+      <p>&lt;g&gt;, &lt;rect&gt;, &lt;circle&gt;, &lt;ellipse&gt;,
+      &lt;line&gt;, &lt;polyline&gt;, &lt;polygon&gt;</p>
+    </td>
+  </tr>
+  <tr valign=top>
+    <td width=25%>
+      <p>&lt;g&gt;</p>
+    </td>
+    <td width=44%>
+      <p>id=&quot;valor&quot; (ok)</p>
+      <p>transform=&quot;translate(x,y)&quot; (TO DO)</p>
+      <p>transform=&quot;rotate(angulo)&quot; (TO DO)</p>
+      <p>transform=&quot;scale(factor)&quot;  (TO DO)</p>
+      <p>fill=&quot;color&quot; (ok)</p>
+      <p>fill-opacity=&quot;n&quot; (ok)</p>
+      <p>stroke=&quot;color&quot; (ok)</p>
+      <p>stroke-width=&quot;n&quot; (ok)</p>
+      <p>stroke-opacity=&quot;n&quot; (ok)</p>
+    </td>
+    <td width=31%>
+      <p>&lt;g&gt;, &lt;rect&gt;, &lt;circle&gt;, &lt;ellipse&gt;,
+      &lt;line&gt;, &lt;polyline&gt;, &lt;polygon&gt;</p>
+    </td>
+  </tr>
+  <tr valign=top>
+    <td width=25%>
+      <p>&lt;rect&gt;</p>
+    </td>
+    <td width=44%>
+      <p>x=&quot;n&quot; (ok)</p>
+      <p>y=&quot;n&quot; (ok)</p>
+      <p>width=&quot;n&quot; (ok)</p>
+      <p>height=&quot;n&quot; (ok)</p>
+      <p>rx=&quot;n&quot; (ok)</p>
+      <p>ry=&quot;n&quot; (ok)</p>
+      <p>id=&quot;valor&quot; (ok)</p>
+      <p>transform=&quot;translate(x,y)&quot; (TO DO)</p>
+      <p>transform=&quot;rotate(angulo)&quot; (TO DO)</p>
+      <p>transform=&quot;scale(factor)&quot; (TO DO)</p>
+      <p>fill=&quot;color&quot; (ok)</p>
+      <p>fill-opacity=&quot;n&quot; (ok)</p>
+      <p>stroke=&quot;color&quot; (ok)</p>
+      <p>stroke-width=&quot;n&quot; (ok)</p>
+      <p>stroke-opacity=&quot;n&quot; (ok)</p>
+    </td>
+    <td width=31%>
+      <p><br>
+      </p>
+    </td>
+  </tr>
+  <tr valign=top>
+    <td width=25%>
+      <p>&lt;circle&gt;</p>
+    </td>
+    <td width=44%>
+      <p>cx=&quot;n&quot; (ok)</p>
+      <p>cy=&quot;n&quot; (ok)</p>
+      <p>r=&quot;n&quot; (ok)</p>
+      <p>id=&quot;valor&quot; (ok)</p>
+      <p>transform=&quot;translate(x,y)&quot; (TO DO)</p>
+      <p>transform=&quot;rotate(angulo)&quot; (TO DO)</p>
+      <p>transform=&quot;scale(factor)&quot; (TO DO)</p>
+      <p>fill=&quot;color&quot; (ok)</p>
+      <p>fill-opacity=&quot;n&quot; (ok)</p>
+      <p>stroke=&quot;color&quot; (ok)</p>
+      <p>stroke-width=&quot;n&quot; (ok)</p>
+      <p>stroke-opacity=&quot;n&quot; (ok)</p>
+    </td>
+    <td width=31%>
+      <p><br>
+      </p>
+    </td>
+  </tr>
+  <tr valign=top>
+    <td width=25%>
+      <p>&lt;ellipse&gt;</p>
+    </td>
+    <td width=44%>
+      <p>cx=&quot;n&quot; (ok)</p>
+      <p>cy=&quot;n&quot; (ok)</p>
+      <p>rx=&quot;n&quot; (ok)</p>
+      <p>ry=&quot;n&quot; (ok)</p>
+      <p>id=&quot;valor&quot; (ok)</p>
+      <p>transform=&quot;translate(x,y)&quot; (TO DO)</p>
+      <p>transform=&quot;rotate(angulo)&quot; (TO DO)</p>
+      <p>transform=&quot;scale(factor)&quot; (TO DO)</p>
+      <p>fill=&quot;color&quot; (ok)</p>
+      <p>fill-opacity=&quot;n&quot; (ok)</p>
+      <p>stroke=&quot;color&quot; (ok)</p>
+      <p>stroke-width=&quot;n&quot; (ok)</p>
+      <p>stroke-opacity=&quot;n&quot; (ok)</p>
+    </td>
+    <td width=31%>
+      <p><br>
+      </p>
+    </td>
+  </tr>
+  <tr valign=top>
+    <td width=25%>
+      <p>&lt;line&gt;</p>
+    </td>
+    <td width=44%>
+      <p>x1=&quot;n&quot; (ok)</p>
+      <p>y1=&quot;n&quot; (ok)</p>
+      <p>x2=&quot;n&quot; (ok)</p>
+      <p>y2=&quot;n&quot; (ok)</p>
+      <p>id=&quot;valor&quot; (ok)</p>
+      <p>transform=&quot;translate(x,y)&quot; (TO DO)</p>
+      <p>transform=&quot;rotate(angulo)&quot; (TO DO)</p>
+      <p>transform=&quot;scale(factor)&quot; (TO DO)</p>
+      <p>stroke=&quot;color&quot; (ok)</p>
+      <p>stroke-width=&quot;n&quot; (ok)</p>
+      <p>stroke-opacity=&quot;n&quot; (ok)</p>
+    </td>
+    <td width=31%>
+      <p><br>
+      </p>
+    </td>
+  </tr>
+  <tr valign=top>
+    <td width=25%>
+      <p>&lt;polyline&gt;</p>
+    </td>
+    <td width=44%>
+      <p>points=&quot;data&quot; (ok)</p>
+      <p>id=&quot;valor&quot; (ok)</p>
+      <p>transform=&quot;translate(x,y)&quot; (TO DO)</p>
+      <p>transform=&quot;rotate(angulo)&quot; (TO DO)</p>
+      <p>transform=&quot;scale(factor)&quot; (TO DO)</p>
+      <p>stroke=&quot;color&quot; (ok)</p>
+      <p>stroke-width=&quot;n&quot; (ok)</p>
+      <p>stroke-opacity=&quot;n&quot; (ok)</p>
+    </td>
+    <td width=31%>
+      <p><br>
+      </p>
+    </td>
+  </tr>
+  <tr valign=top>
+    <td width=25%>
+      <p>&lt;polygon&gt;</p>
+    </td>
+    <td width=44%>
+      <p>points=&quot;data&quot; (ok)</p>
+      <p>id=&quot;valor&quot; (ok)</p>
+      <p>transform=&quot;translate(x,y)&quot; (TO DO)</p>
+      <p>transform=&quot;rotate(angulo)&quot; (TO DO)</p>
+      <p>transform=&quot;scale(factor)&quot; (TO DO)</p>
+      <p>fill=&quot;color&quot; (ok)</p>
+      <p>fill-opacity=&quot;n&quot; (ok)</p>
+      <p>stroke=&quot;color&quot; (ok)</p>
+      <p>stroke-width=&quot;n&quot; (ok)</p>
+      <p>stroke-opacity=&quot;n&quot; (ok)</p>
+    </td>
+    <td width=31%>
+      <p><br>
+      </p>
+    </td>
+  </tr>
+</table>
 
 </body>
 </html>
