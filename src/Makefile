@@ -9,6 +9,7 @@ CFLAGS+= -I../expat/xmlparse
 
 LIBOBJS=tables.o \
         element.o \
+        manielem.o \
         attribut.o \
         raw2cook.o \
         printree.o \
