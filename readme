@@ -1,10 +1,13 @@
-Welcome to libmsvg version 0.01
+Welcome to libmsvg version 0.02
 
-libmsvg is a work in progress for making a minimal and generic library to read
+libmsvg is a work in progress to make a minimal and generic library to read
 and write SVG files.
 
 SVG stand for Scalable Vector Graphics and is a standard defined by the World
 Wide Web Consortium. See http://www.w3.org/Graphics/SVG/
+
+To be useful, libmsvg concentrates in a small subset of the SVG Tiny 1.2
+specification.
 
 Supported platforms
 ===================
@@ -30,7 +33,7 @@ libmsvg installation instructions
 Requirements:
 -------------
 
-  The source files:  libmsvg0001.tar.gz or msvg0001.zip
+  The source files:  libmsvg0002.tar.gz or msvg0002.zip
   This document:     readme
 
 A. Unpacking the libmsvg archive
@@ -77,7 +80,7 @@ B. Compiling libmsvg
 C. Testing libmsvg
 ------------------
 
-  1) Go to the 'test'.
+  1) Go to the 'test' subdir.
 
   2) run the test programs.
 
@@ -85,11 +88,11 @@ C. Testing libmsvg
 D. Installing libmsvg
 ---------------------
 
-  Copy the library from <libnsvg base>/src> to the compiler library
+  Copy the library 'libmsvg.a' from 'src' subdir to the system library
   directory.
 
-  Copy the header file msvg.h from <libmsvg base>/include> to your
-  compiler include directory.
+  Copy the header file 'msvg.h' from 'src' subdir to your system
+  include directory.
 
   Or you can let makefiles do it for you, running 'make install'.
 
@@ -100,18 +103,17 @@ D. Installing libmsvg
 Help
 ====
 
-  Because libmsvg is in an early stage there is not much documentation, so
-  use the source!!
+  Read the programmer's guide in the 'doc' subdir.
 
-  See the libmsvg site (libsvg.fgrim.com) for updates, tips, ... 
+  Check the libmsvg site (libmsvg.fgrim.com) for updates, tips, ... 
 
-  Send me a mail (malfer at telefonica.net)
+  Send me a mail <malfer at telefonica.net>
 
 License
 =======
 
   libmsvg is free software. You can redistribute it and/or modify it under
-  the LGPL license. See the "copying.txt" file for details.
+  the LGPL license. See the 'copying.txt' file for details.
 
 Enjoy, Mariano Alvarez <malfer at telefonica.net>
 
