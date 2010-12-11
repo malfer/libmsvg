@@ -69,7 +69,7 @@ MsvgElement *MsvgNewSvgElement(MsvgElement *father)
   element->psvgattr->vb_height = 0;
   element->psvgattr->fill_color = 0; /* black */
   element->psvgattr->opacity = 1; /* solid */
-
+  element->psvgattr->tree_type = RAW_SVGTREE;
   return element;
 }
 

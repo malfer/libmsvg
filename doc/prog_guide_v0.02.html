@@ -213,7 +213,7 @@ tree.</p>
 
 <pre>
   MsvgElement *root;
-  root = MsvgReadSvgFile("file.svg");
+  root = MsvgReadSvgFile("filein.svg");
 </pre>
 
 <p>If the file doesn't exists or it isn't a valid SVG file root will be NULL,
@@ -231,19 +231,146 @@ you can use the MsvgRaw2CookedTree funtion:</p>
 
 <hr>
 <h2><a name="buildraw">Building a RAW MsvgElement tree by program</a></h2>
-<p>TODO</p>
+<p>Using only two function we can cosntruct a MsvgElement tree by program. The
+MsvgNewElement function takes two parameters: the element id and the father
+element, that can be NULL. It returns the pointer to the constructed
+element.</p>
+<p>So we begin constructing the SVG element passing NULL in the father
+parameter, because it is the root element. By default the tree will be
+RAW_SVGTREE.</p> 
+
+<pre>
+  MsvgElement *root;
+  root = MsvgNewElement(EID_SVG, NULL);
+</pre>
+
+<p>Now, we add an attribute to set the drawing limits using the
+MsvgAddAttribute function.</p>
+
+<pre>
+  MsvgAddAttribute(root, "viewBox", "0 0 400 400");
+</pre>
+
+<p>We continue adding two son elements, a RECT element and a G element.</p>
+
+<pre>
+  MsvgElement *son;
+  son = MsvgNewElement(EID_RECT, root);
+  MsvgAddAttribute(son, "x", "1");
+  MsvgAddAttribute(son, "y", "1");
+  MsvgAddAttribute(son, "width", "398");
+  MsvgAddAttribute(son, "height", "398");
+  MsvgAddAttribute(son, "stroke", "#F00");
+  MsvgAddAttribute(son, "fill", "#FFF");
+  son = MsvgNewElement(EID_G, root);
+  MsvgAddAttribute(son, "stroke", "#0F0");
+  MsvgAddAttribute(son, "fill", "none");
+  MsvgPrintElementTree(stdout, root, 0);
+</pre>
+
+<p>Finally we add two son CIRCLE elements to the G element. Note that they
+inherit the stroke and fill attributes.</p>
+
+<pre>
+  MsvgElement *soon2;
+  son2 = MsvgNewElement(EID_CIRCLE, son);
+  MsvgAddAttribute(son2, "cx", "100");
+  MsvgAddAttribute(son2, "cy", "200");
+  MsvgAddAttribute(son2, "r", "80");
+  son2 = MsvgNewElement(EID_CIRCLE, son);
+  MsvgAddAttribute(son2, "cx", "300");
+  MsvgAddAttribute(son2, "cy", "200");
+  MsvgAddAttribute(son2, "r", "80");
+</pre>
+
+<p>We have now our MsvgElement tree and we can manipulate it or write it to
+a file.</p>
 
 <hr>
 <h2><a name="buildcooked">Building a COOKED MsvgElement tree by program</a></h2>
-<p>TODO</p>
+<p>Constructing a COOKED tree is the same like constructing a RAW one, except we
+don't use the MsvgAddAttribute function. Instead we set directly the element
+variables, there are no functions to hide the variables, because we are
+programmers and we know what are we doing, doesn't it.</p>
+
+<pre>
+  MsvgElement *root;
+  root = MsvgNewElement(EID_SVG, NULL);
+  root->psvgattr->vb_min_x = 0;
+  root->psvgattr->vb_min_y = 0;
+  root->psvgattr->vb_width = 400;
+  root->psvgattr->vb_height = 400;
+  root->psvgattr->tree_type = COOKED_SVGTREE;
+
+  MsvgElement *son;
+  son = MsvgNewElement(EID_RECT, root);
+  son->prectattr->x = 1;
+  son->prectattr->y = 1;
+  son->prectattr->width = 398;
+  son->prectattr->height = 398;
+  son->prectattr->fill_color = 0XFFFFFF;
+  son->prectattr->stroke_color = 0XFF0000;
+  son = MsvgNewElement(EID_G, root);
+  son->gattr->fill_color = NO_COLOR;
+  son->gattr->stroke_color = 0X00FF00;
+
+  MsvgElement *soon2;
+  son2 = MsvgNewElement(EID_CIRCLE, son);
+  son2->pcircleattr->cx = 100;
+  son2->pcircleattr->cy = 200;
+  son2->pcircleattr->r = 80;
+  son2 = MsvgNewElement(EID_CIRCLE, son);
+  son2->pcircleattr->cx = 300;
+  son2->pcircleattr->cy = 200;
+  son2->pcircleattr->r = 80;
+</pre>
 
 <hr>
 <h2><a name="manipulating">Manipulating a MsvgElement tree</a></h2>
-<p>TODO</p>
+<p>There are some functions to manipulate a MsvgElement tree.</p>
+
+<pre>
+void MsvgPruneElement(MsvgElement *el);
+</pre>
+<p>The MsvgPruneElement function prune an element from his tree and them we
+can insert it in another tree or in another point of the same tree. Note that
+if the pruned element has sons, it retains them after pruned.</p>
+
+<pre>
+void MsvgDeleteElement(MsvgElement *el);
+</pre>
+<p>The MsvgDeleteElement does two things, prunes the element from his tree and
+deletes it, freeing the allocated memory used. Note that if the deleted
+element has sons, they are deleted too.</p>
+
+<pre>
+int MsvgInsertSonElement(MsvgElement *el, MsvgElement *father);
+int MsvgInsertPSiblingElement(MsvgElement *el, MsvgElement *sibling);
+int MsvgInsertNSiblingElement(MsvgElement *el, MsvgElement *sibling);
+</pre>
+<p>This three functios insert an element (that can be a subtree if it has dons) in
+the desired point of a tree. The MsvgInsertSonElement fucntion inserts the element
+like the last son of the indicated father. The MsvgInsertPSiblingElement function
+inserts the element like a previous sibling to the indicated sibling. And the
+MsvgInsertNSiblingElement function inserts the element like a next sibling. The
+three functions return 1 if all was ok, 0 otherwise.</p>
 
 <hr>
 <h2><a name="writing">Writing SVG files</a></h2>
-<p>TODO</p>
+<p>Using the MsvgWriteSvgFile function you can write a MsvgElement tree to a file.</p>
+
+<pre>
+int MsvgWriteSvgFile(root, "fileout.svg")
+</pre>
+
+<p>MsvgWriteSvgFile only know how to write RAW trees. If you want to write a COOKED tree
+you need to use the MsvgCooked2RawTree funtion (<font color="#aa0000">to be added to
+the library</font>) first:</p>
+
+<pre>
+  int result;
+  result = MsvgCooked2RawTree(root);
+</pre>
 
 <hr>
 <h2><a name="appendixa">Appendix A, the libmsvg SVG subset</a></h2>
