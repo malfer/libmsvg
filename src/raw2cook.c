@@ -37,8 +37,8 @@ static rgbcolor colortorgb(char *color)
     } else { /* #rgb */
       rgbcolor i;
       int r, g, b;
-      sscanf(color, "#%x%x%x", &r, &g, &b);
-      i = (r << 20) + (r << 16) + (g << 12) + (g << 8) + (r << 4) + r;
+      sscanf(color, "#%1x%1x%1x", &r, &g, &b);
+      i = (r << 20) | (r << 16) | (g << 12) | (g << 8) | (b << 4) | b;
       return i;
     }
   }

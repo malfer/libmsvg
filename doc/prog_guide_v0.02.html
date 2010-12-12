@@ -8,7 +8,7 @@
 <body>
 <h1>libmsvg v0.02</h1>
 <h2>Programmer's guide</h2>
-<p>Last update: December 7, 2010</p>
+<p>Last update: December 12, 2010</p>
 
 <hr>
 <h2>Abstract</h2>
@@ -311,8 +311,8 @@ programmers and we know what are we doing, doesn't it.</p>
   son->prectattr->fill_color = 0XFFFFFF;
   son->prectattr->stroke_color = 0XFF0000;
   son = MsvgNewElement(EID_G, root);
-  son->gattr->fill_color = NO_COLOR;
-  son->gattr->stroke_color = 0X00FF00;
+  son->pgattr->fill_color = NO_COLOR;
+  son->pgattr->stroke_color = 0X00FF00;
 
   MsvgElement *soon2;
   son2 = MsvgNewElement(EID_CIRCLE, son);

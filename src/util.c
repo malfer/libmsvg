@@ -54,12 +54,12 @@ int MsvgI_read_numbers(char *s, double *df, int maxnumbers)
   while (*p != '\0') {
     if (isdigit(*p) || *p == '.') {
       if (n >= maxnumbers) break;
-      p++;
       dig = 0;
       aux[dig++] = *p;
+      p++;
       while (isdigit(*p) || *p == '.') {
-        p++;
         if (dig < MAX_DIGITS) aux[dig++] = *p;
+        p++;
       }
       aux[dig] = '\0';
       df[n++] = atof(aux);
