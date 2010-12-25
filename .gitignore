@@ -6,6 +6,7 @@ expat/sample/elements
 # Ignore test programs
 test/t1
 test/t2
+mgrx/rsvg
 # Ignore graphics files from test programs
 test/msvgt1.svg
 test/msvgt2.svg

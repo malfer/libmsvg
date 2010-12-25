@@ -61,7 +61,22 @@ static void DrawElement(MsvgElement *el)
 	       el->prectattr->x+el->prectattr->width-1,
 	       el->prectattr->y+el->prectattr->height-1,
 	       cstroke);
+    } 
+  } else if (el->eid == EID_CIRCLE) {
+    if (el->pcircleattr->fill_color != NO_COLOR) {
+      cfill = GrAllocColor2(el->pcircleattr->fill_color);
+      GrUsrFilledCircle(el->pcircleattr->cx,
+		        el->pcircleattr->cy,
+			el->pcircleattr->r,
+		        cfill);
     }
+    if (el->pcircleattr->stroke_color != NO_COLOR) {
+      cstroke = GrAllocColor2(el->pcircleattr->stroke_color);
+      GrUsrCircle(el->pcircleattr->cx,
+	          el->pcircleattr->cy,
+		  el->pcircleattr->r,
+	          cstroke);
+    } 
   }
 }
 
@@ -84,8 +99,8 @@ MsvgElement *CreateTree(void)
   root = MsvgNewElement(EID_SVG, NULL);
   root->psvgattr->vb_min_x = 0;
   root->psvgattr->vb_min_y = 0;
-  root->psvgattr->vb_width = 400;
-  root->psvgattr->vb_height = 400;
+  root->psvgattr->vb_width = 640;
+  root->psvgattr->vb_height = 480;
   root->psvgattr->tree_type = COOKED_SVGTREE;
 
   MsvgElement *son;
@@ -96,6 +111,13 @@ MsvgElement *CreateTree(void)
   son->prectattr->height = 300;
   son->prectattr->fill_color = 0XFF;
   son->prectattr->stroke_color = 0XFF0000;
+
+  son = MsvgNewElement(EID_CIRCLE, root);
+  son->pcircleattr->cx = 100;
+  son->pcircleattr->cy = 100;
+  son->pcircleattr->r = 80;
+  son->pcircleattr->fill_color = 0XFF00;
+  son->pcircleattr->stroke_color = 0X8800;
   
   return root;
 }
