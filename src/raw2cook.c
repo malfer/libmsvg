@@ -67,14 +67,20 @@ static void cookSvgGenAttr(MsvgElement *el, char *key, char *value)
 {
   double daux[4];
   
-  if (strcmp(key, "width") == 0) el->psvgattr->width = atof(value);
-  else if (strcmp(key, "height") == 0) el->psvgattr->height = atof(value);
-  else if (strcmp(key, "viewBox") == 0) {
+  if (strcmp(key, "width") == 0) {
+    el->psvgattr->width = atof(value);
+    if (el->psvgattr->vb_width == 0) el->psvgattr->vb_width = el->psvgattr->width;
+  } else if (strcmp(key, "height") == 0) {
+    el->psvgattr->height = atof(value);
+    if (el->psvgattr->vb_height == 0) el->psvgattr->vb_height = el->psvgattr->height;
+  } else if (strcmp(key, "viewBox") == 0) {
     MsvgI_read_numbers(value, daux, 4);
     el->psvgattr->vb_min_x = daux[0];
     el->psvgattr->vb_min_y = daux[1];
     el->psvgattr->vb_width = daux[2];
     el->psvgattr->vb_height = daux[3];
+    if (el->psvgattr->width == 0) el->psvgattr->width = el->psvgattr->vb_width;
+    if (el->psvgattr->height == 0) el->psvgattr->height = el->psvgattr->vb_height;
   }
   else if (strcmp(key, "vieport-fill") == 0) el->psvgattr->fill_color = colortorgb(value);
   else if (strcmp(key, "vieport-fill-opacity") == 0) el->psvgattr->opacity = opacitytof(value);

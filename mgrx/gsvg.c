@@ -1,4 +1,4 @@
-/* rsvg.c ---- test read svg for MGRX
+/* gsvg.c ---- test generated svg for MGRX
  *
  * These test programs are a dirty hack to test the libmsvg librarie with the
  * mgrx graphics library. It is NOT part of the librarie really.
@@ -24,7 +24,6 @@
  *
  */
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -32,16 +31,41 @@
 #include <mgrxkeys.h>
 #include <msvg.h>
 
+static MsvgElement *CreateTree(void)
+{
+  MsvgElement *root;
+  root = MsvgNewElement(EID_SVG, NULL);
+  root->psvgattr->vb_min_x = 0;
+  root->psvgattr->vb_min_y = 0;
+  root->psvgattr->vb_width = 640;
+  root->psvgattr->vb_height = 480;
+  root->psvgattr->tree_type = COOKED_SVGTREE;
+
+  MsvgElement *son;
+  son = MsvgNewElement(EID_RECT, root);
+  son->prectattr->x = 50;
+  son->prectattr->y = 50;
+  son->prectattr->width = 300;
+  son->prectattr->height = 300;
+  son->prectattr->fill_color = 0XFF;
+  son->prectattr->stroke_color = 0XFF0000;
+
+  son = MsvgNewElement(EID_CIRCLE, root);
+  son->pcircleattr->cx = 100;
+  son->pcircleattr->cy = 100;
+  son->pcircleattr->r = 80;
+  son->pcircleattr->fill_color = 0XFF00;
+  son->pcircleattr->stroke_color = 0X8800;
+  
+  return root;
+}
+
 static void TestFunc(void)
 {
   GrEvent ev;
-  MsvgElement *root;
 
   GrClearContext(GrBlack());
-  root = MsvgReadSvgFile("test.svg");
-  if (root == NULL) return;
-  if (!MsvgRaw2CookedTree(root)) return;
-  DrawSVGtree(root);
+  DrawSVGtree(CreateTree());
   GrEventWaitKeyOrClick(&ev);
 }
 
@@ -55,7 +79,7 @@ int main(int argc,char **argv)
 
   yhelptext = GrScreenY() - 60;
   GrTextXY(10, yhelptext+25,
-           "test.svg file renderized",
+           "Test a generated MsvgElement tree",
            GrBlack(), GrNOCOLOR);
   GrTextXY(10, yhelptext+40,
            "Press any key to finish",

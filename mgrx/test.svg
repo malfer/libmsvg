@@ -1,5 +1,103 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg version="1.2" baseProfile="tiny" viewBox="0 0 400 400">
-  <rect x="1" y="1" width="398" height="398" stroke="#F00" fill="#FFF" />
-  <rect x="11" y="11" width="380" height="380" stroke="#0F0" fill="none" />
+<!-- libmsvg test file -->
+
+<svg version="1.2" baseProfile="tiny" viewBox="0 0 530 1000">
+  <g id="layer1">
+    <rect
+       fill="#0000ff" stroke="#000000"
+       id="rect2818"
+       width="10" height="105" x="115" y="470" />
+    <rect
+       fill="#0000ff" stroke="#000000"
+       id="rect2820"
+       width="10" height="50" x="135" y="525" />
+    <rect
+       fill="#0000ff" stroke="#000000"
+       id="rect2822"
+       width="10" height="105" x="155" y="470" />
+    <rect
+       fill="#0000ff" stroke="#000000"
+       id="rect2824"
+       width="35" height="10" x="165" y="525" />
+    <rect
+       fill="#0000ff" stroke="#000000"
+       id="rect2826"
+       width="10" height="40" x="190" y="535" />
+    <rect
+       fill="#0000ff" stroke="#000000"
+       id="rect2828"
+       width="25" height="10" x="165" y="565" />
+    <rect
+       fill="#0000ff" stroke="#000000"
+       id="rect2830"
+       width="10" height="50" x="210" y="525" />
+    <rect
+       fill="#0000ff" stroke="#000000"
+       id="rect2832"
+       width="15" height="10" x="220" y="525" />
+    <rect
+       fill="#0000ff" stroke="#000000"
+       id="rect2834"
+       width="10" height="50" x="235" y="525" />
+    <rect
+       fill="#0000ff" stroke="#000000"
+       id="rect2836"
+       width="15" height="10" x="245" y="525" />
+    <rect
+       fill="#0000ff" stroke="#000000"
+       id="rect2838"
+       width="10" height="50" x="260" y="525" />
+    <rect
+       fill="#0000ff" stroke="#000000"
+       id="rect2894"
+       width="40" height="10" x="280" y="565" />
+    <rect
+       fill="#0000ff" stroke="#000000"
+       id="rect2894-4"
+       width="40" height="10" x="280" y="525" />
+    <rect
+       fill="#0000ff" stroke="#000000"
+       id="rect2894-0"
+       width="40" height="10" x="280" y="545" />
+    <rect
+       fill="#0000ff" stroke="#000000"
+       id="rect2832-5"
+       width="10" height="10" x="280" y="535" />
+    <rect
+       fill="#0000ff" stroke="#000000"
+       id="rect2832-5-9"
+       width="10" height="10" x="310" y="555" />
+    <rect
+       fill="#0000ff" stroke="#000000"
+       id="rect2820-4"
+       width="10" height="50" x="330" y="525" />
+    <rect
+       fill="#00ffff" stroke="#000000"
+       id="rect2820-4-6"
+       width="11.206549" height="56.032745" x="629.46014" y="71.570511"
+       transform="matrix(0.66268605,0.74889732,-0.66268605,0.74889732,0,0)" />
+    <rect
+       fill="#0000ff" stroke="#000000"
+       id="rect2826-9"
+       width="10" height="40" x="380" y="535" />
+    <rect
+       fill="#0000ff" stroke="#000000"
+       id="rect2824-2"
+       width="35" height="10" x="380" y="525" />
+    <rect
+       fill="#0000ff" stroke="#000000"
+       id="rect2822-2"
+       width="10" height="85" x="415" y="525" />
+    <rect
+       fill="#0000ff" stroke="#000000"
+       id="rect2828-4"
+       width="25" height="10" x="390" y="565" />
+    <rect
+       fill="#0000ff" stroke="#000000"
+       id="rect2828-4-7"
+       width="30" height="10" x="385" y="600" />
+    <circle
+       fill="#ff0000" stroke="#000000"
+       cx="140" cy="510" r="5" />
+  </g>
 </svg>
