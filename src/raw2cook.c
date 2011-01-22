@@ -60,7 +60,15 @@ static double widthtof(char *value)
 
 static void readpoints(char *value, double **points, int *npoints)
 {
-  /* TODO: read the points */
+  int n;
+  
+  *npoints = 0;
+  n = MsvgI_count_numbers(value);
+  if (n < 2) return;
+  *points = (double *)calloc(n, sizeof(double));
+  if (*points == NULL) return;
+  MsvgI_read_numbers(value, *points, n);
+  *npoints = n / 2;
 }
 
 static void cookSvgGenAttr(MsvgElement *el, char *key, char *value)
