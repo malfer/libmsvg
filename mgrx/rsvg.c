@@ -50,7 +50,8 @@ int main(int argc,char **argv)
   int yhelptext;
 
   GrContext *ctx;
-  GrSetMode(GR_default_graphics);
+//  GrSetMode(GR_default_graphics);
+  GrSetMode(GR_width_height_bpp_graphics, 500, 1000, 24);
   GrClearScreen(GrWhite());
 
   yhelptext = GrScreenY() - 60;

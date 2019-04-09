@@ -115,6 +115,36 @@ static void DrawEllipseElement(MsvgElement *el)
   } 
 }
 
+static void DrawLineElement(MsvgElement *el)
+{
+  GrColor cstroke;
+  
+  if (el->plineattr->stroke_color != NO_COLOR) {
+    cstroke = GrAllocColor2(el->plineattr->stroke_color);
+    GrUsrLine(el->plineattr->x1, el->plineattr->y1,
+              el->plineattr->x2, el->plineattr->y2,
+              cstroke);
+  } 
+}
+
+static void DrawPolylineElement(MsvgElement *el)
+{
+  GrColor cstroke;
+  int i, (*points)[2];
+  
+  points = calloc(el->ppolylineattr->npoints, sizeof(int[2]));
+  if (points == NULL) return;
+  for (i=0; i <el->ppolylineattr->npoints; i++) {
+    points[i][0] = el->ppolylineattr->points[i*2];
+    points[i][1] = el->ppolylineattr->points[i*2+1];
+  }
+
+  if (el->ppolylineattr->stroke_color != NO_COLOR) {
+    cstroke = GrAllocColor2(el->ppolylineattr->stroke_color);
+    GrUsrPolyLine(el->ppolylineattr->npoints, points, cstroke);
+  } 
+}
+
 static void DrawPolygonElement(MsvgElement *el)
 {
   GrColor cfill;
@@ -161,14 +191,12 @@ static void DrawElement(MsvgElement *el)
   case EID_ELLIPSE :
     DrawEllipseElement(el);
     break;
-/*
   case EID_LINE :
     DrawLineElement(el);
     break;
   case EID_POLYLINE :
     DrawPolylineElement(el);
     break;
-**/
   case EID_POLYGON :
     DrawPolygonElement(el);
     break;
