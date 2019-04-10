@@ -100,7 +100,7 @@ static void cookGGenAttr(MsvgElement *el, char *key, char *value)
   else if (strcmp(key, "fill") == 0) el->pgattr->fill_color = colortorgb(value);
   else if (strcmp(key, "fill-opacity") == 0) el->pgattr->fill_opacity = opacitytof(value);
   else if (strcmp(key, "stroke") == 0) el->pgattr->stroke_color = colortorgb(value);
-  else if (strcmp(key, "stroke-width") == 0) el->pgattr->stroke_opacity = widthtof(value);
+  else if (strcmp(key, "stroke-width") == 0) el->pgattr->stroke_width = widthtof(value);
   else if (strcmp(key, "stroke-opacity") == 0) el->pgattr->stroke_opacity = opacitytof(value);
 }
 
@@ -116,7 +116,7 @@ static void cookRectGenAttr(MsvgElement *el, char *key, char *value)
   else if (strcmp(key, "fill") == 0) el->prectattr->fill_color = colortorgb(value);
   else if (strcmp(key, "fill-opacity") == 0) el->prectattr->fill_opacity = opacitytof(value);
   else if (strcmp(key, "stroke") == 0) el->prectattr->stroke_color = colortorgb(value);
-  else if (strcmp(key, "stroke-width") == 0) el->prectattr->stroke_opacity = widthtof(value);
+  else if (strcmp(key, "stroke-width") == 0) el->prectattr->stroke_width = widthtof(value);
   else if (strcmp(key, "stroke-opacity") == 0) el->prectattr->stroke_opacity = opacitytof(value);
 }
 
@@ -129,7 +129,7 @@ static void cookCircleGenAttr(MsvgElement *el, char *key, char *value)
   else if (strcmp(key, "fill") == 0) el->pcircleattr->fill_color = colortorgb(value);
   else if (strcmp(key, "fill-opacity") == 0) el->pcircleattr->fill_opacity = opacitytof(value);
   else if (strcmp(key, "stroke") == 0) el->pcircleattr->stroke_color = colortorgb(value);
-  else if (strcmp(key, "stroke-width") == 0) el->pcircleattr->stroke_opacity = widthtof(value);
+  else if (strcmp(key, "stroke-width") == 0) el->pcircleattr->stroke_width = widthtof(value);
   else if (strcmp(key, "stroke-opacity") == 0) el->pcircleattr->stroke_opacity = opacitytof(value);
 }
 
@@ -143,7 +143,7 @@ static void cookEllipseGenAttr(MsvgElement *el, char *key, char *value)
   else if (strcmp(key, "fill") == 0) el->pellipseattr->fill_color = colortorgb(value);
   else if (strcmp(key, "fill-opacity") == 0) el->pellipseattr->fill_opacity = opacitytof(value);
   else if (strcmp(key, "stroke") == 0) el->pellipseattr->stroke_color = colortorgb(value);
-  else if (strcmp(key, "stroke-width") == 0) el->pellipseattr->stroke_opacity = widthtof(value);
+  else if (strcmp(key, "stroke-width") == 0) el->pellipseattr->stroke_width = widthtof(value);
   else if (strcmp(key, "stroke-opacity") == 0) el->pellipseattr->stroke_opacity = opacitytof(value);
 }
 
@@ -155,7 +155,7 @@ static void cookLineGenAttr(MsvgElement *el, char *key, char *value)
   else if (strcmp(key, "x2") == 0) el->plineattr->x2 = atof(value);
   else if (strcmp(key, "y2") == 0) el->plineattr->y2 = atof(value);
   else if (strcmp(key, "stroke") == 0) el->plineattr->stroke_color = colortorgb(value);
-  else if (strcmp(key, "stroke-width") == 0) el->plineattr->stroke_opacity = widthtof(value);
+  else if (strcmp(key, "stroke-width") == 0) el->plineattr->stroke_width = widthtof(value);
   else if (strcmp(key, "stroke-opacity") == 0) el->plineattr->stroke_opacity = opacitytof(value);
 }
 
@@ -165,7 +165,7 @@ static void cookPolylineGenAttr(MsvgElement *el, char *key, char *value)
   else if (strcmp(key, "points") == 0) 
     readpoints(value, &(el->ppolylineattr->points), &(el->ppolylineattr->npoints));
   else if (strcmp(key, "stroke") == 0) el->ppolylineattr->stroke_color = colortorgb(value);
-  else if (strcmp(key, "stroke-width") == 0) el->ppolylineattr->stroke_opacity = widthtof(value);
+  else if (strcmp(key, "stroke-width") == 0) el->ppolylineattr->stroke_width = widthtof(value);
   else if (strcmp(key, "stroke-opacity") == 0) el->ppolylineattr->stroke_opacity = opacitytof(value);
 }
 
@@ -177,7 +177,7 @@ static void cookPolygonGenAttr(MsvgElement *el, char *key, char *value)
   else if (strcmp(key, "fill") == 0) el->ppolygonattr->fill_color = colortorgb(value);
   else if (strcmp(key, "fill-opacity") == 0) el->ppolygonattr->fill_opacity = opacitytof(value);
   else if (strcmp(key, "stroke") == 0) el->ppolygonattr->stroke_color = colortorgb(value);
-  else if (strcmp(key, "stroke-width") == 0) el->ppolygonattr->stroke_opacity = widthtof(value);
+  else if (strcmp(key, "stroke-width") == 0) el->ppolygonattr->stroke_width = widthtof(value);
   else if (strcmp(key, "stroke-opacity") == 0) el->ppolygonattr->stroke_opacity = opacitytof(value);
 }
 

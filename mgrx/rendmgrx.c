@@ -29,6 +29,7 @@
 
 #include <mgrx.h>
 #include <msvg.h>
+#include "rendmgrx.h"
 
 /*
 typedef struct _DrawSettings {
@@ -130,45 +131,67 @@ static void DrawLineElement(MsvgElement *el)
 static void DrawPolylineElement(MsvgElement *el)
 {
   GrColor cstroke;
-  int i, (*points)[2];
+  GrLineOption lopt;
+  int i, npoints, (*points)[2];
   
-  points = calloc(el->ppolylineattr->npoints, sizeof(int[2]));
+  npoints = el->ppolylineattr->npoints;
+  points = calloc(npoints, sizeof(int[2]));
   if (points == NULL) return;
-  for (i=0; i <el->ppolylineattr->npoints; i++) {
+  for (i=0; i <npoints; i++) {
     points[i][0] = el->ppolylineattr->points[i*2];
     points[i][1] = el->ppolylineattr->points[i*2+1];
   }
 
   if (el->ppolylineattr->stroke_color != NO_COLOR) {
     cstroke = GrAllocColor2(el->ppolylineattr->stroke_color);
-    GrUsrPolyLine(el->ppolylineattr->npoints, points, cstroke);
+    if (el->ppolylineattr->stroke_width > 0) {
+      lopt.lno_color = cstroke;
+      lopt.lno_width = el->ppolylineattr->stroke_width;
+      lopt.lno_pattlen = 0;
+      lopt.lno_dashpat = NULL;
+      GrUsrCustomPolyLine(npoints, points, &lopt);
+    } else {
+    GrUsrPolyLine(npoints, points, cstroke);
+    }
   } 
+  free(points);
 }
 
 static void DrawPolygonElement(MsvgElement *el)
 {
   GrColor cfill;
   GrColor cstroke;
-  int i, (*points)[2];
+  GrLineOption lopt;
+  int i, npoints, (*points)[2];
   
 //  printf("%d puntos\n", el->ppolygonattr->npoints);
-  points = calloc(el->ppolygonattr->npoints, sizeof(int[2]));
+  npoints = el->ppolygonattr->npoints;
+  points = calloc(npoints, sizeof(int[2]));
   if (points == NULL) return;
-  for (i=0; i <el->ppolygonattr->npoints; i++) {
+  for (i=0; i <npoints; i++) {
     points[i][0] = el->ppolygonattr->points[i*2];
     points[i][1] = el->ppolygonattr->points[i*2+1];
   }
-//  for (i=0;i<10;i++) printf("%f,%f\n",points[i][0],points[i][1]);
+//  for (i=0;i<10;i++) printf("%d,%d\n",points[i][0],points[i][1]);
 //  for (i=0;i<10;i++) printf("%f,%f\n",el->ppolygonattr->points[i*2],el->ppolygonattr->points[i*2+1]);
 
   if (el->ppolygonattr->fill_color != NO_COLOR) {
     cfill = GrAllocColor2(el->ppolygonattr->fill_color);
-    GrUsrFilledPolygon(el->ppolygonattr->npoints, points, cfill);
+    GrUsrFilledPolygon(npoints, points, cfill);
   }
   if (el->ppolygonattr->stroke_color != NO_COLOR) {
     cstroke = GrAllocColor2(el->ppolygonattr->stroke_color);
-    GrUsrPolygon(el->ppolygonattr->npoints, points, cstroke);
-  } 
+    if (el->ppolygonattr->stroke_width > 0) {
+      lopt.lno_color = cstroke;
+      lopt.lno_width = el->ppolygonattr->stroke_width;
+      lopt.lno_pattlen = 0;
+      lopt.lno_dashpat = NULL;
+      GrUsrCustomPolygon(npoints, points, &lopt);
+    } else {
+      GrUsrPolygon(npoints, points, cstroke);
+    }
+  }
+  free(points);
 }
 
 static void DrawElement(MsvgElement *el)

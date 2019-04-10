@@ -30,6 +30,7 @@
 #include <mgrx.h>
 #include <mgrxkeys.h>
 #include <msvg.h>
+#include "rendmgrx.h"
 
 static MsvgElement *CreateTree(void)
 {
