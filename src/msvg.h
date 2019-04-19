@@ -63,21 +63,24 @@ typedef struct _MsvgSvgAttributes {
   int tree_type;
   double width; /* width attribute */
   double height; /* height attribute */
-  double vb_min_x; /* viewBox attribute */
+  double vb_min_x; /* viewBox attributes */
   double vb_min_y;
   double vb_width;
   double vb_height;
-  rgbcolor fill_color; /* viewport-fill attribute */
-  double opacity; /* viewport-fill-opacity attribute */
+  rgbcolor fill_color; /* viewport-fill & heritable attribute */
+  double fill_opacity; /* viewport-fill-opacity & heritable attribute */
+  rgbcolor stroke_color; /* heritable stroke attribute */
+  double stroke_width; /* heritable stroke-width attribute */
+  double stroke_opacity; /* heritable stroke-opacity attribute */
 } MsvgSvgAttributes;
 
 typedef struct _MsvgGAttributes {
   char *id; /* id attribute */
-  rgbcolor fill_color; /* fill attribute */
-  double fill_opacity; /* fill-opacity attribute */
-  rgbcolor stroke_color; /* stroke attribute */
-  double stroke_width; /* stroke-width attribute */
-  double stroke_opacity; /* stroke-opacity attribute */
+  rgbcolor fill_color; /* heritable fill attribute */
+  double fill_opacity; /* heritable fill-opacity attribute */
+  rgbcolor stroke_color; /* heritable stroke attribute */
+  double stroke_width; /* heritable stroke-width attribute */
+  double stroke_opacity; /* heritable stroke-opacity attribute */
 } MsvgGAttributes;
 
 typedef struct _MsvgRectAttributes {

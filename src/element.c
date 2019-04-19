@@ -68,7 +68,10 @@ MsvgElement *MsvgNewSvgElement(MsvgElement *father)
   element->psvgattr->vb_width = 0;
   element->psvgattr->vb_height = 0;
   element->psvgattr->fill_color = 0; /* black */
-  element->psvgattr->opacity = 1; /* solid */
+  element->psvgattr->fill_opacity = 1; /* solid */
+  element->psvgattr->stroke_color = 0xffffff; /* white */
+  element->psvgattr->stroke_width = 1;
+  element->psvgattr->stroke_opacity = 1; /* solid */
   element->psvgattr->tree_type = RAW_SVGTREE;
   return element;
 }

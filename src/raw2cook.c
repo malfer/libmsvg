@@ -91,7 +91,7 @@ static void cookSvgGenAttr(MsvgElement *el, char *key, char *value)
     if (el->psvgattr->height == 0) el->psvgattr->height = el->psvgattr->vb_height;
   }
   else if (strcmp(key, "vieport-fill") == 0) el->psvgattr->fill_color = colortorgb(value);
-  else if (strcmp(key, "vieport-fill-opacity") == 0) el->psvgattr->opacity = opacitytof(value);
+  else if (strcmp(key, "vieport-fill-opacity") == 0) el->psvgattr->fill_opacity = opacitytof(value);
 }
 
 static void cookGGenAttr(MsvgElement *el, char *key, char *value)

@@ -83,12 +83,9 @@ static void MsvgFreeElement(MsvgElement *el)
 
 void MsvgDeleteElement(MsvgElement *el)
 {
-  MsvgElement *son;
-
   MsvgPruneElement(el);
   
   while (el->fson != NULL) {
-    son = el->fson;
     MsvgDeleteElement(el);
   }
   
