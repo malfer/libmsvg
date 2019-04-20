@@ -54,25 +54,34 @@ static void MsvgFreeElement(MsvgElement *el)
     free(el->psvgattr);
     break;
   case EID_G :
+    if (el->pgattr->id) free(el->pgattr->id);
     free(el->pgattr);
     break;
   case EID_RECT :
+    if (el->prectattr->id) free(el->prectattr->id);
     free(el->prectattr);
     break;
   case EID_CIRCLE :
+    if (el->pcircleattr->id) free(el->pcircleattr->id);
     free(el->pcircleattr);
     break;
   case EID_ELLIPSE :
+    if (el->pellipseattr->id) free(el->pellipseattr->id);
     free(el->pellipseattr);
     break;
   case EID_LINE :
+    if (el->plineattr->id) free(el->plineattr->id);
     free(el->plineattr);
     break;
   case EID_POLYLINE :
+    if (el->ppolylineattr->id) free(el->ppolylineattr->id);
+    if (el->ppolylineattr->points) free(el->ppolylineattr->points);
     free(el->ppolylineattr);
     break;
   case EID_POLYGON :
-   free(el->ppolygonattr);
+    if (el->ppolygonattr->id) free(el->ppolygonattr->id);
+    if (el->ppolygonattr->points) free(el->ppolygonattr->points);
+    free(el->ppolygonattr);
     break;
   default :
     break; // TODO: test error
@@ -86,9 +95,10 @@ void MsvgDeleteElement(MsvgElement *el)
   MsvgPruneElement(el);
   
   while (el->fson != NULL) {
-    MsvgDeleteElement(el);
+    MsvgDeleteElement(el->fson);
   }
   
+  MsvgDelAllAttributes(el);
   MsvgFreeElement(el);
 }
 

@@ -6,9 +6,9 @@
 </head>
 
 <body>
-<h1>libmsvg v0.02</h1>
+<h1>libmsvg v0.03</h1>
 <h2>Programmer's guide</h2>
-<p>Last update: December 12, 2010</p>
+<p>Last update: April 19, 2019</p>
 
 <hr>
 <h2>Abstract</h2>
@@ -348,7 +348,7 @@ int MsvgInsertSonElement(MsvgElement *el, MsvgElement *father);
 int MsvgInsertPSiblingElement(MsvgElement *el, MsvgElement *sibling);
 int MsvgInsertNSiblingElement(MsvgElement *el, MsvgElement *sibling);
 </pre>
-<p>This three functios insert an element (that can be a subtree if it has dons) in
+<p>This three functios insert an element (that can be a subtree if it has sons) in
 the desired point of a tree. The MsvgInsertSonElement fucntion inserts the element
 like the last son of the indicated father. The MsvgInsertPSiblingElement function
 inserts the element like a previous sibling to the indicated sibling. And the
@@ -405,6 +405,9 @@ can have any attribute.</p>
       <p>height=&quot;height&quot; (ok)</p>
       <p>viewport-fill=&quot;color&quot; (ok)</p>
       <p>viewport-fill-opacity=&quot;n&quot; (ok)</p>
+      <p>stroke=&quot;color&quot; (ok)</p>
+      <p>stroke-width=&quot;n&quot; (ok)</p>
+      <p>stroke-opacity=&quot;n&quot; (ok)</p>
       <p>version=&quot;valor&quot; (TO DO)</p>
       <p>baseprofile=&quot;valor&quot; (TO DO)</p>
       <p>preserveaspectratio=&quot;valor&quot; (TO DO)</p>

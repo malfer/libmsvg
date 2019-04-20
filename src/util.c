@@ -35,8 +35,9 @@ int MsvgI_count_numbers(char *s)
       p++;
       while (isdigit(*p) || *p == '.')
         p++;
+    } else {
+      p++;
     }
-    p++;
   }
 
   return n;
@@ -63,8 +64,9 @@ int MsvgI_read_numbers(char *s, double *df, int maxnumbers)
       }
       aux[dig] = '\0';
       df[n++] = atof(aux);
+    } else {
+      p++;
     }
-    p++;
   }
 
   return n;

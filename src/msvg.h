@@ -21,7 +21,7 @@
 
 #include <stdio.h>
 
-#define LIBMSVG_VERSION_API 0x0001
+#define LIBMSVG_VERSION_API 0x0003
 
 /* define id's for supported elements */
 enum EID {
@@ -36,6 +36,8 @@ enum EID {
   EID_POLYGON,
   EID_LAST = EID_POLYGON
 };
+
+/* functions in tables.c */
 
 enum EID MsvgFindElementId(const char *ename);
 char * MsvgFindElementName(enum EID eid);
@@ -187,20 +189,39 @@ typedef struct _MsvgElement {
   };
 } MsvgElement;
 
+/* functions in attribut.c */
+
 int MsvgAddAttribute(MsvgElement *pelement, const char *key, const char *value);
+int MsvgDelAttribute(MsvgElement *pelement, const char *key);
+int MsvgDelAllAttributes(MsvgElement *pelement);
+
+/* functions in elements.c */
 
 MsvgElement *MsvgNewElement(enum EID eid, MsvgElement *father);
 
+/* functions in manielem.c */
+
 void MsvgPruneElement(MsvgElement *el);
 void MsvgDeleteElement(MsvgElement *el);
+
 int MsvgInsertSonElement(MsvgElement *el, MsvgElement *father);
 int MsvgInsertPSiblingElement(MsvgElement *el, MsvgElement *sibling);
 int MsvgInsertNSiblingElement(MsvgElement *el, MsvgElement *sibling);
 
+//MsvgElement *MsvgCopyElement(MsvgElement *el, int copyrawdata);
+
+/* functions in rdsvgf.c */
+
 MsvgElement *MsvgReadSvgFile(const char *fname);
+
+/* functions in wtsvgf.c */
 
 int MsvgWriteSvgFile(MsvgElement *root, const char *fname);
 
+/* functions in printree.c */
+
 void MsvgPrintElementTree(FILE *f, MsvgElement *ptr, int depth);
+
+/* functions in raw2cook.c */
 
 int MsvgRaw2CookedTree(MsvgElement *root);

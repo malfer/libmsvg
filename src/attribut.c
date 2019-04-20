@@ -52,3 +52,45 @@ int MsvgAddAttribute(MsvgElement *pelement, const char *key, const char *value)
   *dptr = pattr;
   return 1;
 }
+
+
+int MsvgDelAttribute(MsvgElement *pelement, const char *key)
+{
+  MsvgAttribute **dptr;
+  MsvgAttribute *nattr;
+
+
+  dptr = &(pelement->fattr);
+  while (*dptr) {
+    if (strcmp((*dptr)->key,key) == 0) {
+      if ((*dptr)->key) free((*dptr)->key);
+      if ((*dptr)->value) free((*dptr)->value);
+      nattr = (*dptr)->nattr;
+      free(*dptr);
+      *dptr = nattr;
+      return 1;
+    }
+    dptr = &((*dptr)->nattr);
+  }
+
+  return 0;
+}
+
+int MsvgDelAllAttributes(MsvgElement *pelement)
+{
+  MsvgAttribute *cattr, *nattr;
+  int deleted = 0;
+
+  cattr = pelement->fattr;
+  while (cattr) {
+    if (cattr->key) free(cattr->key);
+    if (cattr->value) free(cattr->value);
+    nattr = cattr->nattr;
+    free(cattr);
+    deleted++;
+    cattr = nattr;
+  }
+
+  pelement->fattr = NULL;
+  return deleted;
+}

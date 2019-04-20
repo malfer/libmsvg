@@ -11,7 +11,8 @@ LIBS=../src/libmsvg.a
 LIBSdos= $(subst /,\,$(LIBS))
 
 SAMPLES=t1$(EXE) \
-        t2$(EXE)
+        t2$(EXE) \
+        tdel$(EXE)
 
 ### LINUX VERSION
 

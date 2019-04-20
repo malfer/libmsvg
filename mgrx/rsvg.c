@@ -44,6 +44,7 @@ static void TestFunc(void)
   if (!MsvgRaw2CookedTree(root)) return;
   DrawSVGtree(root);
   GrEventWaitKeyOrClick(&ev);
+  MsvgDeleteElement(root);
 }
 
 int main(int argc,char **argv)
