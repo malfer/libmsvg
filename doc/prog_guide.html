@@ -6,9 +6,9 @@
 </head>
 
 <body>
-<h1>libmsvg v0.03</h1>
+<h1>libmsvg v0.10</h1>
 <h2>Programmer's guide</h2>
-<p>Last update: April 19, 2019</p>
+<p>Last update: April 22, 2020</p>
 
 <hr>
 <h2>Abstract</h2>
@@ -73,7 +73,7 @@ int main(int argc, char **argv)
 <h3>Example 2</h3>
 <p>This example builds a MsvgElement tree and writes it to a file</p>
 <pre>
-#include &lt;stdio.h>
+#include <stdio.h>
 #include "msvg.h"
 
 #define TESTFILE "msvgt2.svg"
@@ -83,25 +83,26 @@ int main(int argc, char **argv)
   MsvgElement *root, *son;
 
   root = MsvgNewElement(EID_SVG, NULL);
-  MsvgAddAttribute(root, "version", "1.2");
-  MsvgAddAttribute(root, "baseProfile", "tiny");
-  MsvgAddAttribute(root, "viewBox", "0 0 400 400");
+  MsvgAddRawAttribute(root, "xmlns", "http://www.w3.org/2000/svg");
+  MsvgAddRawAttribute(root, "version", "1.2");
+  MsvgAddRawAttribute(root, "baseProfile", "tiny");
+  MsvgAddRawAttribute(root, "viewBox", "0 0 400 400");
 
   son = MsvgNewElement(EID_RECT, root);
-  MsvgAddAttribute(son, "x", "1");
-  MsvgAddAttribute(son, "y", "1");
-  MsvgAddAttribute(son, "width", "398");
-  MsvgAddAttribute(son, "height", "398");
-  MsvgAddAttribute(son, "stroke", "#F00");
-  MsvgAddAttribute(son, "fill", "#FFF");
+  MsvgAddRawAttribute(son, "x", "1");
+  MsvgAddRawAttribute(son, "y", "1");
+  MsvgAddRawAttribute(son, "width", "398");
+  MsvgAddRawAttribute(son, "height", "398");
+  MsvgAddRawAttribute(son, "stroke", "#F00");
+  MsvgAddRawAttribute(son, "fill", "#FFF");
 
   son = MsvgNewElement(EID_RECT, root);
-  MsvgAddAttribute(son, "x", "11");
-  MsvgAddAttribute(son, "y", "11");
-  MsvgAddAttribute(son, "width", "380");
-  MsvgAddAttribute(son, "height", "380");
-  MsvgAddAttribute(son, "stroke", "#0F0");
-  MsvgAddAttribute(son, "fill", "none");
+  MsvgAddRawAttribute(son, "x", "11");
+  MsvgAddRawAttribute(son, "y", "11");
+  MsvgAddRawAttribute(son, "width", "380");
+  MsvgAddRawAttribute(son, "height", "380");
+  MsvgAddRawAttribute(son, "stroke", "#0F0");
+  MsvgAddRawAttribute(son, "fill", "none");
   MsvgPrintElementTree(stdout, root, 0);
 
   if (!MsvgWriteSvgFile(root, TESTFILE)) {
@@ -110,7 +111,6 @@ int main(int argc, char **argv)
   }
 
   return 1;
-}
 
 </pre>
 
@@ -128,7 +128,7 @@ platforms:</p>
 <hr>
 <h2><a name="svgtree">The MsvgElement tree</a></h2>
 <p>The central structure of libmsvg is the MsvgElement tree. Every MsvgElement
-has a defined element id (eid), a pointer to his father, pointers to his previous
+has a element type id (eid), a pointer to his father, pointers to his previous
 and next siblings and a pointer to his first son. The root element must be a
 EID_SVG. In this version of libmsvg only EID_SVG and EID_G can have son elements.
 The other supported elements are EID_RECT, EID_CIRCLE, EID_ELLIPSE, EID_LINE,
@@ -137,24 +137,25 @@ EID_POLYLINE and EID_POLYGON.</p>
 <p><center>
 <img src="elementtree.png" alt="MsvgElement tree example">
 </center></p>
-<p>Every MsvgElement can have attributes, they can be of two types: generic or
-specific. The type of MsvgElement attributes in a tree is determined by a variable in
+<p>Every MsvgElement can have attributes, they can be of two types: raw or
+cooked. The type of MsvgElement attributes in a tree is determined by a variable in
 the root element: root->psvgattr->tree_type. If this variable is RAW_SVGTREE all
-attributes are generic. Generic attributes are simple key,value pairs. If it is
-COOKED_SVGTREE all attributes are specific. Specific attributes are typed variables
-specific to each element id type.</p>
+attributes are raw. Raw attributes are simple key,value strings pairs. If it is a
+COOKED_SVGTREE all attributes are cooked. Cooked attributes are typed variables
+and can be generic or specific, all elements have the generic ones, each 
+element type id can have his specific ones. </p>
 
 <h3>The RAW_SVGTREE tree type</h3>
 <p>After a SVG file is loaded to a MsvgElement tree by the MsvgReadSvgFile function
 it is marked as a RAW_SVGTREE. Only the supported elements are inserted in the tree,
-but all the read attributes are stored like generic attributes. This stage of the
+but all the read attributes are stored like raw attributes. This stage of the
 tree can suffice for some programs, elements and attributes can be added, deleted or
 reordered and finally be written to a file using the MsvgWriteSvgFile function.</p>
 
 <h3>The COOKED_SVGTREE tree type</h3>
 <p>Using the MsvgRaw2CookedTree funtion you
 can convert a MsvgElement tree to the COOKED_SVGTREE type. Only the supported
-attributes are processed and converted to specific attributes. In this state the tree
+attributes are processed and converted to cooked attributes. In this state the tree
 is easier to be manipulated by a program.</p>
 
 <h3>The FRIED_SVGTREE tree type</h3>
@@ -172,39 +173,62 @@ structure from the msvg.h include file:</p>
 typedef struct _MsvgElement *MsvgElementPtr;
 
 typedef struct _MsvgElement {
-  enum EID eid;
-  MsvgElementPtr father; /* pointer to father element */
-  MsvgElementPtr psibling; /* pointer to previous sibling element */
-  MsvgElementPtr nsibling; /* pointer to next sibling element */
-  MsvgElementPtr fson; /* pointer to first son element */
-  MsvgAttributePtr fattr; /* pointer to first generic attribute */
-  union { /* specific attributes */
-    MsvgSvgAttributes *psvgattr;
-    MsvgGAttributes *pgattr;
-    MsvgRectAttributes *prectattr;
-    MsvgCircleAttributes *pcircleattr;
-    MsvgEllipseAttributes *pellipseattr;
-    MsvgLineAttributes *plineattr;
-    MsvgPolylineAttributes *ppolylineattr;
-    MsvgPolygonAttributes *ppolygonattr;
-  };
+    enum EID eid;               /* element type id */
+    MsvgElementPtr father;      /* pointer to father element */
+    MsvgElementPtr psibling;    /* pointer to previous sibling element */
+    MsvgElementPtr nsibling;    /* pointer to next sibling element */
+    MsvgElementPtr fson;        /* pointer to first son element */
+
+    MsvgRawAttributePtr frattr; /* pointer to first raw attribute */
+
+    /* cooked generic attributes */
+    char *id;                   /* id attribute */
+    MsvgPaintCtx pctx;          /* painting context */
+
+    /* cooked specific attributes */
+    union {
+        MsvgSvgAttributes *psvgattr;
+        MsvgGAttributes *pgattr;
+        MsvgRectAttributes *prectattr;
+        MsvgCircleAttributes *pcircleattr;
+        MsvgEllipseAttributes *pellipseattr;
+        MsvgLineAttributes *plineattr;
+        MsvgPolylineAttributes *ppolylineattr;
+        MsvgPolygonAttributes *ppolygonattr;
+    };
 } MsvgElement;
 </pre>
 
-<p>Generic attributes are stored in a simple linked list of MsvgAttribute
+<p>Raw attributes are stored in a simple linked list of MsvgRawAttribute
 variables:</p>
 <pre>
-typedef struct _MsvgAttribute *MsvgAttributePtr;
+typedef struct _MsvgRawAttribute *MsvgRawAttributePtr;
 
-typedef struct _MsvgAttribute {
-  char *key; /* key attribute */
-  char *value; /* value attribute */
-  MsvgAttributePtr nattr; /* pointer to next attribute */
-} MsvgAttribute;
+typedef struct _MsvgRawAttribute {
+    char *key;                  /* key attribute */
+    char *value;                /* value attribute */
+    MsvgRawAttributePtr nrattr; /* pointer to next raw attribute */
+} MsvgRawAttribute;
 </pre>
 
-<p>Specific attributes are different for each element id and stored in a
-union, you can inspect each one in the msvg.h include file.</p>
+<p>Cooked generic attributes are the same for all elements, the "id" attribute
+(that can be NULL) and a MsvgPaintCtx structure:</p>
+<pre>
+typedef struct _MsvgPaintCtx {
+    rgbcolor fill_color;   /* fill color attribute */
+    double fill_opacity;   /* fill-opacity attribute */
+    rgbcolor stroke_color; /* stroke color attribute */
+    double stroke_width;   /* stroke-width attribute */
+    double stroke_opacity; /* stroke-opacity attribute */
+} MsvgPaintCtx;
+</pre>
+
+<p>it is important to note that all attributes in the MsvgPaintCtx can
+be inherited from his father element, with the value INHERIT_COLOR (for
+colors) or INHERIT_VALUE (for doubles).</p>
+
+<p>Cooked specific attributes are different for each element type id and stored
+in a union, you can inspect each one in the msvg.h include file.</p>
 
 <hr>
 <h2><a name="reading">Reading SVG files</a></h2>
@@ -219,7 +243,7 @@ tree.</p>
 <p>If the file doesn't exists or it isn't a valid SVG file root will be NULL,
 so you must check it. Only the supported elements are stored in the tree, the
 not supported ones are silently ignored. The tree will be a RAW tree, with all
-the element attributes stored as generic attributes. If you want a COOKED tree
+the element attributes stored as raw attributes. If you want a COOKED tree
 you can use the MsvgRaw2CookedTree funtion:</p>
 
 <pre>
@@ -231,8 +255,8 @@ you can use the MsvgRaw2CookedTree funtion:</p>
 
 <hr>
 <h2><a name="buildraw">Building a RAW MsvgElement tree by program</a></h2>
-<p>Using only two function we can cosntruct a MsvgElement tree by program. The
-MsvgNewElement function takes two parameters: the element id and the father
+<p>Using only two function we can construct a MsvgElement tree by program. The
+MsvgNewElement function takes two parameters: the element type id and the father
 element, that can be NULL. It returns the pointer to the constructed
 element.</p>
 <p>So we begin constructing the SVG element passing NULL in the father
@@ -244,11 +268,14 @@ RAW_SVGTREE.</p>
   root = MsvgNewElement(EID_SVG, NULL);
 </pre>
 
-<p>Now, we add an attribute to set the drawing limits using the
-MsvgAddAttribute function.</p>
+<p>Now, we add attributes to identify the svg element properly and set the
+drawing limits using the MsvgAddRawAttribute function.</p>
 
 <pre>
-  MsvgAddAttribute(root, "viewBox", "0 0 400 400");
+  MsvgAddRawAttribute(root, "xmlns", "http://www.w3.org/2000/svg");
+  MsvgAddRawAttribute(root, "version", "1.2");
+  MsvgAddRawAttribute(root, "baseProfile", "tiny");
+  MsvgAddRawAttribute(root, "viewBox", "0 0 400 400");
 </pre>
 
 <p>We continue adding two son elements, a RECT element and a G element.</p>
@@ -256,31 +283,31 @@ MsvgAddAttribute function.</p>
 <pre>
   MsvgElement *son;
   son = MsvgNewElement(EID_RECT, root);
-  MsvgAddAttribute(son, "x", "1");
-  MsvgAddAttribute(son, "y", "1");
-  MsvgAddAttribute(son, "width", "398");
-  MsvgAddAttribute(son, "height", "398");
-  MsvgAddAttribute(son, "stroke", "#F00");
-  MsvgAddAttribute(son, "fill", "#FFF");
+  MsvgAddRawAttribute(son, "x", "1");
+  MsvgAddRawAttribute(son, "y", "1");
+  MsvgAddRawAttribute(son, "width", "398");
+  MsvgAddRawAttribute(son, "height", "398");
+  MsvgAddRawAttribute(son, "stroke", "#F00");
+  MsvgAddRawAttribute(son, "fill", "#FFF");
   son = MsvgNewElement(EID_G, root);
-  MsvgAddAttribute(son, "stroke", "#0F0");
-  MsvgAddAttribute(son, "fill", "none");
+  MsvgAddRawAttribute(son, "stroke", "#0F0");
+  MsvgAddRawAttribute(son, "fill", "none");
   MsvgPrintElementTree(stdout, root, 0);
 </pre>
 
 <p>Finally we add two son CIRCLE elements to the G element. Note that they
-inherit the stroke and fill attributes.</p>
+will inherit the stroke and fill attributes.</p>
 
 <pre>
   MsvgElement *soon2;
   son2 = MsvgNewElement(EID_CIRCLE, son);
-  MsvgAddAttribute(son2, "cx", "100");
-  MsvgAddAttribute(son2, "cy", "200");
-  MsvgAddAttribute(son2, "r", "80");
+  MsvgAddRawAttribute(son2, "cx", "100");
+  MsvgAddRawAttribute(son2, "cy", "200");
+  MsvgAddRawAttribute(son2, "r", "80");
   son2 = MsvgNewElement(EID_CIRCLE, son);
-  MsvgAddAttribute(son2, "cx", "300");
-  MsvgAddAttribute(son2, "cy", "200");
-  MsvgAddAttribute(son2, "r", "80");
+  MsvgAddRawAttribute(son2, "cx", "300");
+  MsvgAddRawAttribute(son2, "cy", "200");
+  MsvgAddRawAttribute(son2, "r", "80");
 </pre>
 
 <p>We have now our MsvgElement tree and we can manipulate it or write it to
@@ -289,8 +316,8 @@ a file.</p>
 <hr>
 <h2><a name="buildcooked">Building a COOKED MsvgElement tree by program</a></h2>
 <p>Constructing a COOKED tree is the same like constructing a RAW one, except we
-don't use the MsvgAddAttribute function. Instead we set directly the element
-variables, there are no functions to hide the variables, because we are
+don't use the MsvgAddRawAttribute function. Instead we set directly the element
+cooked attributes, there are no functions to hide the variables, because we are
 programmers and we know what are we doing, doesn't it.</p>
 
 <pre>
@@ -308,11 +335,11 @@ programmers and we know what are we doing, doesn't it.</p>
   son->prectattr->y = 1;
   son->prectattr->width = 398;
   son->prectattr->height = 398;
-  son->prectattr->fill_color = 0XFFFFFF;
-  son->prectattr->stroke_color = 0XFF0000;
+  son->pctx.fill_color = 0XFFFFFF;
+  son->pctx.stroke_color = 0XFF0000;
   son = MsvgNewElement(EID_G, root);
-  son->pgattr->fill_color = NO_COLOR;
-  son->pgattr->stroke_color = 0X00FF00;
+  son->pctx.fill_color = NO_COLOR;
+  son->pctx.stroke_color = 0X00FF00;
 
   MsvgElement *soon2;
   son2 = MsvgNewElement(EID_CIRCLE, son);

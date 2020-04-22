@@ -143,7 +143,7 @@ typedef struct _MsvgPolygonAttributes {
 typedef struct _MsvgElement *MsvgElementPtr;
 
 typedef struct _MsvgElement {
-    enum EID eid;
+    enum EID eid;               /* element type id */
     MsvgElementPtr father;      /* pointer to father element */
     MsvgElementPtr psibling;    /* pointer to previous sibling element */
     MsvgElementPtr nsibling;    /* pointer to next sibling element */
