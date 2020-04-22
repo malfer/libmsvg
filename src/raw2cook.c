@@ -75,6 +75,7 @@ static void readpoints(char *value, double **points, int *npoints)
 static int cookPCtxAttr(MsvgElement *el, char *key, char *value)
 {
     if (strcmp(key, "id") == 0) el->id = strdup(value);
+    else if (strcmp(key, "xml:id") == 0) el->id = strdup(value);
     else if (strcmp(key, "fill") == 0) el->pctx.fill_color = colortorgb(value);
     else if (strcmp(key, "fill-opacity") == 0) el->pctx.fill_opacity = opacitytof(value);
     else if (strcmp(key, "stroke") == 0) el->pctx.stroke_color = colortorgb(value);

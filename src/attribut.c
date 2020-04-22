@@ -97,7 +97,7 @@ int MsvgDelAllRawAttributes(MsvgElement *pelement)
     return deleted;
 }
 
-int MsvgCopyRawAttributes(MsvgElement *srcelement, MsvgElement *deselement)
+int MsvgCopyRawAttributes(MsvgElement *deselement, MsvgElement *srcelement)
 {
     MsvgRawAttribute *cattr;
     int copied = 0;
@@ -109,4 +109,43 @@ int MsvgCopyRawAttributes(MsvgElement *srcelement, MsvgElement *deselement)
     }
     
     return copied;
+}
+
+int MsvgCopyCookedAttributes(MsvgElement *deselement, MsvgElement *srcelement)
+{
+    if (srcelement->eid != deselement->eid) return 0;
+
+    if (srcelement->id) deselement->id = strdup(srcelement->id);
+    deselement->pctx = srcelement->pctx;
+
+    switch (srcelement->eid) {
+        case EID_SVG :
+            *(deselement->psvgattr) = *(srcelement->psvgattr);
+            break;
+        case EID_G :
+            *(deselement->pgattr) = *(srcelement->pgattr);
+            break;
+        case EID_RECT :
+            *(deselement->prectattr) = *(srcelement->prectattr);
+            break;
+        case EID_CIRCLE :
+            *(deselement->pcircleattr) = *(srcelement->pcircleattr);
+            break;
+        case EID_ELLIPSE :
+            *(deselement->pellipseattr) = *(srcelement->pellipseattr);
+            break;
+        case EID_LINE :
+            *(deselement->plineattr) = *(srcelement->plineattr);
+            break;
+        case EID_POLYLINE :
+            *(deselement->ppolylineattr) = *(srcelement->ppolylineattr);
+            break;
+        case EID_POLYGON :
+            *(deselement->ppolygonattr) = *(srcelement->ppolygonattr);
+            break;
+        default :
+            break;
+    }
+
+    return 1;
 }

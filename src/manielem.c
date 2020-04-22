@@ -154,3 +154,23 @@ int MsvgInsertNSiblingElement(MsvgElement *el, MsvgElement *sibling)
     
     return 1;
 }
+
+MsvgElement *MsvgDupElement(MsvgElement *el)
+{
+    MsvgElement *newel, *ptrnew, *ptrold;
+
+    newel = MsvgNewElement(el->eid, NULL);
+    if (newel == NULL) return NULL;
+
+    MsvgCopyRawAttributes(newel, el);
+    MsvgCopyCookedAttributes(newel, el);
+
+    ptrold = el->fson;
+    while (ptrold) {
+        ptrnew = MsvgDupElement(ptrold);
+        if (ptrnew) MsvgInsertSonElement(ptrnew, newel);
+        ptrold = ptrold->nsibling;
+    }
+
+    return newel;
+}

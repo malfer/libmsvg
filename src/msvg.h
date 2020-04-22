@@ -169,7 +169,9 @@ typedef struct _MsvgElement {
 int MsvgAddRawAttribute(MsvgElement *pelement, const char *key, const char *value);
 int MsvgDelRawAttribute(MsvgElement *pelement, const char *key);
 int MsvgDelAllRawAttributes(MsvgElement *pelement);
-int MsvgCopyRawAttributes(MsvgElement *srcelement, MsvgElement *deselement);
+int MsvgCopyRawAttributes(MsvgElement *deselement, MsvgElement *srcelement);
+
+int MsvgCopyCookedAttributes(MsvgElement *deselement, MsvgElement *srcelement);
 
 /* functions in elements.c */
 
@@ -184,7 +186,7 @@ int MsvgInsertSonElement(MsvgElement *el, MsvgElement *father);
 int MsvgInsertPSiblingElement(MsvgElement *el, MsvgElement *sibling);
 int MsvgInsertNSiblingElement(MsvgElement *el, MsvgElement *sibling);
 
-//MsvgElement *MsvgCopyElement(MsvgElement *el, int copyrawdata);
+MsvgElement *MsvgDupElement(MsvgElement *el);
 
 /* functions in rdsvgf.c */
 

@@ -11,6 +11,7 @@ mgrx/rsvg
 mgrx/gsvg
 # Ignore graphics files from test programs
 test/msvgt1.svg
-test/msvgt2.svg
+test/msvgt2a.svg
+test/msvgt2b.svg
 # Others
 .directory

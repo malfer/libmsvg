@@ -382,6 +382,13 @@ inserts the element like a previous sibling to the indicated sibling. And the
 MsvgInsertNSiblingElement function inserts the element like a next sibling. The
 three functions return 1 if all was ok, 0 otherwise.</p>
 
+<pre>
+MsvgElement *MsvgDupElement(MsvgElement *el);
+</pre>
+<p>The MsvgDupElement duplicates the element passed as parameter, if that
+element is a container (like  EID_SVG or EID_G) it duplicates all the element
+sons too.</p>
+
 <hr>
 <h2><a name="writing">Writing SVG files</a></h2>
 <p>Using the MsvgWriteSvgFile function you can write a MsvgElement tree to a file.</p>
