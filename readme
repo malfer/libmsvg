@@ -1,4 +1,4 @@
-Welcome to libmsvg version 0.02
+Welcome to libmsvg version 0.10
 
 libmsvg is a work in progress to make a minimal and generic library to read
 and write SVG files.
@@ -18,7 +18,7 @@ supported platforms:
 
   Linux using the gcc compiler and gmake
   DOS using the DJGPP compiler and gmake
-  Win32 using the Mingw compiler and gmake
+  Win32 using the Mingw compiler and mingw32-make
 
 Dependencies
 ============
@@ -52,9 +52,9 @@ A. Unpacking the libmsvg archive
 
   3) unpack the libmsvg archive:
 
-         tar xzvf libmsvg0001.tar.gz
+         tar xzvf libmsvg0010.tar.gz
      or
-         unzip msvg0001.zip
+         unzip msvg0010.zip
 
      This will create the subdirectory 'libmsvg'.
 

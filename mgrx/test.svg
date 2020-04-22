@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- libmsvg test file -->
 
-<svg version="1.2" baseProfile="tiny" viewBox="0 0 500 1000">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.2" baseProfile="tiny" viewBox="0 0 500 1000">
   <g id="layer1">
     <ellipse
        fill="#009900" stroke="#ffcd00"
@@ -11,7 +11,7 @@
                423,301 350,250 277,301 303,215
                231,161 321,161" />
     <line stroke="#ffffff" x1="100" y1="900" x2="400" y2="900" />
-    <polyline stroke="#999999" stroke-width="10"
+    <polyline fill="none" stroke="#999999" stroke-width="10"
        points="100,860 200,820 300,860 400,820" />
     <g id="letra_l">
        <rect

@@ -1,7 +1,8 @@
 /* util.c
- *
+ * 
  * libmsvg, a minimal library to read and write svg files
- * Copyright (C) 2010 Mariano Alvarez Fernandez (malfer at telefonica.net)
+ *
+ * Copyright (C) 2010, 2020 Mariano Alvarez Fernandez (malfer at telefonica.net)
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -25,50 +26,50 @@
 
 int MsvgI_count_numbers(char *s)
 {
-  char *p;
-  int n = 0;
-
-  p = s;
-  while (*p != '\0') {
-    if (isdigit(*p) || *p == '.') {
-      n++;
-      p++;
-      while (isdigit(*p) || *p == '.')
-        p++;
-    } else {
-      p++;
+    char *p;
+    int n = 0;
+    
+    p = s;
+    while (*p != '\0') {
+        if (isdigit(*p) || *p == '.') {
+            n++;
+            p++;
+            while (isdigit(*p) || *p == '.')
+                p++;
+        } else {
+            p++;
+        }
     }
-  }
-
-  return n;
+    
+    return n;
 }
 
 int MsvgI_read_numbers(char *s, double *df, int maxnumbers)
 {
-#define MAX_DIGITS 100
-  char aux[MAX_DIGITS+1];
-  char *p;
-  int n = 0;
-  int dig;
-
-  p = s;
-  while (*p != '\0') {
-    if (isdigit(*p) || *p == '.') {
-      if (n >= maxnumbers) break;
-      dig = 0;
-      aux[dig++] = *p;
-      p++;
-      while (isdigit(*p) || *p == '.') {
-        if (dig < MAX_DIGITS) aux[dig++] = *p;
-        p++;
-      }
-      aux[dig] = '\0';
-      df[n++] = atof(aux);
-    } else {
-      p++;
+    #define MAX_DIGITS 100
+    char aux[MAX_DIGITS+1];
+    char *p;
+    int n = 0;
+    int dig;
+    
+    p = s;
+    while (*p != '\0') {
+        if (isdigit(*p) || *p == '.') {
+            if (n >= maxnumbers) break;
+            dig = 0;
+            aux[dig++] = *p;
+            p++;
+            while (isdigit(*p) || *p == '.') {
+                if (dig < MAX_DIGITS) aux[dig++] = *p;
+                p++;
+            }
+            aux[dig] = '\0';
+            df[n++] = atof(aux);
+        } else {
+            p++;
+        }
     }
-  }
-
-  return n;
+    
+    return n;
 }
-      
+

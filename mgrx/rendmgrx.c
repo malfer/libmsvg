@@ -53,17 +53,17 @@ static void DrawRectElement(MsvgElement *el)
   GrColor cfill;
   GrColor cstroke;
   
-//printf("rect %d %d\n", el->prectattr->fill_color, el->prectattr->stroke_color);
-  if (el->prectattr->fill_color != NO_COLOR) {
-    cfill = GrAllocColor2(el->prectattr->fill_color);
+//printf("rect %d %d\n", el->pctx.fill_color, el->pctx.stroke_color);
+  if (el->pctx.fill_color != NO_COLOR) {
+    cfill = GrAllocColor2(el->pctx.fill_color);
     GrUsrFilledBox(el->prectattr->x,
                    el->prectattr->y,
                    el->prectattr->x+el->prectattr->width-1,
                    el->prectattr->y+el->prectattr->height-1,
                    cfill);
   }
-  if (el->prectattr->stroke_color != NO_COLOR) {
-    cstroke = GrAllocColor2(el->prectattr->stroke_color);
+  if (el->pctx.stroke_color != NO_COLOR) {
+    cstroke = GrAllocColor2(el->pctx.stroke_color);
     GrUsrBox(el->prectattr->x,
              el->prectattr->y,
              el->prectattr->x+el->prectattr->width-1,
@@ -77,15 +77,15 @@ static void DrawCircleElement(MsvgElement *el)
   GrColor cfill;
   GrColor cstroke;
   
-  if (el->pcircleattr->fill_color != NO_COLOR) {
-    cfill = GrAllocColor2(el->pcircleattr->fill_color);
+  if (el->pctx.fill_color != NO_COLOR) {
+    cfill = GrAllocColor2(el->pctx.fill_color);
     GrUsrFilledCircle(el->pcircleattr->cx,
                       el->pcircleattr->cy,
                       el->pcircleattr->r,
                       cfill);
   }
-  if (el->pcircleattr->stroke_color != NO_COLOR) {
-    cstroke = GrAllocColor2(el->pcircleattr->stroke_color);
+  if (el->pctx.stroke_color != NO_COLOR) {
+    cstroke = GrAllocColor2(el->pctx.stroke_color);
     GrUsrCircle(el->pcircleattr->cx,
                 el->pcircleattr->cy,
                 el->pcircleattr->r,
@@ -98,16 +98,16 @@ static void DrawEllipseElement(MsvgElement *el)
   GrColor cfill;
   GrColor cstroke;
   
-  if (el->pellipseattr->fill_color != NO_COLOR) {
-    cfill = GrAllocColor2(el->pellipseattr->fill_color);
+  if (el->pctx.fill_color != NO_COLOR) {
+    cfill = GrAllocColor2(el->pctx.fill_color);
     GrUsrFilledEllipse(el->pellipseattr->cx,
                       el->pellipseattr->cy,
                       el->pellipseattr->rx,
                       el->pellipseattr->ry,
                       cfill);
   }
-  if (el->pellipseattr->stroke_color != NO_COLOR) {
-    cstroke = GrAllocColor2(el->pellipseattr->stroke_color);
+  if (el->pctx.stroke_color != NO_COLOR) {
+    cstroke = GrAllocColor2(el->pctx.stroke_color);
     GrUsrEllipse(el->pellipseattr->cx,
                 el->pellipseattr->cy,
                 el->pellipseattr->rx,
@@ -120,8 +120,8 @@ static void DrawLineElement(MsvgElement *el)
 {
   GrColor cstroke;
   
-  if (el->plineattr->stroke_color != NO_COLOR) {
-    cstroke = GrAllocColor2(el->plineattr->stroke_color);
+  if (el->pctx.stroke_color != NO_COLOR) {
+    cstroke = GrAllocColor2(el->pctx.stroke_color);
     GrUsrLine(el->plineattr->x1, el->plineattr->y1,
               el->plineattr->x2, el->plineattr->y2,
               cstroke);
@@ -142,11 +142,11 @@ static void DrawPolylineElement(MsvgElement *el)
     points[i][1] = el->ppolylineattr->points[i*2+1];
   }
 
-  if (el->ppolylineattr->stroke_color != NO_COLOR) {
-    cstroke = GrAllocColor2(el->ppolylineattr->stroke_color);
-    if (el->ppolylineattr->stroke_width > 0) {
+  if (el->pctx.stroke_color != NO_COLOR) {
+    cstroke = GrAllocColor2(el->pctx.stroke_color);
+    if (el->pctx.stroke_width > 0) {
       lopt.lno_color = cstroke;
-      lopt.lno_width = el->ppolylineattr->stroke_width;
+      lopt.lno_width = el->pctx.stroke_width;
       lopt.lno_pattlen = 0;
       lopt.lno_dashpat = NULL;
       GrUsrCustomPolyLine(npoints, points, &lopt);
@@ -175,15 +175,15 @@ static void DrawPolygonElement(MsvgElement *el)
 //  for (i=0;i<10;i++) printf("%d,%d\n",points[i][0],points[i][1]);
 //  for (i=0;i<10;i++) printf("%f,%f\n",el->ppolygonattr->points[i*2],el->ppolygonattr->points[i*2+1]);
 
-  if (el->ppolygonattr->fill_color != NO_COLOR) {
-    cfill = GrAllocColor2(el->ppolygonattr->fill_color);
+  if (el->pctx.fill_color != NO_COLOR) {
+    cfill = GrAllocColor2(el->pctx.fill_color);
     GrUsrFilledPolygon(npoints, points, cfill);
   }
-  if (el->ppolygonattr->stroke_color != NO_COLOR) {
-    cstroke = GrAllocColor2(el->ppolygonattr->stroke_color);
-    if (el->ppolygonattr->stroke_width > 0) {
+  if (el->pctx.stroke_color != NO_COLOR) {
+    cstroke = GrAllocColor2(el->pctx.stroke_color);
+    if (el->pctx.stroke_width > 0) {
       lopt.lno_color = cstroke;
-      lopt.lno_width = el->ppolygonattr->stroke_width;
+      lopt.lno_width = el->pctx.stroke_width;
       lopt.lno_pattlen = 0;
       lopt.lno_dashpat = NULL;
       GrUsrCustomPolygon(npoints, points, &lopt);

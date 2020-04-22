@@ -1,7 +1,8 @@
 /* raw2cook.c
- *
+ * 
  * libmsvg, a minimal library to read and write svg files
- * Copyright (C) 2010 Mariano Alvarez Fernandez (malfer at telefonica.net)
+ *
+ * Copyright (C) 2010, 2020 Mariano Alvarez Fernandez (malfer at telefonica.net)
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -26,217 +27,194 @@
 
 static rgbcolor colortorgb(char *color)
 {
-  if (strcmp(color, "none") == 0) return NO_COLOR;
-  else if (strcmp(color, "currentColor") == 0) return INHERIT_COLOR;
-  else if (strcmp(color, "inherit") == 0) return INHERIT_COLOR;
-  else if (color[0] == '#') {
-    if (strlen(color) >= 7) { /* #rrggbb */
-      rgbcolor i;
-      sscanf(color, "#%6x", &i);
-      return i;
-    } else { /* #rgb */
-      rgbcolor i;
-      int r, g, b;
-      sscanf(color, "#%1x%1x%1x", &r, &g, &b);
-      i = (r << 20) | (r << 16) | (g << 12) | (g << 8) | (b << 4) | b;
-      return i;
+    if (strcmp(color, "none") == 0) return NO_COLOR;
+    else if (strcmp(color, "currentColor") == 0) return INHERIT_COLOR;
+    else if (strcmp(color, "inherit") == 0) return INHERIT_COLOR;
+    else if (color[0] == '#') {
+        if (strlen(color) >= 7) { /* #rrggbb */
+            rgbcolor i;
+            sscanf(color, "#%6x", &i);
+            return i;
+        } else { /* #rgb */
+            rgbcolor i;
+            int r, g, b;
+            sscanf(color, "#%1x%1x%1x", &r, &g, &b);
+            i = (r << 20) | (r << 16) | (g << 12) | (g << 8) | (b << 4) | b;
+            return i;
+        }
     }
-  }
-  /* TODO: support color names */
-  else return NO_COLOR;
+    /* TODO: support color names */
+    else return NO_COLOR;
 }
 
 static double opacitytof(char *value)
 {
-  if (strcmp(value, "inherit") == 0) return INHERIT_VALUE;
-  return atof(value);
+    if (strcmp(value, "inherit") == 0) return INHERIT_VALUE;
+    return atof(value);
 }
 
 static double widthtof(char *value)
 {
-  if (strcmp(value, "inherit") == 0) return INHERIT_VALUE;
-  return atof(value);
+    if (strcmp(value, "inherit") == 0) return INHERIT_VALUE;
+    return atof(value);
 }
 
 static void readpoints(char *value, double **points, int *npoints)
 {
-  int n;
-  
-  *npoints = 0;
-  n = MsvgI_count_numbers(value);
-  if (n < 2) return;
-  *points = (double *)calloc(n, sizeof(double));
-  if (*points == NULL) return;
-  MsvgI_read_numbers(value, *points, n);
-  *npoints = n / 2;
+    int n;
+    
+    *npoints = 0;
+    n = MsvgI_count_numbers(value);
+    if (n < 2) return;
+    *points = (double *)calloc(n, sizeof(double));
+    if (*points == NULL) return;
+    MsvgI_read_numbers(value, *points, n);
+    *npoints = n / 2;
+}
+
+static int cookPCtxAttr(MsvgElement *el, char *key, char *value)
+{
+    if (strcmp(key, "id") == 0) el->id = strdup(value);
+    else if (strcmp(key, "fill") == 0) el->pctx.fill_color = colortorgb(value);
+    else if (strcmp(key, "fill-opacity") == 0) el->pctx.fill_opacity = opacitytof(value);
+    else if (strcmp(key, "stroke") == 0) el->pctx.stroke_color = colortorgb(value);
+    else if (strcmp(key, "stroke-width") == 0) el->pctx.stroke_width = widthtof(value);
+    else if (strcmp(key, "stroke-opacity") == 0) el->pctx.stroke_opacity = opacitytof(value);
+    else return 0;
+    return 1;
 }
 
 static void cookSvgGenAttr(MsvgElement *el, char *key, char *value)
 {
-  double daux[4];
-  
-  if (strcmp(key, "width") == 0) {
-    el->psvgattr->width = atof(value);
-    if (el->psvgattr->vb_width == 0) el->psvgattr->vb_width = el->psvgattr->width;
-  } else if (strcmp(key, "height") == 0) {
-    el->psvgattr->height = atof(value);
-    if (el->psvgattr->vb_height == 0) el->psvgattr->vb_height = el->psvgattr->height;
-  } else if (strcmp(key, "viewBox") == 0) {
-    MsvgI_read_numbers(value, daux, 4);
-    el->psvgattr->vb_min_x = daux[0];
-    el->psvgattr->vb_min_y = daux[1];
-    el->psvgattr->vb_width = daux[2];
-    el->psvgattr->vb_height = daux[3];
-    if (el->psvgattr->width == 0) el->psvgattr->width = el->psvgattr->vb_width;
-    if (el->psvgattr->height == 0) el->psvgattr->height = el->psvgattr->vb_height;
-  }
-  else if (strcmp(key, "vieport-fill") == 0) el->psvgattr->fill_color = colortorgb(value);
-  else if (strcmp(key, "vieport-fill-opacity") == 0) el->psvgattr->fill_opacity = opacitytof(value);
+    double daux[4];
+    
+    if (strcmp(key, "width") == 0) {
+        el->psvgattr->width = atof(value);
+        if (el->psvgattr->vb_width == 0) el->psvgattr->vb_width = el->psvgattr->width;
+    } else if (strcmp(key, "height") == 0) {
+        el->psvgattr->height = atof(value);
+        if (el->psvgattr->vb_height == 0) el->psvgattr->vb_height = el->psvgattr->height;
+    } else if (strcmp(key, "viewBox") == 0) {
+        MsvgI_read_numbers(value, daux, 4);
+        el->psvgattr->vb_min_x = daux[0];
+        el->psvgattr->vb_min_y = daux[1];
+        el->psvgattr->vb_width = daux[2];
+        el->psvgattr->vb_height = daux[3];
+        if (el->psvgattr->width == 0) el->psvgattr->width = el->psvgattr->vb_width;
+        if (el->psvgattr->height == 0) el->psvgattr->height = el->psvgattr->vb_height;
+    }
+    else if (strcmp(key, "vieport-fill") == 0) el->psvgattr->vp_fill_color = colortorgb(value);
+    else if (strcmp(key, "vieport-fill-opacity") == 0) el->psvgattr->vp_fill_opacity = opacitytof(value);
 }
 
 static void cookGGenAttr(MsvgElement *el, char *key, char *value)
 {
-  if (strcmp(key, "id") == 0) el->pgattr->id = strdup(value);
-  else if (strcmp(key, "fill") == 0) el->pgattr->fill_color = colortorgb(value);
-  else if (strcmp(key, "fill-opacity") == 0) el->pgattr->fill_opacity = opacitytof(value);
-  else if (strcmp(key, "stroke") == 0) el->pgattr->stroke_color = colortorgb(value);
-  else if (strcmp(key, "stroke-width") == 0) el->pgattr->stroke_width = widthtof(value);
-  else if (strcmp(key, "stroke-opacity") == 0) el->pgattr->stroke_opacity = opacitytof(value);
+    return;
 }
 
 static void cookRectGenAttr(MsvgElement *el, char *key, char *value)
 {
-  if (strcmp(key, "id") == 0) el->prectattr->id = strdup(value);
-  else if (strcmp(key, "x") == 0) el->prectattr->x = atof(value);
-  else if (strcmp(key, "y") == 0) el->prectattr->y = atof(value);
-  else if (strcmp(key, "width") == 0) el->prectattr->width = atof(value);
-  else if (strcmp(key, "height") == 0) el->prectattr->height = atof(value);
-  else if (strcmp(key, "rx") == 0) el->prectattr->rx = atof(value);
-  else if (strcmp(key, "ry") == 0) el->prectattr->ry = atof(value);
-  else if (strcmp(key, "fill") == 0) el->prectattr->fill_color = colortorgb(value);
-  else if (strcmp(key, "fill-opacity") == 0) el->prectattr->fill_opacity = opacitytof(value);
-  else if (strcmp(key, "stroke") == 0) el->prectattr->stroke_color = colortorgb(value);
-  else if (strcmp(key, "stroke-width") == 0) el->prectattr->stroke_width = widthtof(value);
-  else if (strcmp(key, "stroke-opacity") == 0) el->prectattr->stroke_opacity = opacitytof(value);
+    if (strcmp(key, "x") == 0) el->prectattr->x = atof(value);
+    else if (strcmp(key, "y") == 0) el->prectattr->y = atof(value);
+    else if (strcmp(key, "width") == 0) el->prectattr->width = atof(value);
+    else if (strcmp(key, "height") == 0) el->prectattr->height = atof(value);
+    else if (strcmp(key, "rx") == 0) el->prectattr->rx = atof(value);
+    else if (strcmp(key, "ry") == 0) el->prectattr->ry = atof(value);
 }
 
 static void cookCircleGenAttr(MsvgElement *el, char *key, char *value)
 {
-  if (strcmp(key, "id") == 0) el->pcircleattr->id = strdup(value);
-  else if (strcmp(key, "cx") == 0) el->pcircleattr->cx = atof(value);
-  else if (strcmp(key, "cy") == 0) el->pcircleattr->cy = atof(value);
-  else if (strcmp(key, "r") == 0) el->pcircleattr->r = atof(value);
-  else if (strcmp(key, "fill") == 0) el->pcircleattr->fill_color = colortorgb(value);
-  else if (strcmp(key, "fill-opacity") == 0) el->pcircleattr->fill_opacity = opacitytof(value);
-  else if (strcmp(key, "stroke") == 0) el->pcircleattr->stroke_color = colortorgb(value);
-  else if (strcmp(key, "stroke-width") == 0) el->pcircleattr->stroke_width = widthtof(value);
-  else if (strcmp(key, "stroke-opacity") == 0) el->pcircleattr->stroke_opacity = opacitytof(value);
+    if (strcmp(key, "cx") == 0) el->pcircleattr->cx = atof(value);
+    else if (strcmp(key, "cy") == 0) el->pcircleattr->cy = atof(value);
+    else if (strcmp(key, "r") == 0) el->pcircleattr->r = atof(value);
 }
 
 static void cookEllipseGenAttr(MsvgElement *el, char *key, char *value)
 {
-  if (strcmp(key, "id") == 0) el->pellipseattr->id = strdup(value);
-  else if (strcmp(key, "cx") == 0) el->pellipseattr->cx = atof(value);
-  else if (strcmp(key, "cy") == 0) el->pellipseattr->cy = atof(value);
-  else if (strcmp(key, "rx") == 0) el->pellipseattr->rx = atof(value);
-  else if (strcmp(key, "ry") == 0) el->pellipseattr->ry = atof(value);
-  else if (strcmp(key, "fill") == 0) el->pellipseattr->fill_color = colortorgb(value);
-  else if (strcmp(key, "fill-opacity") == 0) el->pellipseattr->fill_opacity = opacitytof(value);
-  else if (strcmp(key, "stroke") == 0) el->pellipseattr->stroke_color = colortorgb(value);
-  else if (strcmp(key, "stroke-width") == 0) el->pellipseattr->stroke_width = widthtof(value);
-  else if (strcmp(key, "stroke-opacity") == 0) el->pellipseattr->stroke_opacity = opacitytof(value);
+    if (strcmp(key, "cx") == 0) el->pellipseattr->cx = atof(value);
+    else if (strcmp(key, "cy") == 0) el->pellipseattr->cy = atof(value);
+    else if (strcmp(key, "rx") == 0) el->pellipseattr->rx = atof(value);
+    else if (strcmp(key, "ry") == 0) el->pellipseattr->ry = atof(value);
 }
 
 static void cookLineGenAttr(MsvgElement *el, char *key, char *value)
 {
-  if (strcmp(key, "id") == 0) el->plineattr->id = strdup(value);
-  else if (strcmp(key, "x1") == 0) el->plineattr->x1 = atof(value);
-  else if (strcmp(key, "y1") == 0) el->plineattr->y1 = atof(value);
-  else if (strcmp(key, "x2") == 0) el->plineattr->x2 = atof(value);
-  else if (strcmp(key, "y2") == 0) el->plineattr->y2 = atof(value);
-  else if (strcmp(key, "stroke") == 0) el->plineattr->stroke_color = colortorgb(value);
-  else if (strcmp(key, "stroke-width") == 0) el->plineattr->stroke_width = widthtof(value);
-  else if (strcmp(key, "stroke-opacity") == 0) el->plineattr->stroke_opacity = opacitytof(value);
+    if (strcmp(key, "x1") == 0) el->plineattr->x1 = atof(value);
+    else if (strcmp(key, "y1") == 0) el->plineattr->y1 = atof(value);
+    else if (strcmp(key, "x2") == 0) el->plineattr->x2 = atof(value);
+    else if (strcmp(key, "y2") == 0) el->plineattr->y2 = atof(value);
 }
 
 static void cookPolylineGenAttr(MsvgElement *el, char *key, char *value)
 {
-  if (strcmp(key, "id") == 0) el->ppolylineattr->id = strdup(value);
-  else if (strcmp(key, "points") == 0) 
-    readpoints(value, &(el->ppolylineattr->points), &(el->ppolylineattr->npoints));
-  else if (strcmp(key, "stroke") == 0) el->ppolylineattr->stroke_color = colortorgb(value);
-  else if (strcmp(key, "stroke-width") == 0) el->ppolylineattr->stroke_width = widthtof(value);
-  else if (strcmp(key, "stroke-opacity") == 0) el->ppolylineattr->stroke_opacity = opacitytof(value);
+    if (strcmp(key, "points") == 0) 
+        readpoints(value, &(el->ppolylineattr->points), &(el->ppolylineattr->npoints));
 }
 
 static void cookPolygonGenAttr(MsvgElement *el, char *key, char *value)
 {
-  if (strcmp(key, "id") == 0) el->ppolygonattr->id = strdup(value);
-  else if (strcmp(key, "points") == 0) 
-    readpoints(value, &(el->ppolylineattr->points), &(el->ppolylineattr->npoints));
-  else if (strcmp(key, "fill") == 0) el->ppolygonattr->fill_color = colortorgb(value);
-  else if (strcmp(key, "fill-opacity") == 0) el->ppolygonattr->fill_opacity = opacitytof(value);
-  else if (strcmp(key, "stroke") == 0) el->ppolygonattr->stroke_color = colortorgb(value);
-  else if (strcmp(key, "stroke-width") == 0) el->ppolygonattr->stroke_width = widthtof(value);
-  else if (strcmp(key, "stroke-opacity") == 0) el->ppolygonattr->stroke_opacity = opacitytof(value);
+    if (strcmp(key, "points") == 0) 
+        readpoints(value, &(el->ppolylineattr->points), &(el->ppolylineattr->npoints));
 }
 
 static void cookElement(MsvgElement *el, int depth)
 {
-  MsvgAttribute *pattr;
-
-  if (el->fattr != NULL) {
-     pattr = el->fattr;
-     while (pattr != NULL) {
-       switch (el->eid) {
-       case EID_SVG :
-         cookSvgGenAttr(el, pattr->key, pattr->value);
-         break;
-       case EID_G :
-         cookGGenAttr(el, pattr->key, pattr->value);
-         break;
-       case EID_RECT :
-         cookRectGenAttr(el, pattr->key, pattr->value);
-         break;
-       case EID_CIRCLE :
-         cookCircleGenAttr(el, pattr->key, pattr->value);
-         break;
-       case EID_ELLIPSE :
-         cookEllipseGenAttr(el, pattr->key, pattr->value);
-         break;
-       case EID_LINE :
-         cookLineGenAttr(el, pattr->key, pattr->value);
-         break;
-       case EID_POLYLINE :
-         cookPolylineGenAttr(el, pattr->key, pattr->value);
-         break;
-       case EID_POLYGON :
-         cookPolygonGenAttr(el, pattr->key, pattr->value);
-         break;
-       default :
-         break;
-       }
-       pattr = pattr->nattr;
-     }
-  }
-
-  /* TODO: free the generic attributes now? */
-  
-  if (el->fson != NULL)
-    cookElement(el->fson, depth+1);
-
-  if (el->nsibling != NULL)
-    cookElement(el->nsibling, depth);
+    MsvgRawAttribute *pattr;
+    
+    if (el->frattr != NULL) {
+        pattr = el->frattr;
+        while (pattr != NULL) {
+            if (!cookPCtxAttr(el, pattr->key, pattr->value)) {
+                switch (el->eid) {
+                    case EID_SVG :
+                        cookSvgGenAttr(el, pattr->key, pattr->value);
+                        break;
+                    case EID_G :
+                        cookGGenAttr(el, pattr->key, pattr->value);
+                        break;
+                    case EID_RECT :
+                        cookRectGenAttr(el, pattr->key, pattr->value);
+                        break;
+                    case EID_CIRCLE :
+                        cookCircleGenAttr(el, pattr->key, pattr->value);
+                        break;
+                    case EID_ELLIPSE :
+                        cookEllipseGenAttr(el, pattr->key, pattr->value);
+                        break;
+                    case EID_LINE :
+                        cookLineGenAttr(el, pattr->key, pattr->value);
+                        break;
+                    case EID_POLYLINE :
+                        cookPolylineGenAttr(el, pattr->key, pattr->value);
+                        break;
+                    case EID_POLYGON :
+                        cookPolygonGenAttr(el, pattr->key, pattr->value);
+                        break;
+                    default :
+                        break;
+                }
+            }
+            pattr = pattr->nrattr;
+        }
+    }
+    
+    /* TODO: free the generic attributes now? */
+    
+    if (el->fson != NULL)
+        cookElement(el->fson, depth+1);
+    
+    if (el->nsibling != NULL)
+        cookElement(el->nsibling, depth);
 }
 
 int MsvgRaw2CookedTree(MsvgElement *root)
 {
-  if (root == NULL) return 0;
-  if (root->eid != EID_SVG) return 0;
-  if (root->psvgattr->tree_type != RAW_SVGTREE) return 0;
-
-  cookElement(root, 0);
-  root->psvgattr->tree_type = COOKED_SVGTREE;
-
-  return 1;
+    if (root == NULL) return 0;
+    if (root->eid != EID_SVG) return 0;
+    if (root->psvgattr->tree_type != RAW_SVGTREE) return 0;
+    
+    cookElement(root, 0);
+    root->psvgattr->tree_type = COOKED_SVGTREE;
+    
+    return 1;
 }

@@ -18,54 +18,57 @@ int main(int argc, char **argv)
   MsvgElement *root, *son1, *son2, *son3;
 
   root = MsvgNewElement(EID_SVG, NULL);
-  MsvgAddAttribute(root, "version", "1.2");
-  MsvgAddAttribute(root, "baseProfile", "tiny");
-  MsvgAddAttribute(root, "viewBox", "0 0 400 400");
+  MsvgAddRawAttribute(root, "xmlns", "http://www.w3.org/2000/svg");
+  MsvgAddRawAttribute(root, "version", "1.2");
+  MsvgAddRawAttribute(root, "baseProfile", "tiny");
+  MsvgAddRawAttribute(root, "viewBox", "0 0 400 400");
 
   son1 = MsvgNewElement(EID_RECT, root);
-  MsvgAddAttribute(son1, "id", "son1");
-  MsvgAddAttribute(son1, "x", "1");
-  MsvgAddAttribute(son1, "y", "1");
-  MsvgAddAttribute(son1, "width", "398");
-  MsvgAddAttribute(son1, "height", "398");
-  MsvgAddAttribute(son1, "stroke", "#F00");
-  MsvgAddAttribute(son1, "fill", "#FFF");
+  MsvgAddRawAttribute(son1, "id", "son1");
+  MsvgAddRawAttribute(son1, "x", "1");
+  MsvgAddRawAttribute(son1, "y", "1");
+  MsvgAddRawAttribute(son1, "width", "398");
+  MsvgAddRawAttribute(son1, "height", "398");
+  MsvgAddRawAttribute(son1, "stroke", "#F00");
+  MsvgAddRawAttribute(son1, "fill", "#FFF");
 
   son2 = MsvgNewElement(EID_RECT, root);
-  MsvgAddAttribute(son2, "x", "11");
-  MsvgAddAttribute(son2, "y", "11");
-  MsvgAddAttribute(son2, "width", "380");
-  MsvgAddAttribute(son2, "height", "380");
-  MsvgAddAttribute(son2, "stroke", "#0F0");
-  MsvgAddAttribute(son2, "fill", "none");
+  MsvgAddRawAttribute(son2, "x", "11");
+  MsvgAddRawAttribute(son2, "y", "11");
+  MsvgAddRawAttribute(son2, "width", "380");
+  MsvgAddRawAttribute(son2, "height", "380");
+  MsvgAddRawAttribute(son2, "stroke", "#0F0");
+  MsvgAddRawAttribute(son2, "fill", "none");
 
   son3 = MsvgNewElement(EID_POLYLINE, root);
-  MsvgAddAttribute(son3, "stroke", "#0F0");
-  MsvgAddAttribute(son3, "stroke-width", "10");
-  MsvgAddAttribute(son3, "points", "100,360 200,320 300,360 300,320");
+  MsvgAddRawAttribute(son3, "stroke", "#0F0");
+  MsvgAddRawAttribute(son3, "stroke-width", "10");
+  MsvgAddRawAttribute(son3, "points", "100,360 200,320 300,360 300,320");
 
+  printf("before\n");
   MsvgRaw2CookedTree(root);
+  printf("after\n");
   
   printf("---Original tree\n");
   MsvgPrintElementTree(stdout, root, 0);
   
-  MsvgDelAttribute(son1, "width");
+  MsvgDelRawAttribute(son1, "width");
   printf("---Deleted \"width\" attribute on son1\n");
   MsvgPrintElementTree(stdout, root, 0);
 
-  MsvgDelAllAttributes(son1);
+  MsvgDelAllRawAttributes(son1);
   printf("---Deleted all attributes on son1\n");
   MsvgPrintElementTree(stdout, root, 0);
 
-  MsvgDelAttribute(son2, "fill");
+  MsvgDelRawAttribute(son2, "fill");
   printf("---Deleted \"fill\" attribute on son2\n");
   MsvgPrintElementTree(stdout, root, 0);
 
-  MsvgDelAttribute(son2, "x");
+  MsvgDelRawAttribute(son2, "x");
   printf("---Deleted \"x\" attribute on son2\n");
   MsvgPrintElementTree(stdout, root, 0);
 
-  MsvgDelAttribute(root, "baseProfile");
+  MsvgDelRawAttribute(root, "baseProfile");
   printf("---Deleted \"baseProfile\" attribute on root\n");
   MsvgPrintElementTree(stdout, root, 0);
 

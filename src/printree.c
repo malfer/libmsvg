@@ -1,7 +1,8 @@
 /* printree.c
- *
+ * 
  * libmsvg, a minimal library to read and write svg files
- * Copyright (C) 2010 Mariano Alvarez Fernandez (malfer at telefonica.net)
+ *
+ * Copyright (C) 2010, 2020 Mariano Alvarez Fernandez (malfer at telefonica.net)
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -22,32 +23,32 @@
 #include <stdio.h>
 #include "msvg.h"
 
-static void printAttribute(FILE *f, MsvgAttribute *ptr)
+static void printAttribute(FILE *f, MsvgRawAttribute *ptr)
 {
-  if (ptr == NULL) return;
-
-  fprintf(f, " (%s = %s)", ptr->key, ptr->value);
-
-  printAttribute(f, ptr->nattr);
+    if (ptr == NULL) return;
+    
+    fprintf(f, " (%s = %s)", ptr->key, ptr->value);
+    
+    printAttribute(f, ptr->nrattr);
 }
 
 void MsvgPrintElementTree(FILE *f, MsvgElement *ptr, int depth)
 {
-  int i;
-
-  if (ptr == NULL) return;
-
-  if (depth > 0) {
-    for (i=0; i<depth; i++)
-      fputs("  |", f);
-    fputs("-->", f);
-  }
-
-  fprintf(f, "%s", MsvgFindElementName(ptr->eid));
-  printAttribute(f, ptr->fattr);
-  fputs("\n", f);
-
-  MsvgPrintElementTree(f, ptr->fson, depth+1);
-
-  MsvgPrintElementTree(f, ptr->nsibling, depth);
+    int i;
+    
+    if (ptr == NULL) return;
+    
+    if (depth > 0) {
+        for (i=0; i<depth; i++)
+            fputs("  |", f);
+        fputs("-->", f);
+    }
+    
+    fprintf(f, "%s", MsvgFindElementName(ptr->eid));
+    printAttribute(f, ptr->frattr);
+    fputs("\n", f);
+    
+    MsvgPrintElementTree(f, ptr->fson, depth+1);
+    
+    MsvgPrintElementTree(f, ptr->nsibling, depth);
 }

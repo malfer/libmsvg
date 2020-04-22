@@ -1,7 +1,8 @@
 /* t1.c
  *
  * libmsvg, a minimal library to read and write svg files
- * Copyright (C) 2010 Mariano Alvarez Fernandez (malfer at telefonica.net)
+ * 
+ * Copyright (C) 2010, 2020 Mariano Alvarez Fernandez (malfer at telefonica.net)
  *
  * This is a test/demo file of the libmsvg library.
  * libmsvg test/demo are in the Public Domain, this apply only to test/demo
