@@ -52,3 +52,82 @@ void MsvgPrintElementTree(FILE *f, MsvgElement *ptr, int depth)
     
     MsvgPrintElementTree(f, ptr->nsibling, depth);
 }
+
+static char * printcolor(rgbcolor color)
+{
+    static char s[81];
+
+    if (color == NO_COLOR)
+        sprintf(s, "NO_COLOR");
+    else if (color == INHERIT_COLOR)
+        sprintf(s, "INHERIT_COLOR");
+    else if (color == NODEFINED_COLOR)
+        sprintf(s, "NODEFINED_COLOR");
+    else
+        sprintf(s, "#%06x", color);
+    
+    return s;
+}
+
+static char * printvalue(double value)
+{
+    static char s[81];
+
+    if (value == INHERIT_VALUE)
+        sprintf(s, "INHERIT_VALUE");
+    else if (value == NODEFINED_VALUE)
+        sprintf(s, "NODEFINED_VALUE");
+    else
+        sprintf(s, "%f", value);
+
+    return s;
+}
+
+void MsvgPrintPctx(FILE *f, MsvgPaintCtx *pctx)
+{
+    fprintf(f, "  fill           %s\n", printcolor(pctx->fill));
+    fprintf(f, "  fill_opacity   %s\n", printvalue(pctx->fill_opacity));
+    fprintf(f, "  stroke         %s\n", printcolor(pctx->stroke));
+    fprintf(f, "  stroke_width   %s\n", printvalue(pctx->stroke_width));
+    fprintf(f, "  stroke_opacity %s\n", printvalue(pctx->stroke_opacity));
+}
+
+void MsvgPrintCookedElement(FILE *f, MsvgElement *ptr)
+{
+    fprintf(f, "%s", MsvgFindElementName(ptr->eid));
+    if (ptr->id)
+        fprintf(f, "  (id=%s)\n", ptr->id);
+    else
+        fprintf(f, "\n");
+
+    MsvgPrintPctx(f, &ptr->pctx);
+
+/*    switch (el->eid) {
+        case EID_SVG :
+            cookSvgGenAttr(el, pattr->key, pattr->value);
+            break;
+        case EID_G :
+            cookGGenAttr(el, pattr->key, pattr->value);
+            break;
+        case EID_RECT :
+            cookRectGenAttr(el, pattr->key, pattr->value);
+            break;
+        case EID_CIRCLE :
+            cookCircleGenAttr(el, pattr->key, pattr->value);
+            break;
+        case EID_ELLIPSE :
+            cookEllipseGenAttr(el, pattr->key, pattr->value);
+            break;
+        case EID_LINE :
+            cookLineGenAttr(el, pattr->key, pattr->value);
+            break;
+        case EID_POLYLINE :
+            cookPolylineGenAttr(el, pattr->key, pattr->value);
+            break;
+        case EID_POLYGON :
+            cookPolygonGenAttr(el, pattr->key, pattr->value);
+            break;
+        default :
+            break;
+    }*/
+}

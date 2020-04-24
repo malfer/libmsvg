@@ -24,11 +24,4 @@
  *
  */
 
-/*
-typedef struct _DrawSettings {
-  GrColor cfill;
-  GrColor cstroke;
-} DrawSettings;
-*/
-
-void DrawSVGtree(MsvgElement *root);
+int DrawSVGtree(MsvgElement *root);

@@ -30,6 +30,22 @@ static rgbcolor colortorgb(char *color)
     if (strcmp(color, "none") == 0) return NO_COLOR;
     else if (strcmp(color, "currentColor") == 0) return INHERIT_COLOR;
     else if (strcmp(color, "inherit") == 0) return INHERIT_COLOR;
+    else if (strcmp(color, "black") == 0) return BLACK_COLOR;
+    else if (strcmp(color, "silver") == 0) return SILVER_COLOR;
+    else if (strcmp(color, "gray") == 0) return GRAY_COLOR;
+    else if (strcmp(color, "white") == 0) return WHITE_COLOR;
+    else if (strcmp(color, "maroon") == 0) return MAROON_COLOR;
+    else if (strcmp(color, "red") == 0) return RED_COLOR;
+    else if (strcmp(color, "purple") == 0) return PURPLE_COLOR;
+    else if (strcmp(color, "fuchsia") == 0) return FUCHSIA_COLOR;
+    else if (strcmp(color, "green") == 0) return GREEN_COLOR;
+    else if (strcmp(color, "lime") == 0) return LIME_COLOR;
+    else if (strcmp(color, "olive") == 0) return OLIVE_COLOR;
+    else if (strcmp(color, "yellow") == 0) return YELLOW_COLOR;
+    else if (strcmp(color, "navy") == 0) return NAVY_COLOR;
+    else if (strcmp(color, "blue") == 0) return BLUE_COLOR;
+    else if (strcmp(color, "teal") == 0) return TEAL_COLOR;
+    else if (strcmp(color, "aqua") == 0) return AQUA_COLOR;
     else if (color[0] == '#') {
         if (strlen(color) >= 7) { /* #rrggbb */
             rgbcolor i;
@@ -42,8 +58,7 @@ static rgbcolor colortorgb(char *color)
             i = (r << 20) | (r << 16) | (g << 12) | (g << 8) | (b << 4) | b;
             return i;
         }
-    }
-    /* TODO: support color names */
+    } // TODO: support rgb(r,g,b)
     else return NO_COLOR;
 }
 
@@ -76,9 +91,9 @@ static int cookPCtxAttr(MsvgElement *el, char *key, char *value)
 {
     if (strcmp(key, "id") == 0) el->id = strdup(value);
     else if (strcmp(key, "xml:id") == 0) el->id = strdup(value);
-    else if (strcmp(key, "fill") == 0) el->pctx.fill_color = colortorgb(value);
+    else if (strcmp(key, "fill") == 0) el->pctx.fill = colortorgb(value);
     else if (strcmp(key, "fill-opacity") == 0) el->pctx.fill_opacity = opacitytof(value);
-    else if (strcmp(key, "stroke") == 0) el->pctx.stroke_color = colortorgb(value);
+    else if (strcmp(key, "stroke") == 0) el->pctx.stroke = colortorgb(value);
     else if (strcmp(key, "stroke-width") == 0) el->pctx.stroke_width = widthtof(value);
     else if (strcmp(key, "stroke-opacity") == 0) el->pctx.stroke_opacity = opacitytof(value);
     else return 0;
@@ -104,7 +119,7 @@ static void cookSvgGenAttr(MsvgElement *el, char *key, char *value)
         if (el->psvgattr->width == 0) el->psvgattr->width = el->psvgattr->vb_width;
         if (el->psvgattr->height == 0) el->psvgattr->height = el->psvgattr->vb_height;
     }
-    else if (strcmp(key, "vieport-fill") == 0) el->psvgattr->vp_fill_color = colortorgb(value);
+    else if (strcmp(key, "vieport-fill") == 0) el->psvgattr->vp_fill = colortorgb(value);
     else if (strcmp(key, "vieport-fill-opacity") == 0) el->psvgattr->vp_fill_opacity = opacitytof(value);
 }
 
@@ -121,6 +136,22 @@ static void cookRectGenAttr(MsvgElement *el, char *key, char *value)
     else if (strcmp(key, "height") == 0) el->prectattr->height = atof(value);
     else if (strcmp(key, "rx") == 0) el->prectattr->rx = atof(value);
     else if (strcmp(key, "ry") == 0) el->prectattr->ry = atof(value);
+
+    if (el->prectattr->rx == NODEFINED_VALUE &&
+        el->prectattr->ry != NODEFINED_VALUE)
+        el->prectattr->rx = el->prectattr->ry;
+
+    if (el->prectattr->ry == NODEFINED_VALUE &&
+        el->prectattr->rx != NODEFINED_VALUE)
+        el->prectattr->ry = el->prectattr->rx;
+
+    if (el->prectattr->rx != NODEFINED_VALUE &&
+        el->prectattr->rx > (el->prectattr->width / 2.0))
+        el->prectattr->rx = el->prectattr->width / 2.0;
+
+    if (el->prectattr->ry != NODEFINED_VALUE &&
+        el->prectattr->ry > (el->prectattr->height / 2.0))
+        el->prectattr->ry = el->prectattr->height / 2.0;
 }
 
 static void cookCircleGenAttr(MsvgElement *el, char *key, char *value)

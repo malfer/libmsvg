@@ -48,11 +48,11 @@ MsvgElement *MsvgNewGenericElement(enum EID eid, MsvgElement *father)
     
     element->id = NULL;
     
-    element->pctx.fill_color = INHERIT_COLOR;
-    element->pctx.fill_opacity = INHERIT_VALUE;
-    element->pctx.stroke_color = INHERIT_COLOR;
-    element->pctx.stroke_width = INHERIT_VALUE;
-    element->pctx.stroke_opacity = INHERIT_VALUE;
+    element->pctx.fill = NODEFINED_COLOR;
+    element->pctx.fill_opacity = NODEFINED_VALUE;
+    element->pctx.stroke = NODEFINED_COLOR;
+    element->pctx.stroke_width = NODEFINED_VALUE;
+    element->pctx.stroke_opacity = NODEFINED_VALUE;
     
     return element;
 }
@@ -69,20 +69,14 @@ MsvgElement *MsvgNewSvgElement(MsvgElement *father)
         free(element);
         return NULL;
     }
-    
-    element->pctx.fill_color = 0; /* black */
-    element->pctx.fill_opacity = 1; /* solid */
-    element->pctx.stroke_color = 0xffffff; /* white */
-    element->pctx.stroke_width = 1;
-    element->pctx.stroke_opacity = 1; /* solid */
-    
+
     element->psvgattr->width = 0;
     element->psvgattr->height = 0;
     element->psvgattr->vb_min_x = 0;
     element->psvgattr->vb_min_y = 0;
     element->psvgattr->vb_width = 0;
     element->psvgattr->vb_height = 0;
-    element->psvgattr->vp_fill_color = 0; /* black */
+    element->psvgattr->vp_fill = NO_COLOR; /* black */
     element->psvgattr->vp_fill_opacity = 1; /* solid */
     element->psvgattr->tree_type = RAW_SVGTREE;
     return element;
@@ -121,8 +115,8 @@ MsvgElement *MsvgNewRectElement(MsvgElement *father)
     element->prectattr->y = 0;
     element->prectattr->width = 0;
     element->prectattr->height = 0;
-    element->prectattr->rx = 0;
-    element->prectattr->ry = 0;
+    element->prectattr->rx = NODEFINED_VALUE;
+    element->prectattr->ry = NODEFINED_VALUE;
     
     return element;
 }

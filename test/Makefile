@@ -12,7 +12,8 @@ LIBSdos= $(subst /,\,$(LIBS))
 
 SAMPLES=t1$(EXE) \
         t2$(EXE) \
-        tdel$(EXE)
+        tdel$(EXE) \
+        tcook$(EXE)
 
 ### LINUX VERSION
 

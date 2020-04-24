@@ -46,8 +46,6 @@ int main(int argc, char **argv)
     MsvgAddRawAttribute(son3, "stroke-width", "10");
     MsvgAddRawAttribute(son3, "points", "100,360 200,320 300,360 300,320");
     
-    MsvgRaw2CookedTree(root); // TODO: check if it worked
-    
     printf("===== Original tree\n");
     MsvgPrintElementTree(stdout, root, 0);
     

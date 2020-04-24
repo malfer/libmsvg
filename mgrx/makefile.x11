@@ -1,3 +1,5 @@
+.PHONY : clean
+
 all: gsvg rsvg
 
 gsvg: gsvg.c rendmgrx.o rendmgrx.h
@@ -6,3 +8,8 @@ rsvg: rsvg.c rendmgrx.o rendmgrx.h
 	gcc -Wall -o rsvg rsvg.c rendmgrx.o -lmsvg -lmgrxX -lX11
 rendmgrx.o: rendmgrx.c rendmgrx.h
 	gcc -Wall -c rendmgrx.c
+
+clean:
+	rm -f *.o
+	rm -f gsvg
+	rm -f rsvg

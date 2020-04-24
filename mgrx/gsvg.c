@@ -48,15 +48,15 @@ static MsvgElement *CreateTree(void)
   son->prectattr->y = 50;
   son->prectattr->width = 300;
   son->prectattr->height = 300;
-  son->pctx.fill_color = 0XFF;
-  son->pctx.stroke_color = 0XFF0000;
+  son->pctx.fill = 0XFF;
+  son->pctx.stroke = 0XFF0000;
 
   son = MsvgNewElement(EID_CIRCLE, root);
   son->pcircleattr->cx = 100;
   son->pcircleattr->cy = 100;
   son->pcircleattr->r = 80;
-  son->pctx.fill_color = 0XFF00;
-  son->pctx.stroke_color = 0X8800;
+  son->pctx.fill = 0XFF00;
+  son->pctx.stroke = 0X8800;
   
   return root;
 }

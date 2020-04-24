@@ -22,7 +22,7 @@
 
 #include <stdio.h>
 
-#define LIBMSVG_VERSION_API 0x0010
+#define LIBMSVG_VERSION_API 0x0011
 
 /* define id's for supported elements */
 
@@ -50,16 +50,35 @@ int MsvgIsSupSonElementId(enum EID fatherid, enum EID sonid);
 #define RAW_SVGTREE    0   /* tree with raw attributes only */
 #define COOKED_SVGTREE 1   /* tree with cooked attributes */
 
-/* define the rgbcolor type */
+/* define the rgbcolor type and special values*/
 
 typedef int rgbcolor;
 
-#define NO_COLOR -1
-#define INHERIT_COLOR -2
+#define NO_COLOR        -1
+#define INHERIT_COLOR   -2
+#define NODEFINED_COLOR -3
 
-/* define inherit value for double attributes */
+#define BLACK_COLOR   0x000000
+#define SILVER_COLOR  0xc0c0c0
+#define GRAY_COLOR    0x808080
+#define WHITE_COLOR   0xffffff
+#define MAROON_COLOR  0x800000
+#define RED_COLOR     0xff0000
+#define PURPLE_COLOR  0x800080
+#define FUCHSIA_COLOR 0xff00ff
+#define GREEN_COLOR   0x008000
+#define LIME_COLOR    0x00ff00
+#define OLIVE_COLOR   0x808000
+#define YELLOW_COLOR  0xffff00
+#define NAVY_COLOR    0x000080
+#define BLUE_COLOR    0x0000ff
+#define TEAL_COLOR    0x008080
+#define AQUA_COLOR    0x00ffff
 
-#define INHERIT_VALUE -1.0
+/* define special values for double attributes */
+
+#define INHERIT_VALUE   -1.0
+#define NODEFINED_VALUE -2.0
 
 /* raw attributes */
 
@@ -74,9 +93,9 @@ typedef struct _MsvgRawAttribute {
 /* paint context: cooked heritable attributes for all elements */
 
 typedef struct _MsvgPaintCtx {
-    rgbcolor fill_color;   /* fill color attribute */
+    rgbcolor fill;         /* fill color attribute */
     double fill_opacity;   /* fill-opacity attribute */
-    rgbcolor stroke_color; /* stroke color attribute */
+    rgbcolor stroke;       /* stroke color attribute */
     double stroke_width;   /* stroke-width attribute */
     double stroke_opacity; /* stroke-opacity attribute */
 } MsvgPaintCtx;
@@ -91,7 +110,7 @@ typedef struct _MsvgSvgAttributes {
     double vb_min_y;
     double vb_width;
     double vb_height;
-    rgbcolor vp_fill_color; /* viewport-fill attribute */
+    rgbcolor vp_fill;       /* viewport-fill attribute */
     double vp_fill_opacity; /* viewport-fill-opacity attribute */
 } MsvgSvgAttributes;
 
@@ -199,7 +218,15 @@ int MsvgWriteSvgFile(MsvgElement *root, const char *fname);
 /* functions in printree.c */
 
 void MsvgPrintElementTree(FILE *f, MsvgElement *ptr, int depth);
+void MsvgPrintPctx(FILE *f, MsvgPaintCtx *pctx);
+void MsvgPrintCookedElement(FILE *f, MsvgElement *ptr);
 
 /* functions in raw2cook.c */
 
 int MsvgRaw2CookedTree(MsvgElement *root);
+
+/* functions in serializ.c */
+
+typedef void (*MsvgSerUserFn)(MsvgElement *el, MsvgPaintCtx *pctx);
+
+int MsvgSerCookedTree(MsvgElement *root, MsvgSerUserFn sufn);

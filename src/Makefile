@@ -15,6 +15,7 @@ LIBOBJS=tables.o \
         printree.o \
         rdsvgf.o \
         wtsvgf.o \
+        serializ.o \
         util.o
 
 LIB=libmsvg.a

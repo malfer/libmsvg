@@ -7,6 +7,7 @@ expat/sample/elements
 test/t1
 test/t2
 test/tdel
+test/tcook
 mgrx/rsvg
 mgrx/gsvg
 # Ignore graphics files from test programs
