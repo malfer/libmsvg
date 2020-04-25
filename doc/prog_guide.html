@@ -6,9 +6,9 @@
 </head>
 
 <body>
-<h1>libmsvg v0.10</h1>
+<h1>libmsvg v0.11</h1>
 <h2>Programmer's guide</h2>
-<p>Last update: April 22, 2020</p>
+<p>Last update: April 25, 2020</p>
 
 <hr>
 <h2>Abstract</h2>
@@ -33,6 +33,7 @@ Appendix A</a>.</p>
 <li><a href="#buildraw">Building a RAW MsvgElement tree by program</a>
 <li><a href="#buildcooked">Building a COOKED MsvgElement tree by program</a>
 <li><a href="#manipulating">Manipulating a MsvgElement tree</a>
+<li><a href="#serialize">Serialize a cooked MsvgElement tree</a>
 <li><a href="#writing">Writing SVG files</a>
 <li><a href="#appendixa">Appendix A, the libmsvg SVG subset</a>
 
@@ -149,21 +150,14 @@ element type id can have his specific ones. </p>
 <p>After a SVG file is loaded to a MsvgElement tree by the MsvgReadSvgFile function
 it is marked as a RAW_SVGTREE. Only the supported elements are inserted in the tree,
 but all the read attributes are stored like raw attributes. This stage of the
-tree can suffice for some programs, elements and attributes can be added, deleted or
+tree can suffice for some programs. Elements and attributes can be added, deleted or
 reordered and finally be written to a file using the MsvgWriteSvgFile function.</p>
 
 <h3>The COOKED_SVGTREE tree type</h3>
 <p>Using the MsvgRaw2CookedTree funtion you
 can convert a MsvgElement tree to the COOKED_SVGTREE type. Only the supported
 attributes are processed and converted to cooked attributes. In this state the tree
-is easier to be manipulated by a program.</p>
-
-<h3>The FRIED_SVGTREE tree type</h3>
-<p>A third tree type is planned, using another planned function (<font color="#aa0000">
-to be added to the library</font>) you can convert a tree from COOKED_SVGTREE to
-FRIED_SVGTREE. In this state, all the elements are serialized, resolving each posible
-EID_G element, and all coordinates are truncated to integer values. This will be the
-ideal state for drawing a MsvgElemet tree using a graphics package. </p>
+is easier to manipulate and rasterize by a program.</p>
 
 <hr>
 <h2><a name="element">The MsvgElement structure</a></h2>
@@ -215,17 +209,23 @@ typedef struct _MsvgRawAttribute {
 (that can be NULL) and a MsvgPaintCtx structure:</p>
 <pre>
 typedef struct _MsvgPaintCtx {
-    rgbcolor fill_color;   /* fill color attribute */
+    rgbcolor fill;         /* fill color attribute */
     double fill_opacity;   /* fill-opacity attribute */
-    rgbcolor stroke_color; /* stroke color attribute */
+    rgbcolor stroke;       /* stroke color attribute */
     double stroke_width;   /* stroke-width attribute */
     double stroke_opacity; /* stroke-opacity attribute */
 } MsvgPaintCtx;
 </pre>
 
 <p>it is important to note that all attributes in the MsvgPaintCtx can
-be inherited from his father element, with the value INHERIT_COLOR (for
-colors) or INHERIT_VALUE (for doubles).</p>
+be inherited from his father element. This can be do explicitly with the value
+INHERIT_COLOR (for colors) or INHERIT_VALUE (for doubles), that correspond
+to the raw keyword value "inherit", or implicitly when
+the value is NODEFINED_COLOR (for colors) or NODEFINED_VALUE, that occurs when
+the raw value is not defined, and the father value is defined.</p>
+
+<p>fill and stroke colors can have the value NO_COLOR, that correspond
+to the raw keyword value "none" that means fill or stroke must not be done.</p>
 
 <p>Cooked specific attributes are different for each element type id and stored
 in a union, you can inspect each one in the msvg.h include file.</p>
@@ -335,11 +335,11 @@ programmers and we know what are we doing, doesn't it.</p>
   son->prectattr->y = 1;
   son->prectattr->width = 398;
   son->prectattr->height = 398;
-  son->pctx.fill_color = 0XFFFFFF;
-  son->pctx.stroke_color = 0XFF0000;
+  son->pctx.fill = 0XFFFFFF;
+  son->pctx.stroke = 0XFF0000;
   son = MsvgNewElement(EID_G, root);
-  son->pctx.fill_color = NO_COLOR;
-  son->pctx.stroke_color = 0X00FF00;
+  son->pctx.fill = NO_COLOR;
+  son->pctx.stroke = 0X00FF00;
 
   MsvgElement *soon2;
   son2 = MsvgNewElement(EID_CIRCLE, son);
@@ -390,6 +390,28 @@ element is a container (like  EID_SVG or EID_G) it duplicates all the element
 sons too.</p>
 
 <hr>
+<h2><a name="serialize">Serialize a cooked MsvgElement tree</a></h2>
+<p>libmsvg provides a function to serialize al cooked MsvgElement tree. Using
+this function is the easier way to rasterize a MsvgElement tree.</p>
+
+<pre>
+int MsvgSerCookedTree(MsvgElement *root, MsvgSerUserFn sufn);
+</pre>
+
+<p>this function will process the tree and call the supply user function
+for every drawable element (not for container elements). The user function
+must be defined as:</p>
+
+<pre>
+typedef void (*MsvgSerUserFn)(MsvgElement *el, MsvgPaintCtx *pctx);
+</pre>
+
+<p>where "el" is the pointer to the drawable element and pctx a pointer
+to a constructed MsvgPaintCtx whit all the inherit and initial values processed,
+so the user program must use this painting context instead the element one
+to do the drawing.</p>
+
+<hr>
 <h2><a name="writing">Writing SVG files</a></h2>
 <p>Using the MsvgWriteSvgFile function you can write a MsvgElement tree to a file.</p>
 
@@ -409,7 +431,7 @@ the library</font>) first:</p>
 <hr>
 <h2><a name="appendixa">Appendix A, the libmsvg SVG subset</a></h2>
 <p>This table lists the SVG elementes and attributes that will be
-supported when libmsvg reaches version 0.1.</p>
+supported when libmsvg reaches version 0.20.</p>
 <p>Each row lists an element, the supported specific attributes and the
 possible elements that may be sons.</p>
 <p>Note that specific attributes only affects to COOKED trees, RAW trees
