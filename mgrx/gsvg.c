@@ -66,7 +66,7 @@ static void TestFunc(void)
   GrEvent ev;
 
   GrClearContext(GrBlack());
-  DrawSVGtree(CreateTree());
+  DrawSVGtree(CreateTree(), 0);
   GrEventWaitKeyOrClick(&ev);
 }
 

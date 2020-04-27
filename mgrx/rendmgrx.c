@@ -259,14 +259,42 @@ static void sufn(MsvgElement *el, MsvgPaintCtx *pctx)
     }
 }
 
-int DrawSVGtree(MsvgElement *root)
+int DrawSVGtree(MsvgElement *root, int par)
 {
+    GrContext *ctx = NULL;
+    GrContext grcaux;
     GrColor cfill;
+    int svgw, svgh;
+    double ratiow, ratioh;
 
     if (root == NULL) return 0;
     if (root->eid != EID_SVG) return 0;
     if (root->psvgattr->tree_type != COOKED_SVGTREE) return 0;
-    
+
+    if (par) {
+        ratiow = GrSizeX() / root->psvgattr->vb_width;
+        ratioh = GrSizeY() / root->psvgattr->vb_height;
+        if (ratiow > ratioh) {
+            //svgw = GrSizeY() / ratiow;
+            svgw = GrSizeY() *
+                (root->psvgattr->vb_width / root->psvgattr->vb_height);
+            svgh = GrSizeY();
+        } else {
+            svgw = GrSizeX();
+            //svgh = GrSizeX() / ratiow;
+            svgh = GrSizeX() * 
+                (root->psvgattr->vb_height / root->psvgattr->vb_width);
+        }
+        //printf("%f %f  %f %f  %d %d  %d %d\n", root->psvgattr->vb_width,
+        //       root->psvgattr->vb_height, ratiow, ratioh,
+        //       GrSizeX(), GrSizeY(), svgw, svgh);
+        GrSaveContext(&grcaux);
+        ctx = GrCreateSubContext(grcaux.gc_xoffset, grcaux.gc_yoffset,
+                                 grcaux.gc_xoffset+svgw-1,
+                                 grcaux.gc_yoffset+svgh-1, NULL, NULL);
+        GrSetContext(ctx);
+    }
+
     GrSetUserWindow(root->psvgattr->vb_min_x,
                     root->psvgattr->vb_min_y,
                     root->psvgattr->vb_min_x+root->psvgattr->vb_width-1,
@@ -278,7 +306,12 @@ int DrawSVGtree(MsvgElement *root)
     }
 
     MsvgSerCookedTree(root, sufn);
-    
+
+    if (ctx) {
+        GrSetContext(&grcaux);
+        GrDestroyContext(ctx);
+    }
+
     return 1;
 }
 

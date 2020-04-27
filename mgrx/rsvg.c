@@ -42,7 +42,7 @@ static void TestFunc(void)
   root = MsvgReadSvgFile("test.svg");
   if (root == NULL) return;
   if (!MsvgRaw2CookedTree(root)) return;
-  DrawSVGtree(root);
+  DrawSVGtree(root, 0);
   GrEventWaitKeyOrClick(&ev);
   MsvgDeleteElement(root);
 }
