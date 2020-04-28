@@ -6,9 +6,9 @@
 </head>
 
 <body>
-<h1>libmsvg v0.11</h1>
+<h1>libmsvg v0.12</h1>
 <h2>Programmer's guide</h2>
-<p>Last update: April 27, 2020</p>
+<p>Last update: April 28, 2020</p>
 
 <hr>
 <h2>Abstract</h2>
@@ -33,7 +33,7 @@ Appendix A</a>.</p>
 <li><a href="#buildraw">Building a RAW MsvgElement tree by program</a>
 <li><a href="#buildcooked">Building a COOKED MsvgElement tree by program</a>
 <li><a href="#manipulating">Manipulating a MsvgElement tree</a>
-<li><a href="#serialize">Serialize a cooked MsvgElement tree</a>
+<li><a href="#serialize">Serialize a COOKED MsvgElement tree</a>
 <li><a href="#writing">Writing SVG files</a>
 <li><a href="#appendixa">Appendix A, the libmsvg SVG subset</a>
 <li><a href="#appendixb">Appendix B, parameters values</a>
@@ -66,7 +66,7 @@ int main(int argc, char **argv)
   }
 
   /* Now you can process the structure. By example: */
-  MsvgPrintElementTree(stdout, root, 0);
+  MsvgPrintRawElementTree(stdout, root, 0);
 
   return 1;
 }
@@ -105,7 +105,7 @@ int main(int argc, char **argv)
   MsvgAddRawAttribute(son, "height", "380");
   MsvgAddRawAttribute(son, "stroke", "#0F0");
   MsvgAddRawAttribute(son, "fill", "none");
-  MsvgPrintElementTree(stdout, root, 0);
+  MsvgPrintRawElementTree(stdout, root, 0);
 
   if (!MsvgWriteSvgFile(root, TESTFILE)) {
     printf("Error writing %s\n", TESTFILE);
@@ -252,7 +252,17 @@ you can use the MsvgRaw2CookedTree funtion:</p>
   result = MsvgRaw2CookedTree(root);
 </pre>
 
-<p>result will be true if all was right, false otherwise</p>
+<p>result will be true if all was right, false otherwise. Note that after calling
+this function you have really a mixed RAW/COOKED tree, because all raw parameters
+are preserved. If you are sure you don't need the raw parameters anymore you can
+call the MsvgDelAllTreeRawAttributes function:</p>
+
+<pre>
+  int result;
+  result = MsvgDelAllTreeRawAttributes(root);
+</pre>
+
+<p>result will be the number of raw parameters deleted.</p>
 
 <hr>
 <h2><a name="buildraw">Building a RAW MsvgElement tree by program</a></h2>
@@ -293,7 +303,6 @@ drawing limits using the MsvgAddRawAttribute function.</p>
   son = MsvgNewElement(EID_G, root);
   MsvgAddRawAttribute(son, "stroke", "#0F0");
   MsvgAddRawAttribute(son, "fill", "none");
-  MsvgPrintElementTree(stdout, root, 0);
 </pre>
 
 <p>Finally we add two son CIRCLE elements to the G element. Note that they
@@ -316,6 +325,9 @@ a file.</p>
 
 <hr>
 <h2><a name="buildcooked">Building a COOKED MsvgElement tree by program</a></h2>
+<p>Here you have two options, you can construct a RAW MsvgElement tree and them
+call MsvgRaw2CookedTree or you can construct a COOKED tree directly.</p>
+
 <p>Constructing a COOKED tree is the same like constructing a RAW one, except we
 don't use the MsvgAddRawAttribute function. Instead we set directly the element
 cooked attributes, there are no functions to hide the variables, because we are
@@ -391,8 +403,8 @@ element is a container (like  EID_SVG or EID_G) it duplicates all the element
 sons too.</p>
 
 <hr>
-<h2><a name="serialize">Serialize a cooked MsvgElement tree</a></h2>
-<p>libmsvg provides a function to serialize al cooked MsvgElement tree. Using
+<h2><a name="serialize">Serialize a COOKED MsvgElement tree</a></h2>
+<p>libmsvg provides a function to serialize a COOKED MsvgElement tree. Using
 this function is the easier way to rasterize a MsvgElement tree.</p>
 
 <pre>
@@ -417,12 +429,15 @@ to do the drawing.</p>
 <p>Using the MsvgWriteSvgFile function you can write a MsvgElement tree to a file.</p>
 
 <pre>
-int MsvgWriteSvgFile(root, "fileout.svg")
+  MsvgElement *root;
+  int result;
+  // construct the root tree
+  result = MsvgWriteSvgFile(root, "fileout.svg")
 </pre>
 
-<p>MsvgWriteSvgFile only know how to write RAW trees. If you want to write a COOKED tree
-you need to use the MsvgCooked2RawTree funtion (<font color="#aa0000">to be added to
-the library</font>) first:</p>
+<p>MsvgWriteSvgFile only know how to write RAW trees. If you want to write a COOKED
+only tree you need to use the MsvgCooked2RawTree funtion (<font color="#aa0000">to
+be added to the library</font>) first:</p>
 
 <pre>
   int result;

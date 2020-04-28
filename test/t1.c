@@ -32,7 +32,7 @@ int main(int argc, char **argv)
         return 0;
     }
     
-    MsvgPrintElementTree(stdout, root, 0);
+    MsvgPrintRawElementTree(stdout, root, 0);
     
     if (!MsvgWriteSvgFile(root, TESTFILE)) {
         printf("Error writing %s\n", TESTFILE);

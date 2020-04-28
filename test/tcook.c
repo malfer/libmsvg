@@ -18,7 +18,7 @@ static void sufn(MsvgElement *el, MsvgPaintCtx *pctx)
 {
     printf("=========\n");
     MsvgPrintCookedElement(stdout, el);
-    printf("---------\n");
+    printf("  --------- effective MsvgPaintCtx\n");
     MsvgPrintPctx(stdout, pctx);
 }
 
@@ -38,10 +38,15 @@ int main(int argc, char **argv)
         return 0;
     }
     
-    MsvgPrintElementTree(stdout, root, 0);
+    MsvgPrintRawElementTree(stdout, root, 0);
 
     printf("===== Converting to cooked tree\n");
     MsvgRaw2CookedTree(root);
+    MsvgPrintCookedElement(stdout, root);
+
+    printf("===== Deleting all raw parameters\n");
+    MsvgDelAllTreeRawAttributes(root);
+    MsvgPrintRawElementTree(stdout, root, 0);
 
     printf("===== Serialize cooked tree\n");
     MsvgSerCookedTree(root, sufn);

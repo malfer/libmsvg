@@ -47,47 +47,47 @@ int main(int argc, char **argv)
     MsvgAddRawAttribute(son3, "points", "100,360 200,320 300,360 300,320");
     
     printf("===== Original tree\n");
-    MsvgPrintElementTree(stdout, root, 0);
+    MsvgPrintRawElementTree(stdout, root, 0);
     
     MsvgDelRawAttribute(son1, "width");
     printf("===== Deleted \"width\" attribute on son1\n");
-    MsvgPrintElementTree(stdout, root, 0);
+    MsvgPrintRawElementTree(stdout, root, 0);
     
     MsvgDelAllRawAttributes(son1);
     printf("===== Deleted all attributes on son1\n");
-    MsvgPrintElementTree(stdout, root, 0);
+    MsvgPrintRawElementTree(stdout, root, 0);
     
     MsvgDelRawAttribute(son2, "fill");
     printf("===== Deleted \"fill\" attribute on son2\n");
-    MsvgPrintElementTree(stdout, root, 0);
+    MsvgPrintRawElementTree(stdout, root, 0);
     
     MsvgDelRawAttribute(son2, "x");
     printf("===== Deleted \"x\" attribute on son2\n");
-    MsvgPrintElementTree(stdout, root, 0);
+    MsvgPrintRawElementTree(stdout, root, 0);
     
     MsvgDelRawAttribute(root, "baseProfile");
     printf("===== Deleted \"baseProfile\" attribute on root\n");
-    MsvgPrintElementTree(stdout, root, 0);
+    MsvgPrintRawElementTree(stdout, root, 0);
     
     MsvgPruneElement(son2);
     printf("===== Prune second soon\n");
-    MsvgPrintElementTree(stdout, root, 0);
+    MsvgPrintRawElementTree(stdout, root, 0);
     
     MsvgInsertSonElement(son2, root);
     printf("===== Insert second soon at the end\n");
-    MsvgPrintElementTree(stdout, root, 0);
+    MsvgPrintRawElementTree(stdout, root, 0);
     
     MsvgDeleteElement(son1);
     printf("===== Deleted first soon\n");
-    MsvgPrintElementTree(stdout, root, 0);
+    MsvgPrintRawElementTree(stdout, root, 0);
     
     //MsvgDeleteElement(son2);
     //printf("===== Deleted second soon\n");
-    //MsvgPrintElementTree(stdout, root, 0);
+    //MsvgPrintRawElementTree(stdout, root, 0);
     
     MsvgDeleteElement(root);
     printf("===== Deleted root\n");
-    //MsvgPrintElementTree(stdout, root, 0);
+    //MsvgPrintRawElementTree(stdout, root, 0);
     
     return 1;
 }

@@ -22,7 +22,7 @@
 
 #include <stdio.h>
 
-#define LIBMSVG_VERSION_API 0x0011
+#define LIBMSVG_VERSION_API 0x0012
 
 /* define id's for supported elements */
 
@@ -183,18 +183,20 @@ typedef struct _MsvgElement {
     };
 } MsvgElement;
 
-/* functions in attribut.c */
-
-int MsvgAddRawAttribute(MsvgElement *pelement, const char *key, const char *value);
-int MsvgDelRawAttribute(MsvgElement *pelement, const char *key);
-int MsvgDelAllRawAttributes(MsvgElement *pelement);
-int MsvgCopyRawAttributes(MsvgElement *deselement, MsvgElement *srcelement);
-
-int MsvgCopyCookedAttributes(MsvgElement *deselement, MsvgElement *srcelement);
-
 /* functions in elements.c */
 
 MsvgElement *MsvgNewElement(enum EID eid, MsvgElement *father);
+
+/* functions in attribut.c */
+
+int MsvgAddRawAttribute(MsvgElement *el, const char *key, const char *value);
+int MsvgDelRawAttribute(MsvgElement *el, const char *key);
+int MsvgDelAllRawAttributes(MsvgElement *el);
+int MsvgCopyRawAttributes(MsvgElement *desel, MsvgElement *srcel);
+
+int MsvgDelAllTreeRawAttributes(MsvgElement *el);
+
+int MsvgCopyCookedAttributes(MsvgElement *desel, MsvgElement *srcel);
 
 /* functions in manielem.c */
 
@@ -217,9 +219,10 @@ int MsvgWriteSvgFile(MsvgElement *root, const char *fname);
 
 /* functions in printree.c */
 
-void MsvgPrintElementTree(FILE *f, MsvgElement *ptr, int depth);
+void MsvgPrintRawElementTree(FILE *f, MsvgElement *el, int depth);
+
 void MsvgPrintPctx(FILE *f, MsvgPaintCtx *pctx);
-void MsvgPrintCookedElement(FILE *f, MsvgElement *ptr);
+void MsvgPrintCookedElement(FILE *f, MsvgElement *el);
 
 /* functions in raw2cook.c */
 

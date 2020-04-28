@@ -44,7 +44,7 @@ int main(int argc, char **argv)
     MsvgAddRawAttribute(son, "fill", "none");
     
     printf("===== Constructed svgtree =====\n");
-    MsvgPrintElementTree(stdout, root, 0);
+    MsvgPrintRawElementTree(stdout, root, 0);
     
     if (!MsvgWriteSvgFile(root, TESTFILEA)) {
         printf("Error writing %s\n", TESTFILEA);
@@ -54,7 +54,7 @@ int main(int argc, char **argv)
     rootdup = MsvgDupElement(root);
     
     printf("===== Duplicate svgtree =====\n");
-    MsvgPrintElementTree(stdout, rootdup, 0);
+    MsvgPrintRawElementTree(stdout, rootdup, 0);
     
     if (!MsvgWriteSvgFile(rootdup, TESTFILEB)) {
         printf("Error writing %s\n", TESTFILEB);

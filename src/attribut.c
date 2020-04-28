@@ -24,12 +24,12 @@
 #include <string.h>
 #include "msvg.h"
 
-int MsvgAddRawAttribute(MsvgElement *pelement, const char *key, const char *value)
+int MsvgAddRawAttribute(MsvgElement *el, const char *key, const char *value)
 {
     MsvgRawAttribute **dptr;
     MsvgRawAttribute *pattr;
     
-    dptr = &(pelement->frattr);
+    dptr = &(el->frattr);
     while (*dptr)
         dptr = &((*dptr)->nrattr);
     
@@ -56,13 +56,13 @@ int MsvgAddRawAttribute(MsvgElement *pelement, const char *key, const char *valu
 }
 
 
-int MsvgDelRawAttribute(MsvgElement *pelement, const char *key)
+int MsvgDelRawAttribute(MsvgElement *el, const char *key)
 {
     MsvgRawAttribute **dptr;
     MsvgRawAttribute *nattr;
     
     
-    dptr = &(pelement->frattr);
+    dptr = &(el->frattr);
     while (*dptr) {
         if (strcmp((*dptr)->key,key) == 0) {
             if ((*dptr)->key) free((*dptr)->key);
@@ -78,12 +78,12 @@ int MsvgDelRawAttribute(MsvgElement *pelement, const char *key)
     return 0;
 }
 
-int MsvgDelAllRawAttributes(MsvgElement *pelement)
+int MsvgDelAllRawAttributes(MsvgElement *el)
 {
     MsvgRawAttribute *cattr, *nattr;
     int deleted = 0;
     
-    cattr = pelement->frattr;
+    cattr = el->frattr;
     while (cattr) {
         if (cattr->key) free(cattr->key);
         if (cattr->value) free(cattr->value);
@@ -93,55 +93,71 @@ int MsvgDelAllRawAttributes(MsvgElement *pelement)
         cattr = nattr;
     }
     
-    pelement->frattr = NULL;
+    el->frattr = NULL;
     return deleted;
 }
 
-int MsvgCopyRawAttributes(MsvgElement *deselement, MsvgElement *srcelement)
+int MsvgDelAllTreeRawAttributes(MsvgElement *el)
+{
+    MsvgElement *ptr;
+    int deleted = 0;
+    
+    deleted = MsvgDelAllRawAttributes(el);
+
+    ptr = el->fson;
+    while (ptr) {
+        deleted += MsvgDelAllTreeRawAttributes(ptr);
+        ptr = ptr->nsibling;
+    }
+
+    return deleted;
+}
+
+int MsvgCopyRawAttributes(MsvgElement *desel, MsvgElement *srcel)
 {
     MsvgRawAttribute *cattr;
     int copied = 0;
     
-    cattr = srcelement->frattr;
+    cattr = srcel->frattr;
     while (cattr) {
-        copied += MsvgAddRawAttribute(deselement, cattr->key, cattr->value);
+        copied += MsvgAddRawAttribute(desel, cattr->key, cattr->value);
         cattr = cattr->nrattr;
     }
     
     return copied;
 }
 
-int MsvgCopyCookedAttributes(MsvgElement *deselement, MsvgElement *srcelement)
+int MsvgCopyCookedAttributes(MsvgElement *desel, MsvgElement *srcel)
 {
-    if (srcelement->eid != deselement->eid) return 0;
+    if (srcel->eid != desel->eid) return 0;
 
-    if (srcelement->id) deselement->id = strdup(srcelement->id);
-    deselement->pctx = srcelement->pctx;
+    if (srcel->id) desel->id = strdup(srcel->id);
+    desel->pctx = srcel->pctx;
 
-    switch (srcelement->eid) {
+    switch (srcel->eid) {
         case EID_SVG :
-            *(deselement->psvgattr) = *(srcelement->psvgattr);
+            *(desel->psvgattr) = *(srcel->psvgattr);
             break;
         case EID_G :
-            *(deselement->pgattr) = *(srcelement->pgattr);
+            *(desel->pgattr) = *(srcel->pgattr);
             break;
         case EID_RECT :
-            *(deselement->prectattr) = *(srcelement->prectattr);
+            *(desel->prectattr) = *(srcel->prectattr);
             break;
         case EID_CIRCLE :
-            *(deselement->pcircleattr) = *(srcelement->pcircleattr);
+            *(desel->pcircleattr) = *(srcel->pcircleattr);
             break;
         case EID_ELLIPSE :
-            *(deselement->pellipseattr) = *(srcelement->pellipseattr);
+            *(desel->pellipseattr) = *(srcel->pellipseattr);
             break;
         case EID_LINE :
-            *(deselement->plineattr) = *(srcelement->plineattr);
+            *(desel->plineattr) = *(srcel->plineattr);
             break;
         case EID_POLYLINE :
-            *(deselement->ppolylineattr) = *(srcelement->ppolylineattr);
+            *(desel->ppolylineattr) = *(srcel->ppolylineattr);
             break;
         case EID_POLYGON :
-            *(deselement->ppolygonattr) = *(srcelement->ppolygonattr);
+            *(desel->ppolygonattr) = *(srcel->ppolygonattr);
             break;
         default :
             break;

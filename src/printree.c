@@ -23,20 +23,20 @@
 #include <stdio.h>
 #include "msvg.h"
 
-static void printAttribute(FILE *f, MsvgRawAttribute *ptr)
+static void printRawAttribute(FILE *f, MsvgRawAttribute *el)
 {
-    if (ptr == NULL) return;
+    if (el == NULL) return;
     
-    fprintf(f, " (%s = %s)", ptr->key, ptr->value);
+    fprintf(f, " (%s = %s)", el->key, el->value);
     
-    printAttribute(f, ptr->nrattr);
+    printRawAttribute(f, el->nrattr);
 }
 
-void MsvgPrintElementTree(FILE *f, MsvgElement *ptr, int depth)
+void MsvgPrintRawElementTree(FILE *f, MsvgElement *el, int depth)
 {
     int i;
     
-    if (ptr == NULL) return;
+    if (el == NULL) return;
     
     if (depth > 0) {
         for (i=0; i<depth; i++)
@@ -44,13 +44,13 @@ void MsvgPrintElementTree(FILE *f, MsvgElement *ptr, int depth)
         fputs("-->", f);
     }
     
-    fprintf(f, "%s", MsvgFindElementName(ptr->eid));
-    printAttribute(f, ptr->frattr);
+    fprintf(f, "%s", MsvgFindElementName(el->eid));
+    printRawAttribute(f, el->frattr);
     fputs("\n", f);
     
-    MsvgPrintElementTree(f, ptr->fson, depth+1);
+    MsvgPrintRawElementTree(f, el->fson, depth+1);
     
-    MsvgPrintElementTree(f, ptr->nsibling, depth);
+    MsvgPrintRawElementTree(f, el->nsibling, depth);
 }
 
 static char * printcolor(rgbcolor color)
@@ -92,42 +92,100 @@ void MsvgPrintPctx(FILE *f, MsvgPaintCtx *pctx)
     fprintf(f, "  stroke_opacity %s\n", printvalue(pctx->stroke_opacity));
 }
 
-void MsvgPrintCookedElement(FILE *f, MsvgElement *ptr)
+static void printSvgCookedAttr(FILE *f, MsvgElement *el)
 {
-    fprintf(f, "%s", MsvgFindElementName(ptr->eid));
-    if (ptr->id)
-        fprintf(f, "  (id=%s)\n", ptr->id);
+    fprintf(f, "  width          %f\n", el->psvgattr->width);
+    fprintf(f, "  height         %f\n", el->psvgattr->height);
+    fprintf(f, "  vb_min_x       %f\n", el->psvgattr->vb_min_x);
+    fprintf(f, "  vb_min_y       %f\n", el->psvgattr->vb_min_y);
+    fprintf(f, "  vb_width       %f\n", el->psvgattr->vb_width);
+    fprintf(f, "  vb_height      %f\n", el->psvgattr->vb_height);
+    fprintf(f, "  vp_fill         %s\n", printcolor(el->psvgattr->vp_fill));
+    fprintf(f, "  vp_fill_opacity %s\n", printvalue(el->psvgattr->vp_fill_opacity));
+}
+
+static void printGCookedAttr(FILE *f, MsvgElement *el)
+{
+}
+
+static void printRectCookedAttr(FILE *f, MsvgElement *el)
+{
+    fprintf(f, "  x              %f\n", el->prectattr->x);
+    fprintf(f, "  y              %f\n", el->prectattr->y);
+    fprintf(f, "  width          %f\n", el->prectattr->width);
+    fprintf(f, "  height         %f\n", el->prectattr->height);
+    fprintf(f, "  rx             %f\n", el->prectattr->rx);
+    fprintf(f, "  ry             %f\n", el->prectattr->ry);
+}
+
+static void printCircleCookedAttr(FILE *f, MsvgElement *el)
+{
+    fprintf(f, "  cx             %f\n", el->pcircleattr->cx);
+    fprintf(f, "  cy             %f\n", el->pcircleattr->cy);
+    fprintf(f, "  r              %f\n", el->pcircleattr->r);
+}
+
+static void printEllipseCookedAttr(FILE *f, MsvgElement *el)
+{
+    fprintf(f, "  cx             %f\n", el->pellipseattr->cx);
+    fprintf(f, "  cy             %f\n", el->pellipseattr->cy);
+    fprintf(f, "  rx             %f\n", el->pellipseattr->rx);
+    fprintf(f, "  ry             %f\n", el->pellipseattr->ry);
+}
+
+static void printLineCookedAttr(FILE *f, MsvgElement *el)
+{
+    fprintf(f, "  x1             %f\n", el->plineattr->x1);
+    fprintf(f, "  y1             %f\n", el->plineattr->y1);
+    fprintf(f, "  x2             %f\n", el->plineattr->x2);
+    fprintf(f, "  y3             %f\n", el->plineattr->y2);
+}
+
+static void printPolylineCookedAttr(FILE *f, MsvgElement *el)
+{
+}
+
+static void printPolygonCookedAttr(FILE *f, MsvgElement *el)
+{
+}
+
+void MsvgPrintCookedElement(FILE *f, MsvgElement *el)
+{
+    fprintf(f, "%s", MsvgFindElementName(el->eid));
+    if (el->id)
+        fprintf(f, "  (id=%s)\n", el->id);
     else
         fprintf(f, "\n");
 
-    MsvgPrintPctx(f, &ptr->pctx);
-
-/*    switch (el->eid) {
+    switch (el->eid) {
         case EID_SVG :
-            cookSvgGenAttr(el, pattr->key, pattr->value);
+            printSvgCookedAttr(f, el);
             break;
         case EID_G :
-            cookGGenAttr(el, pattr->key, pattr->value);
+            printGCookedAttr(f, el);
             break;
         case EID_RECT :
-            cookRectGenAttr(el, pattr->key, pattr->value);
+            printRectCookedAttr(f, el);
             break;
         case EID_CIRCLE :
-            cookCircleGenAttr(el, pattr->key, pattr->value);
+            printCircleCookedAttr(f, el);
             break;
         case EID_ELLIPSE :
-            cookEllipseGenAttr(el, pattr->key, pattr->value);
+            printEllipseCookedAttr(f, el);
             break;
         case EID_LINE :
-            cookLineGenAttr(el, pattr->key, pattr->value);
+            printLineCookedAttr(f, el);
             break;
         case EID_POLYLINE :
-            cookPolylineGenAttr(el, pattr->key, pattr->value);
+            printPolylineCookedAttr(f, el);
             break;
         case EID_POLYGON :
-            cookPolygonGenAttr(el, pattr->key, pattr->value);
+            printPolygonCookedAttr(f, el);
             break;
         default :
             break;
-    }*/
+    }
+
+    fprintf(f, "  --------- element MsvgPaintCtx\n");
+    MsvgPrintPctx(f, &el->pctx);
 }

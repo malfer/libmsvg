@@ -136,22 +136,6 @@ static void cookRectGenAttr(MsvgElement *el, char *key, char *value)
     else if (strcmp(key, "height") == 0) el->prectattr->height = atof(value);
     else if (strcmp(key, "rx") == 0) el->prectattr->rx = atof(value);
     else if (strcmp(key, "ry") == 0) el->prectattr->ry = atof(value);
-
-    if (el->prectattr->rx == NODEFINED_VALUE &&
-        el->prectattr->ry != NODEFINED_VALUE)
-        el->prectattr->rx = el->prectattr->ry;
-
-    if (el->prectattr->ry == NODEFINED_VALUE &&
-        el->prectattr->rx != NODEFINED_VALUE)
-        el->prectattr->ry = el->prectattr->rx;
-
-    if (el->prectattr->rx != NODEFINED_VALUE &&
-        el->prectattr->rx > (el->prectattr->width / 2.0))
-        el->prectattr->rx = el->prectattr->width / 2.0;
-
-    if (el->prectattr->ry != NODEFINED_VALUE &&
-        el->prectattr->ry > (el->prectattr->height / 2.0))
-        el->prectattr->ry = el->prectattr->height / 2.0;
 }
 
 static void cookCircleGenAttr(MsvgElement *el, char *key, char *value)
@@ -187,6 +171,29 @@ static void cookPolygonGenAttr(MsvgElement *el, char *key, char *value)
 {
     if (strcmp(key, "points") == 0) 
         readpoints(value, &(el->ppolylineattr->points), &(el->ppolylineattr->npoints));
+}
+
+static void checkRectCookedAttr(MsvgElement *el)
+{
+    if (el->prectattr->rx == NODEFINED_VALUE &&
+        el->prectattr->ry != NODEFINED_VALUE)
+        el->prectattr->rx = el->prectattr->ry;
+
+    if (el->prectattr->ry == NODEFINED_VALUE &&
+        el->prectattr->rx != NODEFINED_VALUE)
+        el->prectattr->ry = el->prectattr->rx;
+
+    if (el->prectattr->rx == NODEFINED_VALUE)
+        el->prectattr->rx = 0;
+        
+    if (el->prectattr->ry == NODEFINED_VALUE)
+        el->prectattr->ry = 0;
+        
+    if (el->prectattr->rx > (el->prectattr->width / 2.0))
+        el->prectattr->rx = el->prectattr->width / 2.0;
+
+    if (el->prectattr->ry > (el->prectattr->height / 2.0))
+        el->prectattr->ry = el->prectattr->height / 2.0;
 }
 
 static void cookElement(MsvgElement *el, int depth)
@@ -230,8 +237,35 @@ static void cookElement(MsvgElement *el, int depth)
         }
     }
     
-    /* TODO: free the generic attributes now? */
-    
+    switch (el->eid) {
+        case EID_SVG :
+            //checkSvgCookedAttr(el);
+            break;
+        case EID_G :
+            //checkGCookedAttr(el);
+            break;
+        case EID_RECT :
+            checkRectCookedAttr(el);
+            break;
+        case EID_CIRCLE :
+            //checkCircleCookedAttr(el);
+            break;
+        case EID_ELLIPSE :
+            //checkEllipseCookedAttr(el);
+            break;
+        case EID_LINE :
+            //checkLineCookedAttr(el);
+            break;
+        case EID_POLYLINE :
+            //checkPolylineCookedAttr(el);
+            break;
+        case EID_POLYGON :
+            //checkPolygonCookedAttr(el);
+            break;
+        default :
+            break;
+    }
+
     if (el->fson != NULL)
         cookElement(el->fson, depth+1);
     
