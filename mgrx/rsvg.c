@@ -1,5 +1,5 @@
 /* rsvg.c ---- test read svg for MGRX
- *
+ * 
  * These test programs are a dirty hack to test the libmsvg librarie with the
  * mgrx graphics library. It is NOT part of the librarie really.
  *
@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <locale.h>
 
 #include <mgrx.h>
 #include <mgrxkeys.h>
@@ -35,41 +36,42 @@
 
 static void TestFunc(void)
 {
-  GrEvent ev;
-  MsvgElement *root;
-
-  GrClearContext(GrBlack());
-  root = MsvgReadSvgFile("test.svg");
-  if (root == NULL) return;
-  if (!MsvgRaw2CookedTree(root)) return;
-  DrawSVGtree(root, 0);
-  GrEventWaitKeyOrClick(&ev);
-  MsvgDeleteElement(root);
+    GrEvent ev;
+    MsvgElement *root;
+    
+    GrClearContext(GrBlack());
+    root = MsvgReadSvgFile("test.svg");
+    if (root == NULL) return;
+    if (!MsvgRaw2CookedTree(root)) return;
+    DrawSVGtree(root, 0, 1);
+    GrEventWaitKeyOrClick(&ev);
+    MsvgDeleteElement(root);
 }
 
 int main(int argc,char **argv)
 {
-  int yhelptext;
-
-  GrContext *ctx;
-//  GrSetMode(GR_default_graphics);
-  GrSetMode(GR_width_height_bpp_graphics, 500, 1000, 24);
-  GrClearScreen(GrWhite());
-
-  yhelptext = GrScreenY() - 60;
-  GrTextXY(10, yhelptext+25,
-           "test.svg file renderized",
-           GrBlack(), GrNOCOLOR);
-  GrTextXY(10, yhelptext+40,
-           "Press any key to finish",
-           GrBlack(), GrNOCOLOR);
-
-  ctx = GrCreateSubContext(10, 10, GrScreenX()-10, yhelptext, NULL, NULL);
-  GrSetContext(ctx);
-  GrEventInit();
-  GrMouseDisplayCursor();
-  TestFunc();
-  GrEventUnInit();
-  GrSetMode(GR_default_text);
-  return(0);
+    int yhelptext;
+    
+    GrContext *ctx;
+    //  GrSetMode(GR_default_graphics);
+    GrSetMode(GR_width_height_bpp_graphics, 500, 1000, 24);
+    GrClearScreen(GrWhite());
+    
+    yhelptext = GrScreenY() - 60;
+    GrTextXY(10, yhelptext+25,
+             "test.svg file renderized",
+             GrBlack(), GrNOCOLOR);
+    GrTextXY(10, yhelptext+40,
+             "Press any key to finish",
+             GrBlack(), GrNOCOLOR);
+    
+    ctx = GrCreateSubContext(10, 10, GrScreenX()-10, yhelptext, NULL, NULL);
+    GrSetContext(ctx);
+    GrEventInit();
+    GrMouseDisplayCursor();
+    setlocale(LC_NUMERIC, "C");
+    TestFunc();
+    GrEventUnInit();
+    GrSetMode(GR_default_text);
+    return(0);
 }

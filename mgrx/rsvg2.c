@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <locale.h>
 
 #include <mgrx.h>
 #include <mgrxkeys.h>
@@ -39,15 +40,14 @@ static int gwidth = 1024;
 static int gheight = 728;
 static int gbpp = 24;
 
-static void TestFunc(char *fname, int par)
+static void TestFunc(char *fname, int par, double zoom)
 {
     MsvgElement *root;
     
-    GrClearContext(GrBlack());
     root = MsvgReadSvgFile(fname);
     if (root == NULL) return;
     if (!MsvgRaw2CookedTree(root)) return;
-    DrawSVGtree(root, par);
+    DrawSVGtree(root, par, zoom);
     MsvgDeleteElement(root);
 }
 
@@ -58,6 +58,8 @@ int main(int argc,char **argv)
     int yhelptext;
     int par;
     char s[121];
+    double zoom = 1;
+    GrColor bg;
     
     if (argc <2) {
         printf("Usage: rsvg file.svg [width height bpp]\n");
@@ -80,7 +82,7 @@ int main(int argc,char **argv)
     sprintf(s, "%s file renderized", fname);
     GrTextXY(10, yhelptext+25, s, GrBlack(), GrNOCOLOR);
     GrTextXY(10, yhelptext+40,
-             "Press any key to change par, q to quit",
+             "[p] [b] [w] [+] [-], [q] to quit",
              GrBlack(), GrNOCOLOR);
     
     ctx = GrCreateSubContext(10, 10, GrScreenX()-10, yhelptext, NULL, NULL);
@@ -88,12 +90,21 @@ int main(int argc,char **argv)
     GrEventInit();
     GrMouseDisplayCursor();
 
-    par = 0;
-    do {
-        TestFunc(fname, par);
+    setlocale(LC_NUMERIC, "C");
+    bg = GrBlack();
+
+    par = 1;
+    while (1) {
+        GrClearContext(bg);
+        TestFunc(fname, par, zoom);
         GrEventWait(&ev);
-        par = !par;
-    } while (ev.type != GREV_KEY || ev.p1 != 'q');
+        if (ev.p1 == 'q') break;
+        if (ev.p1 == 'b') bg = GrBlack();
+        if (ev.p1 == 'w') bg = GrWhite();
+        if (ev.p1 == 'p') par = !par;
+        if (ev.p1 == '+') zoom = zoom / 2;
+        if (ev.p1 == '-') zoom = zoom * 2;
+    }
     
     GrEventUnInit();
     GrSetMode(GR_default_text);
