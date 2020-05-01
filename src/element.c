@@ -53,7 +53,8 @@ MsvgElement *MsvgNewGenericElement(enum EID eid, MsvgElement *father)
     element->pctx.stroke = NODEFINED_COLOR;
     element->pctx.stroke_width = NODEFINED_VALUE;
     element->pctx.stroke_opacity = NODEFINED_VALUE;
-    
+    TMSetIdentity(&(element->pctx.tmatrix));
+
     return element;
 }
 
@@ -256,3 +257,34 @@ MsvgElement *MsvgNewElement(enum EID eid, MsvgElement *father)
     
     return element;
 }
+
+int MsvgAllocPointsToPolylineElement(MsvgElement *el, int npoints)
+{
+    double *points;
+
+    if (el->eid != EID_POLYLINE) return 0;
+    points = (double *)calloc(npoints*2, sizeof(double));
+    if (points == NULL) return 0;
+
+    if (el->ppolylineattr->points) free(el->ppolylineattr->points);
+    el->ppolylineattr->points = points;
+    el->ppolylineattr->npoints = npoints;
+
+    return 1;
+}
+
+int MsvgAllocPointsToPolygonElement(MsvgElement *el, int npoints)
+{
+    double *points;
+
+    if (el->eid != EID_POLYGON) return 0;
+    points = (double *)calloc(npoints*2, sizeof(double));
+    if (points == NULL) return 0;
+
+    if (el->ppolygonattr->points) free(el->ppolygonattr->points);
+    el->ppolygonattr->points = points;
+    el->ppolygonattr->npoints = npoints;
+
+    return 1;
+}
+

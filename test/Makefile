@@ -7,7 +7,7 @@ include ../makedefs
 
 CFLAGS+= -I../src
 
-LIBS=../src/libmsvg.a
+LIBS=../src/libmsvg.a -lm
 LIBSdos= $(subst /,\,$(LIBS))
 
 SAMPLES=t1$(EXE) \

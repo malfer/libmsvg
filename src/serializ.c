@@ -60,6 +60,8 @@ static void process_generic_pctx(MsvgPaintCtx *des, MsvgPaintCtx *fath,
     } else {
         des->stroke_opacity = son->stroke_opacity;
     }
+
+    TMMpy(&(des->tmatrix), &(fath->tmatrix), &(son->tmatrix));
 }
 
 static void process_drawel_pctx(MsvgPaintCtx *des, MsvgPaintCtx *fath,

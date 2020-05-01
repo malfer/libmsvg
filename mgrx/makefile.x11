@@ -3,11 +3,11 @@
 all: gsvg rsvg rsvg2
 
 gsvg: gsvg.c rendmgrx.o rendmgrx.h
-	gcc -Wall -o gsvg gsvg.c rendmgrx.o -lmsvg -lmgrxX -lX11
+	gcc -Wall -o gsvg gsvg.c rendmgrx.o -lmsvg -lmgrxX -lX11 -lm
 rsvg: rsvg.c rendmgrx.o rendmgrx.h
-	gcc -Wall -o rsvg rsvg.c rendmgrx.o -lmsvg -lmgrxX -lX11
+	gcc -Wall -o rsvg rsvg.c rendmgrx.o -lmsvg -lmgrxX -lX11 -lm
 rsvg2: rsvg2.c rendmgrx.o rendmgrx.h
-	gcc -Wall -o rsvg2 rsvg2.c rendmgrx.o -lmsvg -lmgrxX -lX11
+	gcc -Wall -o rsvg2 rsvg2.c rendmgrx.o -lmsvg -lmgrxX -lX11 -lm
 rendmgrx.o: rendmgrx.c rendmgrx.h
 	gcc -Wall -c rendmgrx.c
 

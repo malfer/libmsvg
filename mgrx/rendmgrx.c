@@ -259,6 +259,43 @@ static void sufn(MsvgElement *el, MsvgPaintCtx *pctx)
     }
 }
 
+static void sufn2(MsvgElement *el, MsvgPaintCtx *pctx)
+{
+    MsvgElement *newel;
+
+    //printf("before ");
+    //MsvgPrintCookedElement(stdout, el);
+    newel = MsvgTransformCookedElement(el, pctx);
+    if (newel == NULL) return;
+    //printf("after ");
+    //MsvgPrintCookedElement(stdout, newel);
+
+    switch (newel->eid) {
+        case EID_RECT :
+            DrawRectElement(newel, pctx);
+            break;
+        case EID_CIRCLE :
+            DrawCircleElement(newel, pctx);
+            break;
+        case EID_ELLIPSE :
+            DrawEllipseElement(newel, pctx);
+            break;
+        case EID_LINE :
+            DrawLineElement(newel, pctx);
+            break;
+        case EID_POLYLINE :
+            DrawPolylineElement(newel, pctx);
+            break;
+        case EID_POLYGON :
+            DrawPolygonElement(newel, pctx);
+            break;
+        default :
+            break;
+    }
+
+    MsvgDeleteElement(newel);
+}
+
 int DrawSVGtree(MsvgElement *root, int par)
 {
     GrContext *ctx = NULL;
@@ -305,7 +342,7 @@ int DrawSVGtree(MsvgElement *root, int par)
         GrClearContext(cfill);
     }
 
-    MsvgSerCookedTree(root, sufn);
+    MsvgSerCookedTree(root, sufn2);
 
     if (ctx) {
         GrSetContext(&grcaux);

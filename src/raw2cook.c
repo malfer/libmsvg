@@ -74,6 +74,63 @@ static double widthtof(char *value)
     return atof(value);
 }
 
+static void getonetmatrix(char *value, TMatrix *t)
+{
+    double rnum[6];
+    int n;
+
+    TMSetIdentity(t);
+
+    if (strncmp(value, "matrix", 6) == 0) {
+        n = MsvgI_read_numbers(value, rnum, 6);
+        if (n == 6) TMSetFromArray(t, rnum);
+    } else if (strncmp(value, "translate", 9) == 0) {
+        n = MsvgI_read_numbers(value, rnum, 2);
+        if (n == 1) TMSetTranslation(t, rnum[0], 0);
+        else if (n == 2) TMSetTranslation(t, rnum[0], rnum[1]);
+    } else if (strncmp(value, "rotate", 6) == 0) {
+        n = MsvgI_read_numbers(value, rnum, 3);
+        if (n == 1) TMSetRotationOrigin(t, rnum[0]);
+        else if (n == 3) TMSetRotation(t, rnum[0], rnum[1], rnum[2]);
+    } else if (strncmp(value, "scale", 5) == 0) {
+        n = MsvgI_read_numbers(value, rnum, 2);
+        if (n == 1) TMSetScaling(t, rnum[0], rnum[0]);
+        else if (n == 2) TMSetScaling(t, rnum[0], rnum[1]);
+    }
+}
+
+static void gettmatrix(char *value, TMatrix *t)
+{
+    char *valaux, *ptr, *ptrnext;
+    int first = 1;
+    TMatrix op1, op2;
+
+    TMSetIdentity(t);
+    valaux = strdup(value);
+    ptr = valaux;
+
+    while (1) {
+        ptrnext = strchr(ptr, ')');
+        if (ptrnext) {
+            *ptrnext = '\0';
+            getonetmatrix(ptr, &op2);
+            if (first) {
+                *t = op2;
+                first = 0;
+            } else {
+                op1 = *t;
+                TMMpy(t, &op1, &op2);
+            }
+            ptr = ptrnext + 1;
+            while(*ptr == ' ' || *ptr == ',') ptr++;
+        } else {
+            break;
+        }
+    }
+
+    free(valaux);
+}
+
 static void readpoints(char *value, double **points, int *npoints)
 {
     int n;
@@ -96,6 +153,7 @@ static int cookPCtxAttr(MsvgElement *el, char *key, char *value)
     else if (strcmp(key, "stroke") == 0) el->pctx.stroke = colortorgb(value);
     else if (strcmp(key, "stroke-width") == 0) el->pctx.stroke_width = widthtof(value);
     else if (strcmp(key, "stroke-opacity") == 0) el->pctx.stroke_opacity = opacitytof(value);
+    else if (strcmp(key, "transform") == 0) gettmatrix(value, &(el->pctx.tmatrix));
     else return 0;
     return 1;
 }

@@ -20,6 +20,9 @@
  *
  */
 
+#ifndef __MSVG_H_INCLUDED__
+#define __MSVG_H_INCLUDED__
+
 #include <stdio.h>
 
 #define LIBMSVG_VERSION_API 0x0012
@@ -90,6 +93,12 @@ typedef struct _MsvgRawAttribute {
     MsvgRawAttributePtr nrattr; /* pointer to next raw attribute */
 } MsvgRawAttribute;
 
+/* transformation matrix */
+
+typedef struct {
+    double a, b, c, d, e, f;
+} TMatrix;
+
 /* paint context: cooked heritable attributes for all elements */
 
 typedef struct _MsvgPaintCtx {
@@ -98,6 +107,7 @@ typedef struct _MsvgPaintCtx {
     rgbcolor stroke;       /* stroke color attribute */
     double stroke_width;   /* stroke-width attribute */
     double stroke_opacity; /* stroke-opacity attribute */
+    TMatrix tmatrix;       /* transformation matrix */
 } MsvgPaintCtx;
 
 /* cooked specific attributes for each element */
@@ -186,6 +196,8 @@ typedef struct _MsvgElement {
 /* functions in elements.c */
 
 MsvgElement *MsvgNewElement(enum EID eid, MsvgElement *father);
+int MsvgAllocPointsToPolylineElement(MsvgElement *el, int npoints);
+int MsvgAllocPointsToPolygonElement(MsvgElement *el, int npoints);
 
 /* functions in attribut.c */
 
@@ -233,3 +245,23 @@ int MsvgRaw2CookedTree(MsvgElement *root);
 typedef void (*MsvgSerUserFn)(MsvgElement *el, MsvgPaintCtx *pctx);
 
 int MsvgSerCookedTree(MsvgElement *root, MsvgSerUserFn sufn);
+
+/* functions in tcookel.c */
+
+MsvgElement * MsvgTransformCookedElement(MsvgElement *el, MsvgPaintCtx *cpctx);
+
+/* functions in tmatrix.c */
+
+void TMSetIdentity(TMatrix *des);
+int TMIsIdentity(TMatrix *t);
+int TMHaveRotation(TMatrix *t);
+void TMSetFromArray(TMatrix *des, double *p);
+void TMMpy(TMatrix *des, TMatrix *op1, TMatrix *op2);
+void TMSetTranslation(TMatrix *des, double tx, double ty);
+void TMSetScaling(TMatrix *des, double sx, double sy);
+void TMSetRotationOrigin(TMatrix *des, double ang);
+void TMSetRotation(TMatrix *des, double ang, double cx, double cy);
+void TMTransformCoord(double *x, double *y, TMatrix *ctm);
+
+
+#endif  /* whole file */

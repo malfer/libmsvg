@@ -21,6 +21,7 @@
  */
 
 #include <stdlib.h>
+#include <locale.h>
 #include <ctype.h>
 #include "util.h"
 
@@ -51,16 +52,21 @@ int MsvgI_read_numbers(char *s, double *df, int maxnumbers)
     char *p;
     int n = 0;
     int dig;
-    
+    struct lconv *lcv;
+
+    lcv = localeconv();
     p = s;
     while (*p != '\0') {
-        if (isdigit(*p) || *p == '.') {
+        if (isdigit(*p) || *p == '.' || *p == '-') {
             if (n >= maxnumbers) break;
-            dig = 0;
-            aux[dig++] = *p;
+            aux[0] = *p;
+            if (aux[0] == '.') aux[0] = lcv->decimal_point[0];
+            dig = 1;
             p++;
             while (isdigit(*p) || *p == '.') {
-                if (dig < MAX_DIGITS) aux[dig++] = *p;
+                if (dig < MAX_DIGITS) aux[dig] = *p;
+                if (aux[dig] == '.') aux[dig] = lcv->decimal_point[0];
+                dig++;
                 p++;
             }
             aux[dig] = '\0';

@@ -78,7 +78,7 @@ static char * printvalue(double value)
     else if (value == NODEFINED_VALUE)
         sprintf(s, "NODEFINED_VALUE");
     else
-        sprintf(s, "%f", value);
+        sprintf(s, "%g", value);
 
     return s;
 }
@@ -90,16 +90,19 @@ void MsvgPrintPctx(FILE *f, MsvgPaintCtx *pctx)
     fprintf(f, "  stroke         %s\n", printcolor(pctx->stroke));
     fprintf(f, "  stroke_width   %s\n", printvalue(pctx->stroke_width));
     fprintf(f, "  stroke_opacity %s\n", printvalue(pctx->stroke_opacity));
+    fprintf(f, "  tmatrix        (%g %g %g %g %g %g)\n",
+            pctx->tmatrix.a, pctx->tmatrix.b, pctx->tmatrix.c,
+            pctx->tmatrix.d, pctx->tmatrix.e, pctx->tmatrix.f);
 }
 
 static void printSvgCookedAttr(FILE *f, MsvgElement *el)
 {
-    fprintf(f, "  width          %f\n", el->psvgattr->width);
-    fprintf(f, "  height         %f\n", el->psvgattr->height);
-    fprintf(f, "  vb_min_x       %f\n", el->psvgattr->vb_min_x);
-    fprintf(f, "  vb_min_y       %f\n", el->psvgattr->vb_min_y);
-    fprintf(f, "  vb_width       %f\n", el->psvgattr->vb_width);
-    fprintf(f, "  vb_height      %f\n", el->psvgattr->vb_height);
+    fprintf(f, "  width          %g\n", el->psvgattr->width);
+    fprintf(f, "  height         %g\n", el->psvgattr->height);
+    fprintf(f, "  vb_min_x       %g\n", el->psvgattr->vb_min_x);
+    fprintf(f, "  vb_min_y       %g\n", el->psvgattr->vb_min_y);
+    fprintf(f, "  vb_width       %g\n", el->psvgattr->vb_width);
+    fprintf(f, "  vb_height      %g\n", el->psvgattr->vb_height);
     fprintf(f, "  vp_fill         %s\n", printcolor(el->psvgattr->vp_fill));
     fprintf(f, "  vp_fill_opacity %s\n", printvalue(el->psvgattr->vp_fill_opacity));
 }
@@ -110,43 +113,61 @@ static void printGCookedAttr(FILE *f, MsvgElement *el)
 
 static void printRectCookedAttr(FILE *f, MsvgElement *el)
 {
-    fprintf(f, "  x              %f\n", el->prectattr->x);
-    fprintf(f, "  y              %f\n", el->prectattr->y);
-    fprintf(f, "  width          %f\n", el->prectattr->width);
-    fprintf(f, "  height         %f\n", el->prectattr->height);
-    fprintf(f, "  rx             %f\n", el->prectattr->rx);
-    fprintf(f, "  ry             %f\n", el->prectattr->ry);
+    fprintf(f, "  x              %g\n", el->prectattr->x);
+    fprintf(f, "  y              %g\n", el->prectattr->y);
+    fprintf(f, "  width          %g\n", el->prectattr->width);
+    fprintf(f, "  height         %g\n", el->prectattr->height);
+    fprintf(f, "  rx             %g\n", el->prectattr->rx);
+    fprintf(f, "  ry             %g\n", el->prectattr->ry);
 }
 
 static void printCircleCookedAttr(FILE *f, MsvgElement *el)
 {
-    fprintf(f, "  cx             %f\n", el->pcircleattr->cx);
-    fprintf(f, "  cy             %f\n", el->pcircleattr->cy);
-    fprintf(f, "  r              %f\n", el->pcircleattr->r);
+    fprintf(f, "  cx             %g\n", el->pcircleattr->cx);
+    fprintf(f, "  cy             %g\n", el->pcircleattr->cy);
+    fprintf(f, "  r              %g\n", el->pcircleattr->r);
 }
 
 static void printEllipseCookedAttr(FILE *f, MsvgElement *el)
 {
-    fprintf(f, "  cx             %f\n", el->pellipseattr->cx);
-    fprintf(f, "  cy             %f\n", el->pellipseattr->cy);
-    fprintf(f, "  rx             %f\n", el->pellipseattr->rx);
-    fprintf(f, "  ry             %f\n", el->pellipseattr->ry);
+    fprintf(f, "  cx             %g\n", el->pellipseattr->cx);
+    fprintf(f, "  cy             %g\n", el->pellipseattr->cy);
+    fprintf(f, "  rx             %g\n", el->pellipseattr->rx);
+    fprintf(f, "  ry             %g\n", el->pellipseattr->ry);
 }
 
 static void printLineCookedAttr(FILE *f, MsvgElement *el)
 {
-    fprintf(f, "  x1             %f\n", el->plineattr->x1);
-    fprintf(f, "  y1             %f\n", el->plineattr->y1);
-    fprintf(f, "  x2             %f\n", el->plineattr->x2);
-    fprintf(f, "  y3             %f\n", el->plineattr->y2);
+    fprintf(f, "  x1             %g\n", el->plineattr->x1);
+    fprintf(f, "  y1             %g\n", el->plineattr->y1);
+    fprintf(f, "  x2             %g\n", el->plineattr->x2);
+    fprintf(f, "  y3             %g\n", el->plineattr->y2);
 }
 
 static void printPolylineCookedAttr(FILE *f, MsvgElement *el)
 {
+    int i;
+
+    fprintf(f, "  npoints        %d\n", el->ppolylineattr->npoints);
+    fprintf(f, "  points        ");
+    for (i=0; i<el->ppolylineattr->npoints; i++) {
+        fprintf(f, " (%g %g)", el->ppolylineattr->points[i*2],
+                el->ppolylineattr->points[i*2+1]);
+    }
+    fprintf(f, "\n");
 }
 
 static void printPolygonCookedAttr(FILE *f, MsvgElement *el)
 {
+    int i;
+
+    fprintf(f, "  npoints        %d\n", el->ppolygonattr->npoints);
+    fprintf(f, "  points        ");
+    for (i=0; i<el->ppolygonattr->npoints; i++) {
+        fprintf(f, " (%g %g)", el->ppolygonattr->points[i*2],
+                el->ppolygonattr->points[i*2+1]);
+    }
+    fprintf(f, "\n");
 }
 
 void MsvgPrintCookedElement(FILE *f, MsvgElement *el)

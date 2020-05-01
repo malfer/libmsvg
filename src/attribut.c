@@ -129,8 +129,11 @@ int MsvgCopyRawAttributes(MsvgElement *desel, MsvgElement *srcel)
 
 int MsvgCopyCookedAttributes(MsvgElement *desel, MsvgElement *srcel)
 {
+    int i;
+
     if (srcel->eid != desel->eid) return 0;
 
+    if (desel->id) free(desel->id);
     if (srcel->id) desel->id = strdup(srcel->id);
     desel->pctx = srcel->pctx;
 
@@ -154,10 +157,26 @@ int MsvgCopyCookedAttributes(MsvgElement *desel, MsvgElement *srcel)
             *(desel->plineattr) = *(srcel->plineattr);
             break;
         case EID_POLYLINE :
-            *(desel->ppolylineattr) = *(srcel->ppolylineattr);
+            if (!MsvgAllocPointsToPolylineElement(desel,
+                srcel->ppolylineattr->npoints)) return 0;
+            desel->ppolylineattr->npoints = srcel->ppolylineattr->npoints;
+            for (i=0; i< desel->ppolylineattr->npoints; i++) {
+                desel->ppolylineattr->points[i*2] =
+                    srcel->ppolylineattr->points[i*2];
+                desel->ppolylineattr->points[i*2+1] =
+                    srcel->ppolylineattr->points[i*2+1];
+            }
             break;
         case EID_POLYGON :
-            *(desel->ppolygonattr) = *(srcel->ppolygonattr);
+            if (!MsvgAllocPointsToPolygonElement(desel,
+                srcel->ppolygonattr->npoints)) return 0;
+            desel->ppolygonattr->npoints = srcel->ppolygonattr->npoints;
+            for (i=0; i< desel->ppolygonattr->npoints; i++) {
+                desel->ppolygonattr->points[i*2] =
+                    srcel->ppolygonattr->points[i*2];
+                desel->ppolygonattr->points[i*2+1] =
+                    srcel->ppolygonattr->points[i*2+1];
+            }
             break;
         default :
             break;
