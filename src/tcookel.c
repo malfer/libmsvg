@@ -25,10 +25,10 @@
 #include "msvg.h"
 #include "util.h"
 
-static MsvgElement * transCookEllipse(MsvgElement *el, MsvgPaintCtx *cpctx);
-static MsvgElement * transCookPolygon(MsvgElement *el, MsvgPaintCtx *cpctx);
+static MsvgElement * transCookEllipse(MsvgElement *el, MsvgPaintCtx *cpctx, int bef);
+static MsvgElement * transCookPolygon(MsvgElement *el, MsvgPaintCtx *cpctx, int bef);
 
-static MsvgElement * transCookRect(MsvgElement *el, MsvgPaintCtx *cpctx)
+static MsvgElement * transCookRect(MsvgElement *el, MsvgPaintCtx *cpctx, int bef)
 {
     MsvgElement *newel, *auxel;
     double zerox = 0, zeroy = 0, w, h;
@@ -59,10 +59,12 @@ static MsvgElement * transCookRect(MsvgElement *el, MsvgPaintCtx *cpctx)
         return newel;
 
     } else {
-        
         // because the rect is rotated, treat it as a polygon
+
         // TODO: manage rx, ry
-        
+        if (!bef && (el->prectattr->rx != 0 || el->prectattr->ry != 0))
+            return NULL;
+
         auxel = MsvgNewElement(EID_POLYGON, NULL);
         if (auxel == NULL) return NULL;
 
@@ -83,7 +85,7 @@ static MsvgElement * transCookRect(MsvgElement *el, MsvgPaintCtx *cpctx)
         auxel->ppolygonattr->points[6] = el->prectattr->x;
         auxel->ppolygonattr->points[7] = el->prectattr->y + h;
 
-        newel = transCookPolygon(auxel, cpctx);
+        newel = transCookPolygon(auxel, cpctx, bef);
 
         MsvgDeleteElement(auxel);
     
@@ -91,7 +93,7 @@ static MsvgElement * transCookRect(MsvgElement *el, MsvgPaintCtx *cpctx)
     }
 }
 
-static MsvgElement * transCookCircle(MsvgElement *el, MsvgPaintCtx *cpctx)
+static MsvgElement * transCookCircle(MsvgElement *el, MsvgPaintCtx *cpctx, int bef)
 {
     MsvgElement *newel, *auxel;
 
@@ -113,20 +115,22 @@ static MsvgElement * transCookCircle(MsvgElement *el, MsvgPaintCtx *cpctx)
     auxel->pellipseattr->rx = el->pcircleattr->r;
     auxel->pellipseattr->rx = el->pcircleattr->r;
 
-    newel = transCookEllipse(auxel, cpctx);
+    newel = transCookEllipse(auxel, cpctx, bef);
 
     MsvgDeleteElement(auxel);
     
     return newel;
 }
 
-static MsvgElement * transCookEllipse(MsvgElement *el, MsvgPaintCtx *cpctx)
+static MsvgElement * transCookEllipse(MsvgElement *el, MsvgPaintCtx *cpctx, int bef)
 {
-    // TODO: manage rotations, converting to polygon?
-    
     MsvgElement *newel;
     double zerox = 0, zeroy = 0;
 
+    // TODO: manage rotations, converting to polygon?
+    if (!bef && TMHaveRotation(&(cpctx->tmatrix)))
+        return NULL;
+    
     newel = MsvgNewElement(EID_ELLIPSE, NULL);
     if (newel == NULL) return NULL;
 
@@ -147,7 +151,7 @@ static MsvgElement * transCookEllipse(MsvgElement *el, MsvgPaintCtx *cpctx)
     return newel;
 }
 
-static MsvgElement * transCookLine(MsvgElement *el, MsvgPaintCtx *cpctx)
+static MsvgElement * transCookLine(MsvgElement *el, MsvgPaintCtx *cpctx, int bef)
 {
     MsvgElement *newel;
 
@@ -168,7 +172,7 @@ static MsvgElement * transCookLine(MsvgElement *el, MsvgPaintCtx *cpctx)
     return newel;
 }
 
-static MsvgElement * transCookPolyline(MsvgElement *el, MsvgPaintCtx *cpctx)
+static MsvgElement * transCookPolyline(MsvgElement *el, MsvgPaintCtx *cpctx, int bef)
 {
     MsvgElement *newel;
     int i;
@@ -199,7 +203,7 @@ static MsvgElement * transCookPolyline(MsvgElement *el, MsvgPaintCtx *cpctx)
     return newel;
 }
 
-static MsvgElement * transCookPolygon(MsvgElement *el, MsvgPaintCtx *cpctx)
+static MsvgElement * transCookPolygon(MsvgElement *el, MsvgPaintCtx *cpctx, int bef)
 {
     MsvgElement *newel;
     int i;
@@ -230,21 +234,21 @@ static MsvgElement * transCookPolygon(MsvgElement *el, MsvgPaintCtx *cpctx)
     return newel;
 }
 
-MsvgElement * MsvgTransformCookedElement(MsvgElement *el, MsvgPaintCtx *cpctx)
+MsvgElement * MsvgTransformCookedElement(MsvgElement *el, MsvgPaintCtx *pctx, int bef)
 {
     switch (el->eid) {
         case EID_RECT :
-            return transCookRect(el, cpctx);
+            return transCookRect(el, pctx, bef);
         case EID_CIRCLE :
-            return transCookCircle(el, cpctx);
+            return transCookCircle(el, pctx, bef);
         case EID_ELLIPSE :
-            return transCookEllipse(el, cpctx);
+            return transCookEllipse(el, pctx, bef);
         case EID_LINE :
-            return transCookLine(el, cpctx);
+            return transCookLine(el, pctx, bef);
         case EID_POLYLINE :
-            return transCookPolyline(el, cpctx);
+            return transCookPolyline(el, pctx, bef);
         case EID_POLYGON :
-            return transCookPolygon(el, cpctx);
+            return transCookPolygon(el, pctx, bef);
         default :
             return NULL;
     }

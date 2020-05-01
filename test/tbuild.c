@@ -1,4 +1,4 @@
-/* t2.c
+/* tbuild.c
  * 
  * libmsvg, a minimal library to read and write svg files
  *

@@ -280,7 +280,7 @@ static void sufn2(MsvgElement *el, MsvgPaintCtx *pctx)
 
     //printf("before ");
     //MsvgPrintCookedElement(stdout, el);
-    newel = MsvgTransformCookedElement(el, pctx);
+    newel = MsvgTransformCookedElement(el, pctx, 1);
     if (newel == NULL) return;
     //printf("after ");
     //MsvgPrintCookedElement(stdout, newel);

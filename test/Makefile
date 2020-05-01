@@ -10,8 +10,8 @@ CFLAGS+= -I../src
 LIBS=../src/libmsvg.a -lm
 LIBSdos= $(subst /,\,$(LIBS))
 
-SAMPLES=t1$(EXE) \
-        t2$(EXE) \
+SAMPLES=tread$(EXE) \
+        tbuild$(EXE) \
         tdel$(EXE) \
         tcook$(EXE)
 

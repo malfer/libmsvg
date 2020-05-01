@@ -1,4 +1,4 @@
-/* t1.c
+/* tread.c
  * 
  * libmsvg, a minimal library to read and write svg files
  * 
@@ -21,7 +21,7 @@ int main(int argc, char **argv)
     MsvgElement *root;
     
     if (argc <2) {
-        printf("Usage: t1 file\n");
+        printf("Usage: tread file\n");
         return 0;
     }
     

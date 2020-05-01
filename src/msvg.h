@@ -248,7 +248,7 @@ int MsvgSerCookedTree(MsvgElement *root, MsvgSerUserFn sufn);
 
 /* functions in tcookel.c */
 
-MsvgElement * MsvgTransformCookedElement(MsvgElement *el, MsvgPaintCtx *cpctx);
+MsvgElement * MsvgTransformCookedElement(MsvgElement *el, MsvgPaintCtx *pctx, int bef);
 
 /* functions in tmatrix.c */
 

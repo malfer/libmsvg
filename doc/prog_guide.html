@@ -6,9 +6,9 @@
 </head>
 
 <body>
-<h1>libmsvg v0.12</h1>
+<h1>libmsvg v0.13</h1>
 <h2>Programmer's guide</h2>
-<p>Last update: April 28, 2020</p>
+<p>Last update: May 2, 2020</p>
 
 <hr>
 <h2>Abstract</h2>
@@ -33,6 +33,7 @@ Appendix A</a>.</p>
 <li><a href="#buildraw">Building a RAW MsvgElement tree by program</a>
 <li><a href="#buildcooked">Building a COOKED MsvgElement tree by program</a>
 <li><a href="#manipulating">Manipulating a MsvgElement tree</a>
+<li><a href="#tmatrix">Working with cooked transformation matrix</a>
 <li><a href="#serialize">Serialize a COOKED MsvgElement tree</a>
 <li><a href="#writing">Writing SVG files</a>
 <li><a href="#appendixa">Appendix A, the libmsvg SVG subset</a>
@@ -53,22 +54,22 @@ so here there are.</p>
 
 int main(int argc, char **argv)
 {
-  MsvgElement *root;
+    MsvgElement *root;
 
-  if (argc &lt;2)
-    return 0;
+    if (argc &lt;2)
+        return 0;
 
-  root = MsvgReadSvgFile(argv[1]);
+    root = MsvgReadSvgFile(argv[1]);
 
-  if (root == NULL) {
-    printf("Error opening %s\n", argv[1]);
-    return 0;
-  }
+    if (root == NULL) {
+        printf("Error opening %s\n", argv[1]);
+        return 0;
+    }
 
-  /* Now you can process the structure. By example: */
-  MsvgPrintRawElementTree(stdout, root, 0);
+    // Now you can process the structure. By example:
+    MsvgPrintRawElementTree(stdout, root, 0);
 
-  return 1;
+    return 1;
 }
 </pre>
 
@@ -82,37 +83,37 @@ int main(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
-  MsvgElement *root, *son;
+    MsvgElement *root, *son;
 
-  root = MsvgNewElement(EID_SVG, NULL);
-  MsvgAddRawAttribute(root, "xmlns", "http://www.w3.org/2000/svg");
-  MsvgAddRawAttribute(root, "version", "1.2");
-  MsvgAddRawAttribute(root, "baseProfile", "tiny");
-  MsvgAddRawAttribute(root, "viewBox", "0 0 400 400");
+    root = MsvgNewElement(EID_SVG, NULL);
+    MsvgAddRawAttribute(root, "xmlns", "http://www.w3.org/2000/svg");
+    MsvgAddRawAttribute(root, "version", "1.2");
+    MsvgAddRawAttribute(root, "baseProfile", "tiny");
+    MsvgAddRawAttribute(root, "viewBox", "0 0 400 400");
 
-  son = MsvgNewElement(EID_RECT, root);
-  MsvgAddRawAttribute(son, "x", "1");
-  MsvgAddRawAttribute(son, "y", "1");
-  MsvgAddRawAttribute(son, "width", "398");
-  MsvgAddRawAttribute(son, "height", "398");
-  MsvgAddRawAttribute(son, "stroke", "#F00");
-  MsvgAddRawAttribute(son, "fill", "#FFF");
+    son = MsvgNewElement(EID_RECT, root);
+    MsvgAddRawAttribute(son, "x", "1");
+    MsvgAddRawAttribute(son, "y", "1");
+    MsvgAddRawAttribute(son, "width", "398");
+    MsvgAddRawAttribute(son, "height", "398");
+    MsvgAddRawAttribute(son, "stroke", "#F00");
+    MsvgAddRawAttribute(son, "fill", "#FFF");
 
-  son = MsvgNewElement(EID_RECT, root);
-  MsvgAddRawAttribute(son, "x", "11");
-  MsvgAddRawAttribute(son, "y", "11");
-  MsvgAddRawAttribute(son, "width", "380");
-  MsvgAddRawAttribute(son, "height", "380");
-  MsvgAddRawAttribute(son, "stroke", "#0F0");
-  MsvgAddRawAttribute(son, "fill", "none");
-  MsvgPrintRawElementTree(stdout, root, 0);
+    son = MsvgNewElement(EID_RECT, root);
+    MsvgAddRawAttribute(son, "x", "11");
+    MsvgAddRawAttribute(son, "y", "11");
+    MsvgAddRawAttribute(son, "width", "380");
+    MsvgAddRawAttribute(son, "height", "380");
+    MsvgAddRawAttribute(son, "stroke", "#0F0");
+    MsvgAddRawAttribute(son, "fill", "none");
+    MsvgPrintRawElementTree(stdout, root, 0);
 
-  if (!MsvgWriteSvgFile(root, TESTFILE)) {
-    printf("Error writing %s\n", TESTFILE);
-    return 0;
-  }
+    if (!MsvgWriteSvgFile(root, TESTFILE)) {
+        printf("Error writing %s\n", TESTFILE);
+        return 0;
+    }
 
-  return 1;
+    return 1;
 
 </pre>
 
@@ -209,12 +210,17 @@ typedef struct _MsvgRawAttribute {
 <p>Cooked generic attributes are the same for all elements, the "id" attribute
 (that can be NULL) and a MsvgPaintCtx structure:</p>
 <pre>
+typedef struct {
+    double a, b, c, d, e, f;
+} TMatrix;
+
 typedef struct _MsvgPaintCtx {
     rgbcolor fill;         /* fill color attribute */
     double fill_opacity;   /* fill-opacity attribute */
     rgbcolor stroke;       /* stroke color attribute */
     double stroke_width;   /* stroke-width attribute */
     double stroke_opacity; /* stroke-opacity attribute */
+    TMatrix tmatrix;       /* transformation matrix */
 } MsvgPaintCtx;
 </pre>
 
@@ -228,6 +234,11 @@ the raw value is not defined, and the father value is defined.</p>
 <p>fill and stroke colors can have the value NO_COLOR, that correspond
 to the raw keyword value "none" that means fill or stroke must not be done.</p>
 
+<p>tmatrix is special, if undefined it defaults to the identity matrix. Before
+rasterize the element it is neceary to calculate the Current Transformation
+Matrix, multiplying all the ancestors transformation matrix in order and
+finally with the element transformation matrix.</p>
+
 <p>Cooked specific attributes are different for each element type id and stored
 in a union, you can inspect each one in the msvg.h include file.</p>
 
@@ -237,8 +248,8 @@ in a union, you can inspect each one in the msvg.h include file.</p>
 tree.</p>
 
 <pre>
-  MsvgElement *root;
-  root = MsvgReadSvgFile("filein.svg");
+    MsvgElement *root;
+    root = MsvgReadSvgFile("filein.svg");
 </pre>
 
 <p>If the file doesn't exists or it isn't a valid SVG file root will be NULL,
@@ -248,8 +259,8 @@ the element attributes stored as raw attributes. If you want a COOKED tree
 you can use the MsvgRaw2CookedTree funtion:</p>
 
 <pre>
-  int result;
-  result = MsvgRaw2CookedTree(root);
+    int result;
+    result = MsvgRaw2CookedTree(root);
 </pre>
 
 <p>result will be true if all was right, false otherwise. Note that after calling
@@ -258,8 +269,8 @@ are preserved. If you are sure you don't need the raw parameters anymore you can
 call the MsvgDelAllTreeRawAttributes function:</p>
 
 <pre>
-  int result;
-  result = MsvgDelAllTreeRawAttributes(root);
+    int result;
+    result = MsvgDelAllTreeRawAttributes(root);
 </pre>
 
 <p>result will be the number of raw parameters deleted.</p>
@@ -275,49 +286,50 @@ parameter, because it is the root element. By default the tree will be
 RAW_SVGTREE.</p> 
 
 <pre>
-  MsvgElement *root;
-  root = MsvgNewElement(EID_SVG, NULL);
+    MsvgElement *root;
+    root = MsvgNewElement(EID_SVG, NULL);
 </pre>
 
 <p>Now, we add attributes to identify the svg element properly and set the
 drawing limits using the MsvgAddRawAttribute function.</p>
 
 <pre>
-  MsvgAddRawAttribute(root, "xmlns", "http://www.w3.org/2000/svg");
-  MsvgAddRawAttribute(root, "version", "1.2");
-  MsvgAddRawAttribute(root, "baseProfile", "tiny");
-  MsvgAddRawAttribute(root, "viewBox", "0 0 400 400");
+    MsvgAddRawAttribute(root, "xmlns", "http://www.w3.org/2000/svg");
+    MsvgAddRawAttribute(root, "version", "1.2");
+    MsvgAddRawAttribute(root, "baseProfile", "tiny");
+    MsvgAddRawAttribute(root, "viewBox", "0 0 400 400");
 </pre>
 
-<p>We continue adding two son elements, a RECT element and a G element.</p>
+<p>We continue adding two son elements, a RECT element and a translated G element.</p>
 
 <pre>
-  MsvgElement *son;
-  son = MsvgNewElement(EID_RECT, root);
-  MsvgAddRawAttribute(son, "x", "1");
-  MsvgAddRawAttribute(son, "y", "1");
-  MsvgAddRawAttribute(son, "width", "398");
-  MsvgAddRawAttribute(son, "height", "398");
-  MsvgAddRawAttribute(son, "stroke", "#F00");
-  MsvgAddRawAttribute(son, "fill", "#FFF");
-  son = MsvgNewElement(EID_G, root);
-  MsvgAddRawAttribute(son, "stroke", "#0F0");
-  MsvgAddRawAttribute(son, "fill", "none");
+    MsvgElement *son;
+    son = MsvgNewElement(EID_RECT, root);
+    MsvgAddRawAttribute(son, "x", "1");
+    MsvgAddRawAttribute(son, "y", "1");
+    MsvgAddRawAttribute(son, "width", "398");
+    MsvgAddRawAttribute(son, "height", "398");
+    MsvgAddRawAttribute(son, "stroke", "#F00");
+    MsvgAddRawAttribute(son, "fill", "#FFF");
+    son = MsvgNewElement(EID_G, root);
+    MsvgAddRawAttribute(son, "stroke", "#0F0");
+    MsvgAddRawAttribute(son, "fill", "none");
+    MsvgAddRawAttribute(son, "transform", "translate(50)");
 </pre>
 
 <p>Finally we add two son CIRCLE elements to the G element. Note that they
-will inherit the stroke and fill attributes.</p>
+will inherit the stroke and fill attributes and the transformation matrix.</p>
 
 <pre>
-  MsvgElement *soon2;
-  son2 = MsvgNewElement(EID_CIRCLE, son);
-  MsvgAddRawAttribute(son2, "cx", "100");
-  MsvgAddRawAttribute(son2, "cy", "200");
-  MsvgAddRawAttribute(son2, "r", "80");
-  son2 = MsvgNewElement(EID_CIRCLE, son);
-  MsvgAddRawAttribute(son2, "cx", "300");
-  MsvgAddRawAttribute(son2, "cy", "200");
-  MsvgAddRawAttribute(son2, "r", "80");
+    MsvgElement *soon2;
+    son2 = MsvgNewElement(EID_CIRCLE, son);
+    MsvgAddRawAttribute(son2, "cx", "100");
+    MsvgAddRawAttribute(son2, "cy", "200");
+    MsvgAddRawAttribute(son2, "r", "80");
+    son2 = MsvgNewElement(EID_CIRCLE, son);
+    MsvgAddRawAttribute(son2, "cx", "200");
+    MsvgAddRawAttribute(son2, "cy", "200");
+    MsvgAddRawAttribute(son2, "r", "80");
 </pre>
 
 <p>We have now our MsvgElement tree and we can manipulate it or write it to
@@ -334,35 +346,36 @@ cooked attributes, there are no functions to hide the variables, because we are
 programmers and we know what are we doing, doesn't it.</p>
 
 <pre>
-  MsvgElement *root;
-  root = MsvgNewElement(EID_SVG, NULL);
-  root->psvgattr->vb_min_x = 0;
-  root->psvgattr->vb_min_y = 0;
-  root->psvgattr->vb_width = 400;
-  root->psvgattr->vb_height = 400;
-  root->psvgattr->tree_type = COOKED_SVGTREE;
+    MsvgElement *root;
+    root = MsvgNewElement(EID_SVG, NULL);
+    root->psvgattr->vb_min_x = 0;
+    root->psvgattr->vb_min_y = 0;
+    root->psvgattr->vb_width = 400;
+    root->psvgattr->vb_height = 400;
+    root->psvgattr->tree_type = COOKED_SVGTREE;
 
-  MsvgElement *son;
-  son = MsvgNewElement(EID_RECT, root);
-  son->prectattr->x = 1;
-  son->prectattr->y = 1;
-  son->prectattr->width = 398;
-  son->prectattr->height = 398;
-  son->pctx.fill = 0XFFFFFF;
-  son->pctx.stroke = 0XFF0000;
-  son = MsvgNewElement(EID_G, root);
-  son->pctx.fill = NO_COLOR;
-  son->pctx.stroke = 0X00FF00;
+    MsvgElement *son;
+    son = MsvgNewElement(EID_RECT, root);
+    son->prectattr->x = 1;
+    son->prectattr->y = 1;
+    son->prectattr->width = 398;
+    son->prectattr->height = 398;
+    son->pctx.fill = 0XFFFFFF;
+    son->pctx.stroke = 0XFF0000;
+    son = MsvgNewElement(EID_G, root);
+    son->pctx.fill = NO_COLOR;
+    son->pctx.stroke = 0X00FF00;
+    TMSetTranslation(&amp;(son->pctx.tmatrix), 50, 50);
 
-  MsvgElement *soon2;
-  son2 = MsvgNewElement(EID_CIRCLE, son);
-  son2->pcircleattr->cx = 100;
-  son2->pcircleattr->cy = 200;
-  son2->pcircleattr->r = 80;
-  son2 = MsvgNewElement(EID_CIRCLE, son);
-  son2->pcircleattr->cx = 300;
-  son2->pcircleattr->cy = 200;
-  son2->pcircleattr->r = 80;
+    MsvgElement *soon2;
+    son2 = MsvgNewElement(EID_CIRCLE, son);
+    son2->pcircleattr->cx = 100;
+    son2->pcircleattr->cy = 200;
+    son2->pcircleattr->r = 80;
+    son2 = MsvgNewElement(EID_CIRCLE, son);
+    son2->pcircleattr->cx = 300;
+    son2->pcircleattr->cy = 200;
+    son2->pcircleattr->r = 80;
 </pre>
 
 <hr>
@@ -403,6 +416,43 @@ element is a container (like  EID_SVG or EID_G) it duplicates all the element
 sons too.</p>
 
 <hr>
+<h2><a name="tmatrix">Working with cooked transformation matrix</a></h2>
+<p>libmsvg has a number of functions to work with the transformation matrix
+cooked parameter TMatrix. Note that the transformation matrix is like that:</p>
+<pre>
+    a c e
+    b d f
+    0 0 1
+</pre>
+
+<p> so only the a, b, c, d, e, f values are stored int the TMatrix structure.
+Here are the functions:</p>
+
+<pre>
+void TMSetIdentity(TMatrix *des);
+int TMIsIdentity(TMatrix *t);
+int TMHaveRotation(TMatrix *t);
+void TMSetFromArray(TMatrix *des, double *p);
+void TMMpy(TMatrix *des, TMatrix *op1, TMatrix *op2);
+void TMSetTranslation(TMatrix *des, double tx, double ty);
+void TMSetScaling(TMatrix *des, double sx, double sy);
+void TMSetRotationOrigin(TMatrix *des, double ang);
+void TMSetRotation(TMatrix *des, double ang, double cx, double cy);
+void TMTransformCoord(double *x, double *y, TMatrix *ctm);
+</pre>
+
+<p>TMSetIdentity stores in des the identity matrix (1 0 0 1 0 0)<br>
+TMIsIdentity returns 1 if t is the identity matrix<br>
+TMHaveRotation returns 1 if t includes a rotation (b or c != 0)<br>
+TMSetFromArray set des from the double array p of dimension 6<br>
+TMMpy multiply op1 by op2 and stores the result in des<br>
+TMSetTranslation sets des with a traslation<br>
+TMSetScaling sets des with a scaling<br>
+TMSetRotationOrigin sets des with a rotation about the origin<br>
+TMSetRotation sets des with a rotation about cx, cy<br>
+TMTransformCoord changes x, y coordinates using ctm<br>
+
+<hr>
 <h2><a name="serialize">Serialize a COOKED MsvgElement tree</a></h2>
 <p>libmsvg provides a function to serialize a COOKED MsvgElement tree. Using
 this function is the easier way to rasterize a MsvgElement tree.</p>
@@ -420,19 +470,84 @@ typedef void (*MsvgSerUserFn)(MsvgElement *el, MsvgPaintCtx *pctx);
 </pre>
 
 <p>where "el" is the pointer to the drawable element and pctx a pointer
-to a constructed MsvgPaintCtx whit all the inherit and initial values processed,
-so the user program must use this painting context instead the element one
-to do the drawing.</p>
+to a constructed MsvgPaintCtx whit all the inherit and initial values processed
+and the current transformation matrix calculated, so the user program must use
+this painting context instead the element one to do the drawing.</p>
+
+<p>At this point libmsvg provides a function that can be called by the user function
+to process the element coordinates using the current transformation matrix
+(pctx->tmatrix):</p>
+
+<pre>
+MsvgElement * MsvgTransformCookedElement(MsvgElement *el, MsvgPaintCtx *pctx, int bef);
+</pre>
+
+<p>it returns a new drawable element that can be of diferent type that the original
+element, by example if a EID_RECT has to be rotated a EID_POLYGON is returned. There
+are some cases where MsvgTransformCookedElement cannot returns a properly transformed
+element, by example a rotated EID_ELLIPSE. For these cases if the bef parameter (best
+effort) is 1, it returns the best transformed element it can. If bef is 0 it returns
+NULL and it is the user function responsability to manage correctly the element.
+Note that you have to delete the new element returned after use.</p>
+
+<p>So using all the pieces the code to rasterize a SVG image will be like that:</p>
+
+<pre>
+static void userfn(MsvgElement *el, MsvgPaintCtx *pctx)
+{
+    MsvgElement *newel;
+
+    newel = MsvgTransformCookedElement(el, pctx, 1);
+    if (newel == NULL) return;
+
+    switch (newel->eid) {
+        case EID_RECT :
+            DrawRectElement(newel, pctx);
+            break;
+        case EID_CIRCLE :
+            DrawCircleElement(newel, pctx);
+            break;
+        case EID_ELLIPSE :
+            DrawEllipseElement(newel, pctx);
+            break;
+        case EID_LINE :
+            DrawLineElement(newel, pctx);
+            break;
+        case EID_POLYLINE :
+            DrawPolylineElement(newel, pctx);
+            break;
+        case EID_POLYGON :
+            DrawPolygonElement(newel, pctx);
+            break;
+        default :
+            break;
+    }
+
+    MsvgDeleteElement(newel);
+}
+
+...
+// in main
+    MsvgElement *root
+...
+// read or build the Msvg tree and convert it to a COOKED tree
+...
+// set the graphics coordinates using the information in the EID_SVG element
+...
+    MsvgSerCookedTree(root, userfn);
+...
+</pre>
+
 
 <hr>
 <h2><a name="writing">Writing SVG files</a></h2>
 <p>Using the MsvgWriteSvgFile function you can write a MsvgElement tree to a file.</p>
 
 <pre>
-  MsvgElement *root;
-  int result;
-  // construct the root tree
-  result = MsvgWriteSvgFile(root, "fileout.svg")
+    MsvgElement *root;
+    int result;
+    // construct the root tree
+    result = MsvgWriteSvgFile(root, "fileout.svg")
 </pre>
 
 <p>MsvgWriteSvgFile only know how to write RAW trees. If you want to write a COOKED
@@ -440,8 +555,8 @@ only tree you need to use the MsvgCooked2RawTree funtion (<font color="#aa0000">
 be added to the library</font>) first:</p>
 
 <pre>
-  int result;
-  result = MsvgCooked2RawTree(root);
+    int result;
+    result = MsvgCooked2RawTree(root);
 </pre>
 
 <hr>
@@ -523,7 +638,7 @@ can have any attribute.</p>
       <p>stroke=&quot;color&quot; (ok)</p>
       <p>stroke-width=&quot;n&quot; (ok)</p>
       <p>stroke-opacity=&quot;n&quot; (ok)</p>
-      <p>transform=&quot;transformation&quot; (TO DO)</p>
+      <p>transform=&quot;transformation&quot; (ok)</p>
     </td>
     <td width=31%>
       <p>&lt;g&gt;, &lt;rect&gt;, &lt;circle&gt;, &lt;ellipse&gt;,
@@ -567,7 +682,7 @@ can have any attribute.</p>
       <p>stroke=&quot;color&quot; (ok)</p>
       <p>stroke-width=&quot;n&quot; (ok)</p>
       <p>stroke-opacity=&quot;n&quot; (ok)</p>
-      <p>transform=&quot;transformation&quot; (TO DO)</p>
+      <p>transform=&quot;transformation&quot; (ok)</p>
     </td>
     <td width=31%>
       <p><br>
@@ -588,7 +703,7 @@ can have any attribute.</p>
       <p>stroke=&quot;color&quot; (ok)</p>
       <p>stroke-width=&quot;n&quot; (ok)</p>
       <p>stroke-opacity=&quot;n&quot; (ok)</p>
-      <p>transform=&quot;transformation&quot; (TO DO)</p>
+      <p>transform=&quot;transformation&quot; (ok)</p>
     </td>
     <td width=31%>
       <p><br>
@@ -610,7 +725,7 @@ can have any attribute.</p>
       <p>stroke=&quot;color&quot; (ok)</p>
       <p>stroke-width=&quot;n&quot; (ok)</p>
       <p>stroke-opacity=&quot;n&quot; (ok)</p>
-      <p>transform=&quot;transformation&quot; (TO DO)</p>
+      <p>transform=&quot;transformation&quot; (ok)</p>
     </td>
     <td width=31%>
       <p><br>
@@ -630,7 +745,7 @@ can have any attribute.</p>
       <p>stroke=&quot;color&quot; (ok)</p>
       <p>stroke-width=&quot;n&quot; (ok)</p>
       <p>stroke-opacity=&quot;n&quot; (ok)</p>
-      <p>transform=&quot;transformation&quot; (TO DO)</p>
+      <p>transform=&quot;transformation&quot; (ok)</p>
     </td>
     <td width=31%>
       <p><br>
@@ -649,7 +764,7 @@ can have any attribute.</p>
       <p>stroke=&quot;color&quot; (ok)</p>
       <p>stroke-width=&quot;n&quot; (ok)</p>
       <p>stroke-opacity=&quot;n&quot; (ok)</p>
-      <p>transform=&quot;transformation&quot; (TO DO)</p>
+      <p>transform=&quot;transformation&quot; (ok)</p>
     </td>
     <td width=31%>
       <p><br>
@@ -668,7 +783,7 @@ can have any attribute.</p>
       <p>stroke=&quot;color&quot; (ok)</p>
       <p>stroke-width=&quot;n&quot; (ok)</p>
       <p>stroke-opacity=&quot;n&quot; (ok)</p>
-      <p>transform=&quot;transformation&quot; (TO DO)</p>
+      <p>transform=&quot;transformation&quot; (ok)</p>
     </td>
     <td width=31%>
       <p><br>
@@ -770,14 +885,14 @@ RAW parameters can have any value.</p>
     </td>
     <td width=40%>
       <p>NO DEFINED => (1 0 0 1 0 0) (ok)</p>
-      <p>none => (1 0 0 1 0 0) (TO DO)</p>
-      <p>matrix(a b c d e f) => (a b c d e f) (TO DO)</p>
-      <p>translate(x) => (1 0 0 1 x 0) (TO DO)</p>
-      <p>translate(x y) => (1 0 0 1 x y) (TO DO)</p>
-      <p>rotate(ang) => (cos(ang) sin(ang) -sin(ang) cos(ang) 0 0) (TO DO)</p>
-      <p>rotate(ang cx cy) => traslate(cx cy) * rotate(ang) * translate(-cx -cy) (TO DO)</p>
-      <p>scale(sx) => (sx 0 0 sx 0 0) (TO DO)</p>
-      <p>scale(sx sy) => (sx 0 0 sy 0 0) (TO DO)</p>
+      <p>none => (1 0 0 1 0 0) (ok)</p>
+      <p>matrix(a b c d e f) => (a b c d e f) (ok)</p>
+      <p>translate(x) => (1 0 0 1 x 0) (ok)</p>
+      <p>translate(x y) => (1 0 0 1 x y) (ok)</p>
+      <p>rotate(ang) => (cos(ang) sin(ang) -sin(ang) cos(ang) 0 0) (ok)</p>
+      <p>rotate(ang cx cy) => traslate(cx cy) * rotate(ang) * translate(-cx -cy) (ok)</p>
+      <p>scale(sx) => (sx 0 0 sx 0 0) (ok)</p>
+      <p>scale(sx sy) => (sx 0 0 sy 0 0) (ok)</p>
       <p>ref(svg) => no transform for this element (TO DO)</p>
     </td>
     <td width=40%>
