@@ -1,4 +1,4 @@
-Welcome to libmsvg version 0.13
+Welcome to libmsvg version 0.14
 
 libmsvg is a work in progress to make a minimal and generic library to read
 and write SVG files.
@@ -33,7 +33,7 @@ libmsvg installation instructions
 Requirements:
 -------------
 
-  The source files:  libmsvg0013.tar.gz or msvg0013.zip
+  The source files:  libmsvg0014.tar.gz or msvg0014.zip
   This document:     readme
 
 A. Unpacking the libmsvg archive
@@ -52,9 +52,9 @@ A. Unpacking the libmsvg archive
 
   3) unpack the libmsvg archive:
 
-         tar xzvf libmsvg0013.tar.gz
+         tar xzvf libmsvg0014.tar.gz
      or
-         unzip msvg0013.zip
+         unzip msvg0014.zip
 
      This will create the subdirectory 'libmsvg'.
 

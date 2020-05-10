@@ -237,7 +237,12 @@ MsvgElement *MsvgNewTextElement(MsvgElement *father)
         free(element);
         return NULL;
     }
-    
+
+    element->ptextattr->x = 0;
+    element->ptextattr->y = 0;
+    element->ptextattr->font_size = 10;
+    element->ptextattr->font_family = NULL;
+
     return element;
 }
 
@@ -270,6 +275,10 @@ MsvgElement *MsvgNewUseElement(MsvgElement *father)
         return NULL;
     }
     
+    element->puseattr->ref = NULL;
+    element->puseattr->x = 0;
+    element->puseattr->y = 0;
+
     return element;
 }
 

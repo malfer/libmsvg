@@ -107,12 +107,28 @@ static void process_container(MsvgElement *el, MsvgSerUserFn sufn, MsvgPaintCtx 
     
     pel = el->fson;
     while (pel) {
-        if (pel->eid == EID_SVG || pel->eid == EID_G) {
-            process_container(pel, sufn, &mypctx);
-        }
-        else {
-            process_drawel_pctx(&sonpctx, &mypctx, &(pel->pctx));
-            sufn(pel, &sonpctx);
+        switch (pel->eid) {
+            case EID_SVG :
+                break;
+            case EID_G :
+                process_container(pel, sufn, &mypctx);
+                break;
+            case EID_DEFS :
+                break;
+            case EID_USE :
+                break; // TODO
+            case EID_RECT :
+            case EID_CIRCLE :
+            case EID_ELLIPSE :
+            case EID_LINE :
+            case EID_POLYLINE :
+            case EID_POLYGON :
+            case EID_TEXT :
+                process_drawel_pctx(&sonpctx, &mypctx, &(pel->pctx));
+                sufn(pel, &sonpctx);
+                break;
+            default :
+                break;
         }
         pel = pel->nsibling;
     }

@@ -178,6 +178,20 @@ int MsvgCopyCookedAttributes(MsvgElement *desel, MsvgElement *srcel)
                     srcel->ppolygonattr->points[i*2+1];
             }
             break;
+        case EID_TEXT :
+            *(desel->ptextattr) = *(srcel->ptextattr);
+            if (srcel->ptextattr->font_family) {
+                desel->ptextattr->font_family =
+                    strdup(srcel->ptextattr->font_family);
+            }
+            break;
+        case EID_DEFS :
+            *(desel->pdefsattr) = *(srcel->pdefsattr);
+            break;
+        case EID_USE :
+            *(desel->puseattr) = *(srcel->puseattr);
+            //desel->puseattr->ref = srcel->puseattr->ref;
+            break;
         default :
             break;
     }

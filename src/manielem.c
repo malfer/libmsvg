@@ -78,6 +78,7 @@ static void MsvgFreeElement(MsvgElement *el)
             free(el->ppolygonattr);
             break;
         case EID_TEXT :
+            if (el->ptextattr->font_family) free(el->ptextattr->font_family);
             free(el->ptextattr);
             break;
         case EID_DEFS :

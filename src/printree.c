@@ -192,6 +192,10 @@ static void printPolygonCookedAttr(FILE *f, MsvgElement *el)
 
 static void printTextCookedAttr(FILE *f, MsvgElement *el)
 {
+    fprintf(f, "  x              %g\n", el->ptextattr->x);
+    fprintf(f, "  y              %g\n", el->ptextattr->y);
+    fprintf(f, "  font_size      %g\n", el->ptextattr->font_size);
+    fprintf(f, "  font_family    %s\n", el->ptextattr->font_family);
 }
 
 static void printDefsCookedAttr(FILE *f, MsvgElement *el)
@@ -200,6 +204,8 @@ static void printDefsCookedAttr(FILE *f, MsvgElement *el)
 
 static void printUseCookedAttr(FILE *f, MsvgElement *el)
 {
+    fprintf(f, "  x              %g\n", el->puseattr->x);
+    fprintf(f, "  y              %g\n", el->puseattr->y);
 }
 
 void MsvgPrintCookedElement(FILE *f, MsvgElement *el)

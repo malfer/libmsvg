@@ -229,6 +229,25 @@ static void cookPolygonGenAttr(MsvgElement *el, char *key, char *value)
         readpoints(value, &(el->ppolylineattr->points), &(el->ppolylineattr->npoints));
 }
 
+static void cookTextGenAttr(MsvgElement *el, char *key, char *value)
+{
+    if (strcmp(key, "x") == 0) el->ptextattr->x = atof(value);
+    else if (strcmp(key, "y") == 0) el->ptextattr->y = atof(value);
+    else if (strcmp(key, "font-size") == 0) el->ptextattr->font_size = atof(value);
+    else if (strcmp(key, "font-family") == 0) el->ptextattr->font_family = strdup(value);
+}
+
+static void cookDefsGenAttr(MsvgElement *el, char *key, char *value)
+{
+    return;
+}
+
+static void cookUseGenAttr(MsvgElement *el, char *key, char *value)
+{
+    if (strcmp(key, "x") == 0) el->puseattr->x = atof(value);
+    else if (strcmp(key, "y") == 0) el->puseattr->y = atof(value);
+}
+
 static void checkSvgCookedAttr(MsvgElement *el)
 {
     if (el->psvgattr->vb_width == 0) el->psvgattr->vb_width = el->psvgattr->width;
@@ -301,6 +320,15 @@ static void cookElement(MsvgElement *el, int depth)
                     case EID_POLYGON :
                         cookPolygonGenAttr(el, pattr->key, pattr->value);
                         break;
+                    case EID_TEXT :
+                        cookTextGenAttr(el, pattr->key, pattr->value);
+                        break;
+                    case EID_DEFS :
+                        cookDefsGenAttr(el, pattr->key, pattr->value);
+                        break;
+                    case EID_USE :
+                        cookUseGenAttr(el, pattr->key, pattr->value);
+                        break;
                     default :
                         break;
                 }
@@ -333,6 +361,15 @@ static void cookElement(MsvgElement *el, int depth)
             break;
         case EID_POLYGON :
             //checkPolygonCookedAttr(el);
+            break;
+        case EID_TEXT :
+            //checkTextCookedAttr(el);
+            break;
+        case EID_DEFS :
+            //checkDefsCookedAttr(el);
+            break;
+        case EID_USE :
+            //checkUseCookedAttr(el);
             break;
         default :
             break;

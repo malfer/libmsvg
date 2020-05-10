@@ -2,7 +2,7 @@ Files in this directory are test programs to render svg files using the mgrx
 graphics library (http://mgrx.fgrim.com) and libmsvg of course.
 
 They are not part of libmsvg really, some day they will be added to mgrx, but
-you can use it as an example of how render svg files using libmsvg and any
+you can use it as an example of how render svg files using libmsvg and a specific
 graphics library.
 
 To make the example programs you need both libmsvg and mgrx installed first.
@@ -10,23 +10,32 @@ Them do that:
 
 Linux X11:
 gcc -c rendmgrx.c
-gcc -o rsvg rsvg.c rendmgrx.o -lmsvg -lmgrxX -lX11
-gcc -o gsvg gsvg.c rendmgrx.o -lmsvg -lmgrxX -lX11
+gcc -o rsvg rsvg.c rendmgrx.o -lmsvg -lmgrxX -lX11 -lm
+gcc -o gsvg gsvg.c rendmgrx.o -lmsvg -lmgrxX -lX11 -lm
+gcc -o rsvg2 rsvg2.c rendmgrx.o -lmsvg -lmgrxX -lX11 -lm
 
 Linux console:
 gcc -c rendmgrx.c
-gcc -o rsvg rsvg.c rendmgrx.o -lmsvg -lmgrx
-gcc -o gsvg gsvg.c rendmgrx.o -lmsvg -lmgrx
+gcc -o rsvg rsvg.c rendmgrx.o -lmsvg -lmgrx -lm
+gcc -o gsvg gsvg.c rendmgrx.o -lmsvg -lmgrx -lm
+gcc -o rsvg2 rsvg2.c rendmgrx.o -lmsvg -lmgrx -lm
 
 DOS (djgpp):
 gcc -c rendmgrx.c
-gcc -o rsvg.exe rsvg.c rendmgrx.o -lmsvg -lmgrx
-gcc -o gsvg.exe gsvg.c rendmgrx.o -lmsvg -lmgrx
+gcc -o rsvg.exe rsvg.c rendmgrx.o -lmsvg -lmgrx -lm
+gcc -o gsvg.exe gsvg.c rendmgrx.o -lmsvg -lmgrx -lm
+gcc -o rsvg2.exe rsvg2.c rendmgrx.o -lmsvg -lmgrx -lm
 
 Win32 (mingw):
 gcc -c rendmgrx.c
-gcc -o rsvg.exe rsvg.c rendmgrx.o -lmsvg -lmgrx -mwindows
-gcc -o gsvg.exe gsvg.c rendmgrx.o -lmsvg -lmgrx -mwindows
+gcc -o rsvg.exe rsvg.c rendmgrx.o -lmsvg -lmgrx -lm -mwindows
+gcc -o gsvg.exe gsvg.c rendmgrx.o -lmsvg -lmgrx -lm -mwindows
+gcc -o rsvg2.exe rsvg2.c rendmgrx.o -lmsvg -lmgrx -lm -mwindows
+
+There is a simple makefile for the X11 version, run it by:
+    make -f makefile.x11
 
 rsvg read test.svg and render it on screen.
 gsvg generates a MsvgElemnt tree programmatically and render it on screen.
+rsvg2 is a bit more elaborated, it must be run by:
+    rsvg2 filename.svg [width height bpp]

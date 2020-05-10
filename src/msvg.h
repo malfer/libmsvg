@@ -25,7 +25,7 @@
 
 #include <stdio.h>
 
-#define LIBMSVG_VERSION_API 0x0013
+#define LIBMSVG_VERSION_API 0x0014
 
 /* define id's for supported elements */
 
@@ -87,6 +87,10 @@ typedef int rgbcolor;
 
 #define INHERIT_VALUE   -1.0
 #define NODEFINED_VALUE -2.0
+
+/* element pointer */
+
+typedef struct _MsvgElement *MsvgElementPtr;
 
 /* raw attributes */
 
@@ -185,7 +189,10 @@ typedef struct _MsvgPolygonAttributes {
 } MsvgPolygonAttributes;
 
 typedef struct _MsvgTextAttributes {
-    int dummy;
+    double x;          /* x attibute */
+    double y;          /* y attibute */
+    double font_size;  /* font-size attribute */
+    char *font_family; /* font-family attribute */
 } MsvgTextAttributes;
 
 typedef struct _MsvgDefsAttributes {
@@ -193,12 +200,12 @@ typedef struct _MsvgDefsAttributes {
 } MsvgDefsAttributes;
 
 typedef struct _MsvgUseAttributes {
-    int dummy;
+    MsvgElementPtr ref; /* referenced element */
+    double x;           /* x attibute */
+    double y;           /* y attibute */
 } MsvgUseAttributes;
 
 /* element structure */
-
-typedef struct _MsvgElement *MsvgElementPtr;
 
 typedef struct _MsvgElement {
     enum EID eid;               /* element type id */
@@ -206,12 +213,16 @@ typedef struct _MsvgElement {
     MsvgElementPtr psibling;    /* pointer to previous sibling element */
     MsvgElementPtr nsibling;    /* pointer to next sibling element */
     MsvgElementPtr fson;        /* pointer to first son element */
+
     MsvgRawAttributePtr frattr; /* pointer to first raw attribute */
     MsvgContentPtr fcontent;    /* pointer to first content */
-                                /* cooked generic attributes */
+
+    /* cooked generic attributes */
     char *id;                   /* id attribute */
     MsvgPaintCtx pctx;          /* painting context */
-    union {                     /* cooked specific attributes */
+
+    /* cooked specific attributes */
+    union {
         MsvgSvgAttributes *psvgattr;
         MsvgGAttributes *pgattr;
         MsvgRectAttributes *prectattr;

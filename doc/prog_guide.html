@@ -6,16 +6,16 @@
 </head>
 
 <body>
-<h1>libmsvg v0.13</h1>
+<h1>libmsvg v0.14</h1>
 <h2>Programmer's guide</h2>
-<p>Last update: May 2, 2020</p>
+<p>Last update: May 10, 2020</p>
 
 <hr>
 <h2>Abstract</h2>
-<p><b>libmsvg</b> is a minimal and generic C library to read and write SVG
-files.</p>
+<p><b>libmsvg</b> is a minimal and generic C library to read and write
+static SVG files.</p>
 
-<p>SVG stand for Scalable Vector Graphics and is a standard defined by the
+<p>SVG stand for Scalable Vector Graphics, it is a standard defined by the
 World Wide Web Consortium (see <a href="http://www.w3.org/Graphics/SVG/">
 http://www.w3.org/Graphics/SVG/</a>).</p>
 
@@ -50,7 +50,7 @@ so here there are.</p>
 <p>This example read a SVG file in a  MsvgElement tree</p>
 <pre>
 #include &lt;stdio.h>
-#include "msvg.h"
+#include &lt;msvg.h>
 
 int main(int argc, char **argv)
 {
@@ -76,8 +76,8 @@ int main(int argc, char **argv)
 <h3>Example 2</h3>
 <p>This example builds a MsvgElement tree and writes it to a file</p>
 <pre>
-#include <stdio.h>
-#include "msvg.h"
+#include &lt;stdio.h>
+#include &lt;msvg.h>
 
 #define TESTFILE "msvgt2.svg"
 
@@ -106,6 +106,7 @@ int main(int argc, char **argv)
     MsvgAddRawAttribute(son, "height", "380");
     MsvgAddRawAttribute(son, "stroke", "#0F0");
     MsvgAddRawAttribute(son, "fill", "none");
+
     MsvgPrintRawElementTree(stdout, root, 0);
 
     if (!MsvgWriteSvgFile(root, TESTFILE)) {
@@ -114,7 +115,7 @@ int main(int argc, char **argv)
     }
 
     return 1;
-
+}
 </pre>
 
 <h3>How to compile the example programs</h3>
@@ -123,19 +124,20 @@ please read the "readme" file for installation instructions.</p>
 <p>These are the command lines to compile the examples for the three supported
 platforms:</p>
 <ul>
-	<li>Linux: gcc -o example example.c -lmsvg
-	<li>DJGPP: gcc -o example.exe example.c -lmsvg
-	<li>Mingw: gcc -o example.exe example.c -lmsvg -mconsole
+	<li>Linux: gcc -o example example.c -lmsvg -lm
+	<li>DJGPP: gcc -o example.exe example.c -lmsvg -lm
+	<li>Mingw: gcc -o example.exe example.c -lmsvg -lm mconsole
 </ul>
 
 <hr>
 <h2><a name="svgtree">The MsvgElement tree</a></h2>
 <p>The central structure of libmsvg is the MsvgElement tree. Every MsvgElement
-has a element type id (eid), a pointer to his father, pointers to his previous
+has an element type id (eid), a pointer to his father, pointers to his previous
 and next siblings and a pointer to his first son. The root element must be a
-EID_SVG. In this version of libmsvg only EID_SVG and EID_G can have son elements.
+EID_SVG. In this version of libmsvg only EID_SVG, EID_DEFS and EID_G can have
+child elements.
 The other supported elements are EID_RECT, EID_CIRCLE, EID_ELLIPSE, EID_LINE,
-EID_POLYLINE and EID_POLYGON.</p>
+EID_POLYLINE, EID_POLYGON, EID_TEXT and EID_USE.</p>
 <p>This graph represents an example of a MsvgElement tree:</p>
 <p><center>
 <img src="elementtree.png" alt="MsvgElement tree example">
@@ -143,10 +145,10 @@ EID_POLYLINE and EID_POLYGON.</p>
 <p>Every MsvgElement can have attributes, they can be of two types: raw or
 cooked. The type of MsvgElement attributes in a tree is determined by a variable in
 the root element: root->psvgattr->tree_type. If this variable is RAW_SVGTREE all
-attributes are raw. Raw attributes are simple key,value strings pairs. If it is a
-COOKED_SVGTREE all attributes are cooked. Cooked attributes are typed variables
-and can be generic or specific, all elements have the generic ones, each 
-element type id can have his specific ones. </p>
+attributes are raw. Raw attributes are simple key,value strings pairs. If the 
+variable is COOKED_SVGTREE the tree has cooked attributes too. Cooked attributes are
+typed variables and can be generic or specific, all elements have the generic ones,
+each element type id has his specific ones. </p>
 
 <h3>The RAW_SVGTREE tree type</h3>
 <p>After a SVG file is loaded to a MsvgElement tree by the MsvgReadSvgFile function
@@ -159,7 +161,12 @@ reordered and finally be written to a file using the MsvgWriteSvgFile function.<
 <p>Using the MsvgRaw2CookedTree funtion you
 can convert a MsvgElement tree to the COOKED_SVGTREE type. Only the supported
 attributes are processed and converted to cooked attributes. In this state the tree
-is easier to manipulate and rasterize by a program.</p>
+is easier to be manipulates and/or rasterized by a program.</p>
+
+<h3>Content</h3>
+<p>In addition to parameters an element can have one or more contents, the contents
+are stored in a simple linked list. In this version of the library only EID_TEXT
+element contents are stored in the tree.</p>
 
 <hr>
 <h2><a name="element">The MsvgElement structure</a></h2>
@@ -176,6 +183,7 @@ typedef struct _MsvgElement {
     MsvgElementPtr fson;        /* pointer to first son element */
 
     MsvgRawAttributePtr frattr; /* pointer to first raw attribute */
+    MsvgContentPtr fcontent;    /* pointer to first content */
 
     /* cooked generic attributes */
     char *id;                   /* id attribute */
@@ -191,6 +199,9 @@ typedef struct _MsvgElement {
         MsvgLineAttributes *plineattr;
         MsvgPolylineAttributes *ppolylineattr;
         MsvgPolygonAttributes *ppolygonattr;
+        MsvgTextAttributes *ptextattr;
+        MsvgDefsAttributes *pdefsattr;
+        MsvgUseAttributes *puseattr;
     };
 } MsvgElement;
 </pre>
@@ -205,6 +216,18 @@ typedef struct _MsvgRawAttribute {
     char *value;                /* value attribute */
     MsvgRawAttributePtr nrattr; /* pointer to next raw attribute */
 } MsvgRawAttribute;
+</pre>
+
+<p>Similarly contents are stored in a simple linked list of MsvgContent
+variables:</p>
+<pre>
+typedef struct _MsvgConten *MsvgContentPtr;
+
+typedef struct _MsvgConten {
+    MsvgContentPtr ncontent; /* next content */
+    int len;                 /* len content */
+    char s[1];               /* content (not actual size) */
+} MsvgContent;
 </pre>
 
 <p>Cooked generic attributes are the same for all elements, the "id" attribute
@@ -235,11 +258,11 @@ the raw value is not defined, and the father value is defined.</p>
 to the raw keyword value "none" that means fill or stroke must not be done.</p>
 
 <p>tmatrix is special, if undefined it defaults to the identity matrix. Before
-rasterize the element it is neceary to calculate the Current Transformation
+rasterizing any element it is neceary to calculate the Current Transformation
 Matrix, multiplying all the ancestors transformation matrix in order and
-finally with the element transformation matrix.</p>
+finally with the own element transformation matrix.</p>
 
-<p>Cooked specific attributes are different for each element type id and stored
+<p>Cooked specific attributes are different for each element type id and are stored
 in a union, you can inspect each one in the msvg.h include file.</p>
 
 <hr>
@@ -300,7 +323,7 @@ drawing limits using the MsvgAddRawAttribute function.</p>
     MsvgAddRawAttribute(root, "viewBox", "0 0 400 400");
 </pre>
 
-<p>We continue adding two son elements, a RECT element and a translated G element.</p>
+<p>We continue adding two child elements, a RECT element and a translated G element.</p>
 
 <pre>
     MsvgElement *son;
@@ -317,7 +340,7 @@ drawing limits using the MsvgAddRawAttribute function.</p>
     MsvgAddRawAttribute(son, "transform", "translate(50)");
 </pre>
 
-<p>Finally we add two son CIRCLE elements to the G element. Note that they
+<p>Finally we add two child CIRCLE elements to the G element. Note that they
 will inherit the stroke and fill attributes and the transformation matrix.</p>
 
 <pre>
@@ -387,21 +410,21 @@ void MsvgPruneElement(MsvgElement *el);
 </pre>
 <p>The MsvgPruneElement function prune an element from his tree and them we
 can insert it in another tree or in another point of the same tree. Note that
-if the pruned element has sons, it retains them after pruned.</p>
+if the pruned element has child, it retains them after pruned.</p>
 
 <pre>
 void MsvgDeleteElement(MsvgElement *el);
 </pre>
 <p>The MsvgDeleteElement does two things, prunes the element from his tree and
 deletes it, freeing the allocated memory used. Note that if the deleted
-element has sons, they are deleted too.</p>
+element has child, they are deleted too.</p>
 
 <pre>
 int MsvgInsertSonElement(MsvgElement *el, MsvgElement *father);
 int MsvgInsertPSiblingElement(MsvgElement *el, MsvgElement *sibling);
 int MsvgInsertNSiblingElement(MsvgElement *el, MsvgElement *sibling);
 </pre>
-<p>This three functios insert an element (that can be a subtree if it has sons) in
+<p>This three functios insert an element (that can be a subtree if it has child) in
 the desired point of a tree. The MsvgInsertSonElement fucntion inserts the element
 like the last son of the indicated father. The MsvgInsertPSiblingElement function
 inserts the element like a previous sibling to the indicated sibling. And the
@@ -413,7 +436,7 @@ MsvgElement *MsvgDupElement(MsvgElement *el);
 </pre>
 <p>The MsvgDupElement duplicates the element passed as parameter, if that
 element is a container (like  EID_SVG or EID_G) it duplicates all the element
-sons too.</p>
+child too.</p>
 
 <hr>
 <h2><a name="tmatrix">Working with cooked transformation matrix</a></h2>
@@ -442,8 +465,8 @@ void TMTransformCoord(double *x, double *y, TMatrix *ctm);
 </pre>
 
 <p>TMSetIdentity stores in des the identity matrix (1 0 0 1 0 0)<br>
-TMIsIdentity returns 1 if t is the identity matrix<br>
-TMHaveRotation returns 1 if t includes a rotation (b or c != 0)<br>
+TMIsIdentity returns 1 if it is the identity matrix<br>
+TMHaveRotation returns 1 if it includes a rotation (b or c != 0)<br>
 TMSetFromArray set des from the double array p of dimension 6<br>
 TMMpy multiply op1 by op2 and stores the result in des<br>
 TMSetTranslation sets des with a traslation<br>
@@ -482,13 +505,14 @@ to process the element coordinates using the current transformation matrix
 MsvgElement * MsvgTransformCookedElement(MsvgElement *el, MsvgPaintCtx *pctx, int bef);
 </pre>
 
-<p>it returns a new drawable element that can be of diferent type that the original
+<p>it returns a new drawable element that can be of different type that the original
 element, by example if a EID_RECT has to be rotated a EID_POLYGON is returned. There
 are some cases where MsvgTransformCookedElement cannot returns a properly transformed
-element, by example a rotated EID_ELLIPSE. For these cases if the bef parameter (best
-effort) is 1, it returns the best transformed element it can. If bef is 0 it returns
-NULL and it is the user function responsability to manage correctly the element.
-Note that you have to delete the new element returned after use.</p>
+element (by example in this version a rotated EID_RECT with rounded borders). For
+these cases if the bef parameter (best effort) is 1, it returns the best transformed
+element it can. If bef is 0 it returns NULL and it is the user function responsability
+to manage correctly the element. Note that you have to delete the new element returned
+after using it.</p>
 
 <p>So using all the pieces the code to rasterize a SVG image will be like that:</p>
 
@@ -498,7 +522,7 @@ static void userfn(MsvgElement *el, MsvgPaintCtx *pctx)
     MsvgElement *newel;
 
     newel = MsvgTransformCookedElement(el, pctx, 1);
-    if (newel == NULL) return;
+    if (newel == NULL) return; // or manage "el" internally
 
     switch (newel->eid) {
         case EID_RECT :
@@ -579,7 +603,7 @@ can have any attribute.</p>
       <p>Specific supported attributes (status)</p>
     </th>
     <th width=31%>
-      <p>Possible son elements</p>
+      <p>Notes</p>
     </th>
   </tr>
   <tr valign=top>
@@ -597,14 +621,16 @@ can have any attribute.</p>
       <p>viewport-fill=&quot;color&quot; (ok)</p>
       <p>viewport-fill-opacity=&quot;n&quot; (ok)</p>
       <p>id=&quot;valor&quot; (ok)</p>
-      <p>--- for possible inheritance ---</p>
+      <p>--- for inheritance ---</p>
       <p>fill=&quot;color&quot; (ok)</p>
       <p>fill-opacity=&quot;n&quot; (ok)</p>
       <p>stroke=&quot;color&quot; (ok)</p>
       <p>stroke-width=&quot;n&quot; (ok)</p>
       <p>stroke-opacity=&quot;n&quot; (ok)</p>
+      <p>transform=&quot;transformation&quot; (ok)</p>
     </td>
     <td width=31%>
+      <p>-- possible child elements --
       <p>&lt;defs&gt;, &lt;g&gt;, &lt;rect&gt;, &lt;circle&gt;, &lt;ellipse&gt;,
       &lt;line&gt;, &lt;polyline&gt;, &lt;polygon&gt;</p>
     </td>
@@ -615,6 +641,7 @@ can have any attribute.</p>
     </td>
     <td width=44%>
       <p>id=&quot;valor&quot; (TO DO)</p>
+      <p>--- for inheritance ---</p>
       <p>fill=&quot;color&quot; (TO DO)</p>
       <p>fill-opacity=&quot;n&quot; (TO DO)</p>
       <p>stroke=&quot;color&quot; (TO DO)</p>
@@ -623,6 +650,7 @@ can have any attribute.</p>
       <p>transform=&quot;transformation&quot; (TO DO)</p>
     </td>
     <td width=31%>
+      <p>-- possible child elements --
       <p>&lt;g&gt;, &lt;rect&gt;, &lt;circle&gt;, &lt;ellipse&gt;,
       &lt;line&gt;, &lt;polyline&gt;, &lt;polygon&gt;</p>
     </td>
@@ -633,6 +661,7 @@ can have any attribute.</p>
     </td>
     <td width=44%>
       <p>id=&quot;valor&quot; (ok)</p>
+      <p>--- for inheritance ---</p>
       <p>fill=&quot;color&quot; (ok)</p>
       <p>fill-opacity=&quot;n&quot; (ok)</p>
       <p>stroke=&quot;color&quot; (ok)</p>
@@ -641,6 +670,7 @@ can have any attribute.</p>
       <p>transform=&quot;transformation&quot; (ok)</p>
     </td>
     <td width=31%>
+      <p>-- possible child elements --
       <p>&lt;g&gt;, &lt;rect&gt;, &lt;circle&gt;, &lt;ellipse&gt;,
       &lt;line&gt;, &lt;polyline&gt;, &lt;polygon&gt;</p>
     </td>
@@ -653,6 +683,7 @@ can have any attribute.</p>
       <p>xlink:href =&quot;IRI&quot; (TO DO)</p>
       <p>x=&quot;n&quot; (TO DO)</p>
       <p>y=&quot;n&quot; (TO DO)</p>
+      <p>--- for inheritance ---</p>
       <p>fill=&quot;color&quot; (TO DO)</p>
       <p>fill-opacity=&quot;n&quot; (TO DO)</p>
       <p>stroke=&quot;color&quot; (TO DO)</p>
@@ -728,8 +759,10 @@ can have any attribute.</p>
       <p>transform=&quot;transformation&quot; (ok)</p>
     </td>
     <td width=31%>
-      <p><br>
-      </p>
+      <p>using the "rx" and "ry" raw parameters there will be populated
+      the "rx_x", "rx_y", "ry_x", "ry_y" cooked parameters, storing
+      the real semi-axis points, so it will be easier to transforming
+      and rasterizing an ellipse </p>
     </td>
   </tr>
   <tr valign=top>
@@ -788,6 +821,27 @@ can have any attribute.</p>
     <td width=31%>
       <p><br>
       </p>
+    </td>
+  </tr>
+  <tr valign=top>
+    <td width=25%>
+      <p>&lt;text&gt; (TO DO)</p>
+    </td>
+    <td width=44%>
+      <p>id=&quot;valor&quot; (TO DO)</p>
+      <p>x=&quot;n&quot; (TO DO)</p>
+      <p>y=&quot;n&quot; (TO DO)</p>
+      <p>font-size=&quot;n&quot; (TO DO)</p>
+      <p>font-family=&quot;string&quot; (TO DO)</p>
+      <p>fill=&quot;color&quot; (TO DO)</p>
+      <p>fill-opacity=&quot;n&quot; (TO DO)</p>
+      <p>stroke=&quot;color&quot; (TO DO)</p>
+      <p>stroke-width=&quot;n&quot; (TO DO)</p>
+      <p>stroke-opacity=&quot;n&quot; (TO DO)</p>
+      <p>transform=&quot;transformation&quot; (TO DO)</p>
+    </td>
+    <td width=31%>
+      <p>Note that the TEXT contents are in MsvgContent variables</p>
     </td>
   </tr>
 </table>
