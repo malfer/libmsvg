@@ -40,14 +40,23 @@ static int gwidth = 1024;
 static int gheight = 728;
 static int gbpp = 24;
 
-static void TestFunc(char *fname, int par, double zoom)
+static void DrawSvgFile(char *fname, int par, double zoom, int rotang, GrColor bg)
 {
     MsvgElement *root;
+    char s[81];
     
     root = MsvgReadSvgFile(fname);
     if (root == NULL) return;
+
+    if (rotang != 0) {
+        sprintf(s, "rotate(%d %d %d)", rotang, 250, 500);
+        MsvgAddRawAttribute(root, "transform", s);
+    }
+
     if (!MsvgRaw2CookedTree(root)) return;
-    DrawSVGtree(root, par, zoom);
+
+    //DrawSVGtree(root, par, zoom, bg);
+    DrawSVGtreeUsingDB(root, par, zoom, bg);
     MsvgDeleteElement(root);
 }
 
@@ -60,9 +69,10 @@ int main(int argc,char **argv)
     char s[121];
     double zoom = 1;
     GrColor bg;
+    int rotang = 0;
     
     if (argc <2) {
-        printf("Usage: rsvg file.svg [width height bpp]\n");
+        printf("Usage: rsvg2 file.svg [width height bpp]\n");
         return 0;
     }
 
@@ -82,7 +92,7 @@ int main(int argc,char **argv)
     sprintf(s, "%s file renderized", fname);
     GrTextXY(10, yhelptext+25, s, GrBlack(), GrNOCOLOR);
     GrTextXY(10, yhelptext+40,
-             "[p] [b] [w] [+] [-], [q] to quit",
+             "[p] [b] [w] [+] [-] [n] [m], [q] to quit",
              GrBlack(), GrNOCOLOR);
     
     ctx = GrCreateSubContext(10, 10, GrScreenX()-10, yhelptext, NULL, NULL);
@@ -95,8 +105,7 @@ int main(int argc,char **argv)
 
     par = 1;
     while (1) {
-        GrClearContext(bg);
-        TestFunc(fname, par, zoom);
+        DrawSvgFile(fname, par, zoom, rotang, bg);
         GrEventWait(&ev);
         if (ev.p1 == 'q') break;
         if (ev.p1 == 'b') bg = GrBlack();
@@ -104,6 +113,8 @@ int main(int argc,char **argv)
         if (ev.p1 == 'p') par = !par;
         if (ev.p1 == '+') zoom = zoom / 2;
         if (ev.p1 == '-') zoom = zoom * 2;
+        if (ev.p1 == 'm') rotang++;
+        if (ev.p1 == 'n') rotang--;
     }
     
     GrEventUnInit();

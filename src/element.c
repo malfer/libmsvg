@@ -45,7 +45,8 @@ MsvgElement *MsvgNewGenericElement(enum EID eid, MsvgElement *father)
             element->psibling = ptr;
         }
     }
-    
+
+    element->fcontent = NULL;
     element->id = NULL;
     
     element->pctx.fill = NODEFINED_COLOR;
@@ -157,8 +158,10 @@ MsvgElement *MsvgNewEllipseElement(MsvgElement *father)
     
     element->pellipseattr->cx = 0;
     element->pellipseattr->cy = 0;
-    element->pellipseattr->rx = 0;
-    element->pellipseattr->ry = 0;
+    element->pellipseattr->rx_x = 0;
+    element->pellipseattr->rx_y = 0;
+    element->pellipseattr->ry_x = 0;
+    element->pellipseattr->ry_y = 0;
     
     return element;
 }
@@ -222,6 +225,54 @@ MsvgElement *MsvgNewPolygonElement(MsvgElement *father)
     return element;
 }
 
+MsvgElement *MsvgNewTextElement(MsvgElement *father)
+{
+    MsvgElement *element;
+    
+    element = MsvgNewGenericElement(EID_TEXT, father);
+    if (element == NULL) return NULL;
+    
+    element->ptextattr = calloc(1, sizeof(MsvgTextAttributes));
+    if (element->ptextattr == NULL) {
+        free(element);
+        return NULL;
+    }
+    
+    return element;
+}
+
+MsvgElement *MsvgNewDefsElement(MsvgElement *father)
+{
+    MsvgElement *element;
+    
+    element = MsvgNewGenericElement(EID_DEFS, father);
+    if (element == NULL) return NULL;
+    
+    element->pdefsattr = calloc(1, sizeof(MsvgDefsAttributes));
+    if (element->pdefsattr == NULL) {
+        free(element);
+        return NULL;
+    }
+    
+    return element;
+}
+
+MsvgElement *MsvgNewUseElement(MsvgElement *father)
+{
+    MsvgElement *element;
+    
+    element = MsvgNewGenericElement(EID_USE, father);
+    if (element == NULL) return NULL;
+    
+    element->puseattr = calloc(1, sizeof(MsvgUseAttributes));
+    if (element->puseattr == NULL) {
+        free(element);
+        return NULL;
+    }
+    
+    return element;
+}
+
 MsvgElement *MsvgNewElement(enum EID eid, MsvgElement *father)
 {
     MsvgElement *element;
@@ -250,6 +301,15 @@ MsvgElement *MsvgNewElement(enum EID eid, MsvgElement *father)
             break;
         case EID_POLYGON :
             element = MsvgNewPolygonElement(father);
+            break;
+        case EID_TEXT :
+            element = MsvgNewTextElement(father);
+            break;
+        case EID_DEFS :
+            element = MsvgNewDefsElement(father);
+            break;
+        case EID_USE :
+            element = MsvgNewUseElement(father);
             break;
         default :
             return NULL;

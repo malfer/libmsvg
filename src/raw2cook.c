@@ -164,21 +164,19 @@ static void cookSvgGenAttr(MsvgElement *el, char *key, char *value)
     
     if (strcmp(key, "width") == 0) {
         el->psvgattr->width = atof(value);
-        if (el->psvgattr->vb_width == 0) el->psvgattr->vb_width = el->psvgattr->width;
     } else if (strcmp(key, "height") == 0) {
         el->psvgattr->height = atof(value);
-        if (el->psvgattr->vb_height == 0) el->psvgattr->vb_height = el->psvgattr->height;
     } else if (strcmp(key, "viewBox") == 0) {
         MsvgI_read_numbers(value, daux, 4);
         el->psvgattr->vb_min_x = daux[0];
         el->psvgattr->vb_min_y = daux[1];
         el->psvgattr->vb_width = daux[2];
         el->psvgattr->vb_height = daux[3];
-        if (el->psvgattr->width == 0) el->psvgattr->width = el->psvgattr->vb_width;
-        if (el->psvgattr->height == 0) el->psvgattr->height = el->psvgattr->vb_height;
+    } else if (strcmp(key, "vieport-fill") == 0) {
+        el->psvgattr->vp_fill = colortorgb(value);
+    } else if (strcmp(key, "vieport-fill-opacity") == 0) {
+        el->psvgattr->vp_fill_opacity = opacitytof(value);
     }
-    else if (strcmp(key, "vieport-fill") == 0) el->psvgattr->vp_fill = colortorgb(value);
-    else if (strcmp(key, "vieport-fill-opacity") == 0) el->psvgattr->vp_fill_opacity = opacitytof(value);
 }
 
 static void cookGGenAttr(MsvgElement *el, char *key, char *value)
@@ -207,8 +205,8 @@ static void cookEllipseGenAttr(MsvgElement *el, char *key, char *value)
 {
     if (strcmp(key, "cx") == 0) el->pellipseattr->cx = atof(value);
     else if (strcmp(key, "cy") == 0) el->pellipseattr->cy = atof(value);
-    else if (strcmp(key, "rx") == 0) el->pellipseattr->rx = atof(value);
-    else if (strcmp(key, "ry") == 0) el->pellipseattr->ry = atof(value);
+    else if (strcmp(key, "rx") == 0) el->pellipseattr->rx_x = atof(value);
+    else if (strcmp(key, "ry") == 0) el->pellipseattr->ry_y = atof(value);
 }
 
 static void cookLineGenAttr(MsvgElement *el, char *key, char *value)
@@ -231,6 +229,14 @@ static void cookPolygonGenAttr(MsvgElement *el, char *key, char *value)
         readpoints(value, &(el->ppolylineattr->points), &(el->ppolylineattr->npoints));
 }
 
+static void checkSvgCookedAttr(MsvgElement *el)
+{
+    if (el->psvgattr->vb_width == 0) el->psvgattr->vb_width = el->psvgattr->width;
+    if (el->psvgattr->vb_height == 0) el->psvgattr->vb_height = el->psvgattr->height;
+    if (el->psvgattr->width == 0) el->psvgattr->width = el->psvgattr->vb_width;
+    if (el->psvgattr->height == 0) el->psvgattr->height = el->psvgattr->vb_height;
+}
+   
 static void checkRectCookedAttr(MsvgElement *el)
 {
     if (el->prectattr->rx == NODEFINED_VALUE &&
@@ -252,6 +258,14 @@ static void checkRectCookedAttr(MsvgElement *el)
 
     if (el->prectattr->ry > (el->prectattr->height / 2.0))
         el->prectattr->ry = el->prectattr->height / 2.0;
+}
+
+static void checkEllipseCookedAttr(MsvgElement *el)
+{
+    el->pellipseattr->rx_x += el->pellipseattr->cx;
+    el->pellipseattr->rx_y = el->pellipseattr->cy;
+    el->pellipseattr->ry_x = el->pellipseattr->cx;
+    el->pellipseattr->ry_y += el->pellipseattr->cy;
 }
 
 static void cookElement(MsvgElement *el, int depth)
@@ -297,7 +311,7 @@ static void cookElement(MsvgElement *el, int depth)
     
     switch (el->eid) {
         case EID_SVG :
-            //checkSvgCookedAttr(el);
+            checkSvgCookedAttr(el);
             break;
         case EID_G :
             //checkGCookedAttr(el);
@@ -309,7 +323,7 @@ static void cookElement(MsvgElement *el, int depth)
             //checkCircleCookedAttr(el);
             break;
         case EID_ELLIPSE :
-            //checkEllipseCookedAttr(el);
+            checkEllipseCookedAttr(el);
             break;
         case EID_LINE :
             //checkLineCookedAttr(el);

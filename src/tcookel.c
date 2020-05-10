@@ -22,6 +22,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 #include "msvg.h"
 #include "util.h"
 
@@ -74,8 +75,8 @@ static MsvgElement * transCookRect(MsvgElement *el, MsvgPaintCtx *cpctx, int bef
             MsvgDeleteElement(auxel);
             return NULL;
         }
-        w = el->prectattr->width - 1;
-        h = el->prectattr->height - 1;
+        w = el->prectattr->width;
+        h = el->prectattr->height;
         auxel->ppolygonattr->points[0] = el->prectattr->x;
         auxel->ppolygonattr->points[1] = el->prectattr->y;
         auxel->ppolygonattr->points[2] = el->prectattr->x + w;
@@ -112,8 +113,10 @@ static MsvgElement * transCookCircle(MsvgElement *el, MsvgPaintCtx *cpctx, int b
 
     auxel->pellipseattr->cx = el->pcircleattr->cx;
     auxel->pellipseattr->cy = el->pcircleattr->cy;
-    auxel->pellipseattr->rx = el->pcircleattr->r;
-    auxel->pellipseattr->rx = el->pcircleattr->r;
+    auxel->pellipseattr->rx_x = el->pcircleattr->r + el->pcircleattr->cx;
+    auxel->pellipseattr->rx_y = el->pcircleattr->cy;
+    auxel->pellipseattr->ry_x = el->pcircleattr->cx;
+    auxel->pellipseattr->ry_y = el->pcircleattr->r + el->pcircleattr->cy;
 
     newel = transCookEllipse(auxel, cpctx, bef);
 
@@ -125,11 +128,12 @@ static MsvgElement * transCookCircle(MsvgElement *el, MsvgPaintCtx *cpctx, int b
 static MsvgElement * transCookEllipse(MsvgElement *el, MsvgPaintCtx *cpctx, int bef)
 {
     MsvgElement *newel;
-    double zerox = 0, zeroy = 0;
+    //double rx_x, rx_y, ry_x, ry_y, dx, dy;
+    //double rotang;
 
-    // TODO: manage rotations, converting to polygon?
-    if (!bef && TMHaveRotation(&(cpctx->tmatrix)))
-        return NULL;
+    // TODO: manage rotations, converting to polygon? NO!!, now using axis coord
+    //if (!bef && TMHaveRotation(&(cpctx->tmatrix)))
+    //    return NULL;
     
     newel = MsvgNewElement(EID_ELLIPSE, NULL);
     if (newel == NULL) return NULL;
@@ -138,14 +142,31 @@ static MsvgElement * transCookEllipse(MsvgElement *el, MsvgPaintCtx *cpctx, int 
     *(newel->pellipseattr) = *(el->pellipseattr);
 
     if (TMIsIdentity(&(cpctx->tmatrix))) return newel;
-    
+
+    /*rx_x = newel->pellipseattr->cx + newel->pellipseattr->rx;
+    rx_y = newel->pellipseattr->cy;
+    ry_x = newel->pellipseattr->cx;
+    ry_y = newel->pellipseattr->cy + newel->pellipseattr->ry;
     TMTransformCoord(&(newel->pellipseattr->cx), &(newel->pellipseattr->cy),
                      &(cpctx->tmatrix));
-    TMTransformCoord(&zerox, &zeroy, &(cpctx->tmatrix));
-    TMTransformCoord(&(newel->pellipseattr->rx), &(newel->pellipseattr->ry),
+    TMTransformCoord(&rx_x, &rx_y, &(cpctx->tmatrix));
+    TMTransformCoord(&ry_x, &ry_y, &(cpctx->tmatrix));
+    dx = rx_x - newel->pellipseattr->cx;
+    dy = rx_y - newel->pellipseattr->cy;
+    rotang = atan2(dy, dx);
+    newel->pellipseattr->rx = sqrt(dx*dx + dy*dy);
+    dx = ry_x - newel->pellipseattr->cx;
+    dy = ry_y - newel->pellipseattr->cy;
+    newel->pellipseattr->ry = sqrt(dx*dx + dy*dy);
+    //printf("rotang %g\n", rotang);*/
+
+    TMTransformCoord(&(newel->pellipseattr->cx), &(newel->pellipseattr->cy),
                      &(cpctx->tmatrix));
-    newel->pellipseattr->rx -= zerox;
-    newel->pellipseattr->ry -= zeroy;
+    TMTransformCoord(&(newel->pellipseattr->rx_x), &(newel->pellipseattr->rx_y),
+                     &(cpctx->tmatrix));
+    TMTransformCoord(&(newel->pellipseattr->ry_x), &(newel->pellipseattr->ry_y),
+                     &(cpctx->tmatrix));
+
     TMSetIdentity(&(newel->pctx.tmatrix));
 
     return newel;

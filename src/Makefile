@@ -11,6 +11,7 @@ LIBOBJS=tables.o \
         element.o \
         manielem.o \
         attribut.o \
+        content.o \
         raw2cook.o \
         printree.o \
         rdsvgf.o \

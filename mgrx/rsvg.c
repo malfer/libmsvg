@@ -39,11 +39,11 @@ static void TestFunc(void)
     GrEvent ev;
     MsvgElement *root;
     
-    GrClearContext(GrBlack());
+    //GrClearContext(GrBlack());
     root = MsvgReadSvgFile("test.svg");
     if (root == NULL) return;
     if (!MsvgRaw2CookedTree(root)) return;
-    DrawSVGtree(root, 0, 1);
+    DrawSVGtree(root, 0, 1, GrBlack());
     GrEventWaitKeyOrClick(&ev);
     MsvgDeleteElement(root);
 }

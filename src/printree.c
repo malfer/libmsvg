@@ -32,6 +32,23 @@ static void printRawAttribute(FILE *f, MsvgRawAttribute *el)
     printRawAttribute(f, el->nrattr);
 }
 
+static void printContents(FILE *f, MsvgElement *el, int depth)
+{
+    MsvgContent *cnt;
+     int i;
+   
+    cnt = el->fcontent;
+    while (cnt) {
+        if (depth > 0) {
+            for (i=0; i<depth; i++)
+                fputs("  |", f);
+            fputs("   ", f);
+        }
+        fprintf(f, "(%d) %s\n", cnt->len, cnt->s);
+        cnt = cnt->ncontent;
+    }
+}
+
 void MsvgPrintRawElementTree(FILE *f, MsvgElement *el, int depth)
 {
     int i;
@@ -47,6 +64,7 @@ void MsvgPrintRawElementTree(FILE *f, MsvgElement *el, int depth)
     fprintf(f, "%s", MsvgFindElementName(el->eid));
     printRawAttribute(f, el->frattr);
     fputs("\n", f);
+    printContents(f, el, depth);
     
     MsvgPrintRawElementTree(f, el->fson, depth+1);
     
@@ -132,8 +150,10 @@ static void printEllipseCookedAttr(FILE *f, MsvgElement *el)
 {
     fprintf(f, "  cx             %g\n", el->pellipseattr->cx);
     fprintf(f, "  cy             %g\n", el->pellipseattr->cy);
-    fprintf(f, "  rx             %g\n", el->pellipseattr->rx);
-    fprintf(f, "  ry             %g\n", el->pellipseattr->ry);
+    fprintf(f, "  rx_x           %g\n", el->pellipseattr->rx_x);
+    fprintf(f, "  rx_y           %g\n", el->pellipseattr->rx_y);
+    fprintf(f, "  ry_x           %g\n", el->pellipseattr->ry_x);
+    fprintf(f, "  ry_y           %g\n", el->pellipseattr->ry_y);
 }
 
 static void printLineCookedAttr(FILE *f, MsvgElement *el)
@@ -170,6 +190,18 @@ static void printPolygonCookedAttr(FILE *f, MsvgElement *el)
     fprintf(f, "\n");
 }
 
+static void printTextCookedAttr(FILE *f, MsvgElement *el)
+{
+}
+
+static void printDefsCookedAttr(FILE *f, MsvgElement *el)
+{
+}
+
+static void printUseCookedAttr(FILE *f, MsvgElement *el)
+{
+}
+
 void MsvgPrintCookedElement(FILE *f, MsvgElement *el)
 {
     fprintf(f, "%s", MsvgFindElementName(el->eid));
@@ -202,6 +234,15 @@ void MsvgPrintCookedElement(FILE *f, MsvgElement *el)
             break;
         case EID_POLYGON :
             printPolygonCookedAttr(f, el);
+            break;
+        case EID_TEXT :
+            printTextCookedAttr(f, el);
+            break;
+        case EID_DEFS :
+            printDefsCookedAttr(f, el);
+            break;
+        case EID_USE :
+            printUseCookedAttr(f, el);
             break;
         default :
             break;

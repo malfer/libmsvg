@@ -77,10 +77,19 @@ static void MsvgFreeElement(MsvgElement *el)
             if (el->ppolygonattr->points) free(el->ppolygonattr->points);
             free(el->ppolygonattr);
             break;
+        case EID_TEXT :
+            free(el->ptextattr);
+            break;
+        case EID_DEFS :
+            free(el->pdefsattr);
+            break;
+        case EID_USE :
+            free(el->puseattr);
+            break;
         default :
             break; // TODO: test error
     }
-    
+
     if (el->id) free(el->id);
     free(el);
 }
@@ -94,6 +103,7 @@ void MsvgDeleteElement(MsvgElement *el)
     }
     
     MsvgDelAllRawAttributes(el);
+    MsvgDelContents(el);
     MsvgFreeElement(el);
 }
 
@@ -164,6 +174,7 @@ MsvgElement *MsvgDupElement(MsvgElement *el)
 
     MsvgCopyRawAttributes(newel, el);
     MsvgCopyCookedAttributes(newel, el);
+    MsvgCopyContents(newel, el);
 
     ptrold = el->fson;
     while (ptrold) {

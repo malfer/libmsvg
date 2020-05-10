@@ -11,15 +11,31 @@
  *
  */
 
+#include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include "msvg.h"
+
+static int usetranscooked = 0;
 
 static void sufn(MsvgElement *el, MsvgPaintCtx *pctx)
 {
+    MsvgElement *newel;
+
+    if (usetranscooked) {
+        newel = MsvgTransformCookedElement(el, pctx, 1);
+        if (newel == NULL) return;
+    } else {
+        newel = el;
+    }
+
     printf("=========\n");
-    MsvgPrintCookedElement(stdout, el);
+    MsvgPrintCookedElement(stdout, newel);
     printf("  --------- effective MsvgPaintCtx\n");
     MsvgPrintPctx(stdout, pctx);
+
+    if (usetranscooked)
+        free(newel);
 }
 
 int main(int argc, char **argv)
@@ -27,12 +43,14 @@ int main(int argc, char **argv)
     MsvgElement *root;
     
     if (argc <2) {
-        printf("Usage: tcook file\n");
+        printf("Usage: tcook file [utc]\n");
         return 0;
     }
     
-    root = MsvgReadSvgFile(argv[1]);
+    if (argc >= 3 && strcmp(argv[2], "utc") == 0) usetranscooked = 1;
     
+    root = MsvgReadSvgFile(argv[1]);
+
     if (root == NULL) {
         printf("Error opening %s\n", argv[1]);
         return 0;

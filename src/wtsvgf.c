@@ -42,9 +42,21 @@ static void writeLabelElement(FILE *f, enum EID eid, int start, int depth)
         fputs(">\n", f);
 }
 
+static void writeContent(FILE *f, MsvgContent *pcnt, int depth)
+{
+    int i;
+    
+    for (i=0; i<depth; i++)
+        fputs("  ", f);
+
+    fputs(pcnt->s, f);
+    fputs("\n", f);
+}
+
 static void writeElement(FILE *f, MsvgElement *el, int depth)
 {
     MsvgRawAttribute *pattr;
+    MsvgContent *pcnt;
     
     writeLabelElement(f, el->eid, 1, depth);
     if (el->frattr != NULL) {
@@ -55,9 +67,14 @@ static void writeElement(FILE *f, MsvgElement *el, int depth)
         }
     }
     
-    if (el->fson != NULL) {
+    if (el->fson != NULL || el->fcontent != NULL) {
         fputs(">\n", f);
-        writeElement(f, el->fson, depth+1);
+        pcnt = el->fcontent;
+        while (pcnt != NULL) {
+            writeContent(f, pcnt, depth);
+            pcnt = pcnt->ncontent;
+        }
+        if (el->fson != NULL) writeElement(f, el->fson, depth+1);
         writeLabelElement(f, el->eid, 0, depth);
     } else {
         fputs(" />\n", f);

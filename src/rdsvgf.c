@@ -20,6 +20,7 @@
  *
  */
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include "xmlparse.h"
@@ -50,7 +51,7 @@ static void startElement(void *userData, const char *name, const char **attr)
     enum EID eid;
     MsvgElement *ptr;
     
-    //  printf("entra %s %d %d %d\n",name,mudptr->depth,mudptr->skip_depth,mudptr->svg_depth);
+    //printf("entra %s %d %d %d\n",name,mudptr->depth,mudptr->skip_depth,mudptr->svg_depth);
     if (mudptr->process_finished) return;
     
     if (!mudptr->skip_depth) {
@@ -86,7 +87,7 @@ static void endElement(void *userData, const char *name)
 {
     MyUserData *mudptr = userData;
     
-    //  printf("sale %s %d %d %d\n",name,mudptr->depth,mudptr->skip_depth,mudptr->svg_depth);
+    //printf("sale %s %d %d %d\n",name,mudptr->depth,mudptr->skip_depth,mudptr->svg_depth);
     if (mudptr->process_finished) return;
     
     mudptr->depth -= 1;
@@ -101,6 +102,38 @@ static void endElement(void *userData, const char *name)
     
     if (mudptr->svg_found && (mudptr->depth == mudptr->svg_depth))
         mudptr->process_finished = 1;
+}
+
+static void data(void *userData, const char *s, int len)
+{
+    MyUserData *mudptr = userData;
+    char *saux;
+    int i, fch, rlen;
+
+    if (!MsvgElementCanHaveContent(mudptr->active_element->eid)) return;
+
+    fch = 0;
+    for (i=0; i<len; i++) {
+        if (s[i] == '\n' || s[i] == '\t' || s[i] == ' ')
+            fch = i + 1;
+        else
+            break;
+    }
+
+    if (fch >= len) return;
+
+    rlen = len - fch;
+    saux = malloc((rlen+1)*sizeof(char));
+    if (saux == NULL) return;
+    
+    memcpy(saux, &(s[fch]), rlen);
+    saux[rlen] = '\0';
+
+    //printf("  (%d) %s\n", len, saux);
+
+    MsvgAddContent(mudptr->active_element, len, saux);
+
+    free(saux);
 }
 
 MsvgElement *MsvgReadSvgFile(const char *fname)
@@ -123,6 +156,7 @@ MsvgElement *MsvgReadSvgFile(const char *fname)
     
     XML_SetUserData(parser, &mud);
     XML_SetElementHandler(parser, startElement, endElement);
+    XML_SetCharacterDataHandler(parser, data);
     
     do {
         size_t len = fread(buf, 1, sizeof(buf), f);

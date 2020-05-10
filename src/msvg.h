@@ -39,7 +39,11 @@ enum EID {
     EID_LINE,
     EID_POLYLINE,
     EID_POLYGON,
-    EID_LAST = EID_POLYGON
+    EID_TEXT,
+    EID_DEFS,
+    EID_USE,
+    //EID_LAST = EID_POLYGON
+    EID_LAST = EID_USE
 };
 
 /* functions in tables.c */
@@ -47,6 +51,7 @@ enum EID {
 enum EID MsvgFindElementId(const char *ename);
 char * MsvgFindElementName(enum EID eid);
 int MsvgIsSupSonElementId(enum EID fatherid, enum EID sonid);
+int MsvgElementCanHaveContent(enum EID eid);
 
 /* define types of svg trees */
 
@@ -92,6 +97,16 @@ typedef struct _MsvgRawAttribute {
     char *value;                /* value attribute */
     MsvgRawAttributePtr nrattr; /* pointer to next raw attribute */
 } MsvgRawAttribute;
+
+/* contents */
+
+typedef struct _MsvgConten *MsvgContentPtr;
+
+typedef struct _MsvgConten {
+    MsvgContentPtr ncontent; /* next content */
+    int len;                 /* len content */
+    char s[1];               /* content (not actual size) */
+} MsvgContent;
 
 /* transformation matrix */
 
@@ -146,8 +161,10 @@ typedef struct _MsvgCircleAttributes {
 typedef struct _MsvgEllipseAttributes {
     double cx; /* cx attribute */
     double cy; /* cy attribute */
-    double rx; /* rx attribute */
-    double ry; /* ry attribute */
+    double rx_x; /* axis 1 x, y coord */
+    double rx_y; /* note rx = sqrt((rx_x-cx)^2 + (rx_y-cy)^2) */
+    double ry_x; /* axis 2 x, y coord */
+    double ry_y; /* note ry = sqrt((ry_x-cx)^2 + (ry_y-cy)^2) */
 } MsvgEllipseAttributes;
 
 typedef struct _MsvgLineAttributes {
@@ -167,6 +184,18 @@ typedef struct _MsvgPolygonAttributes {
     int npoints;    /* number of points */
 } MsvgPolygonAttributes;
 
+typedef struct _MsvgTextAttributes {
+    int dummy;
+} MsvgTextAttributes;
+
+typedef struct _MsvgDefsAttributes {
+    int dummy;
+} MsvgDefsAttributes;
+
+typedef struct _MsvgUseAttributes {
+    int dummy;
+} MsvgUseAttributes;
+
 /* element structure */
 
 typedef struct _MsvgElement *MsvgElementPtr;
@@ -178,6 +207,7 @@ typedef struct _MsvgElement {
     MsvgElementPtr nsibling;    /* pointer to next sibling element */
     MsvgElementPtr fson;        /* pointer to first son element */
     MsvgRawAttributePtr frattr; /* pointer to first raw attribute */
+    MsvgContentPtr fcontent;    /* pointer to first content */
                                 /* cooked generic attributes */
     char *id;                   /* id attribute */
     MsvgPaintCtx pctx;          /* painting context */
@@ -190,6 +220,9 @@ typedef struct _MsvgElement {
         MsvgLineAttributes *plineattr;
         MsvgPolylineAttributes *ppolylineattr;
         MsvgPolygonAttributes *ppolygonattr;
+        MsvgTextAttributes *ptextattr;
+        MsvgDefsAttributes *pdefsattr;
+        MsvgUseAttributes *puseattr;
     };
 } MsvgElement;
 
@@ -209,6 +242,12 @@ int MsvgCopyRawAttributes(MsvgElement *desel, MsvgElement *srcel);
 int MsvgDelAllTreeRawAttributes(MsvgElement *el);
 
 int MsvgCopyCookedAttributes(MsvgElement *desel, MsvgElement *srcel);
+
+/* functions in content.c */
+
+int MsvgAddContent(MsvgElement *el, int len, char *cnt);
+int MsvgDelContents(MsvgElement *el);
+int MsvgCopyContents(MsvgElement *desel, MsvgElement *srcel);
 
 /* functions in manielem.c */
 

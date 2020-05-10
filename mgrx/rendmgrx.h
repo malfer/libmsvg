@@ -24,4 +24,5 @@
  *
  */
 
-int DrawSVGtree(MsvgElement *root, int par, double zoom);
+int DrawSVGtree(MsvgElement *root, int par, double zoom, GrColor bg);
+int DrawSVGtreeUsingDB(MsvgElement *root, int par, double zoom, GrColor bg);

@@ -26,21 +26,26 @@
 typedef struct {
     enum EID eid;            // element id
     char *ename;             // element name
+    int chc;                 // element can have content (1=yes, 0=no)
     int nsset;               // number of supported son element types
     enum EID sset[EID_LAST]; // list of supported son element types
 } MsvgIdElement;
 
 static MsvgIdElement supported_elements[] = {
-    {EID_SVG, "svg", 7, {EID_G, EID_RECT, EID_CIRCLE, EID_ELLIPSE, EID_LINE,
-        EID_POLYLINE, EID_POLYGON} },
-    {EID_G, "g", 7, {EID_G, EID_RECT, EID_CIRCLE, EID_ELLIPSE, EID_LINE,
-        EID_POLYLINE, EID_POLYGON} },
-    {EID_RECT, "rect", 0},
-    {EID_CIRCLE, "circle", 0},
-    {EID_ELLIPSE, "ellipse", 0},
-    {EID_LINE, "line", 0},
-    {EID_POLYLINE, "polyline", 0},
-    {EID_POLYGON, "polygon", 0}
+    {EID_SVG, "svg", 0, 10, {EID_G, EID_RECT, EID_CIRCLE, EID_ELLIPSE, EID_LINE,
+        EID_POLYLINE, EID_POLYGON, EID_TEXT, EID_DEFS, EID_USE} },
+    {EID_G, "g", 0, 10, {EID_G, EID_RECT, EID_CIRCLE, EID_ELLIPSE, EID_LINE,
+        EID_POLYLINE, EID_POLYGON, EID_TEXT, EID_DEFS, EID_USE} },
+    {EID_RECT, "rect", 0, 0},
+    {EID_CIRCLE, "circle", 0, 0},
+    {EID_ELLIPSE, "ellipse", 0, 0},
+    {EID_LINE, "line", 0, 0},
+    {EID_POLYLINE, "polyline", 0, 0},
+    {EID_POLYGON, "polygon", 0, 0},
+    {EID_TEXT, "text", 1, 0},
+    {EID_DEFS, "defs", 0, 8, {EID_G, EID_RECT, EID_CIRCLE, EID_ELLIPSE, EID_LINE,
+        EID_POLYLINE, EID_POLYGON, EID_TEXT} },
+    {EID_USE, "use", 0, 0}
 };
 
 enum EID MsvgFindElementId(const char *ename)
@@ -76,6 +81,17 @@ int MsvgIsSupSonElementId(enum EID fatherid, enum EID sonid)
             }
             return 0;
         }
+    }
+    return 0;
+}
+
+int MsvgElementCanHaveContent(enum EID eid)
+{
+    int i;
+    
+    for (i=0; i<EID_LAST; i++) {
+        if (eid == supported_elements[i].eid)
+            return supported_elements[i].chc;
     }
     return 0;
 }
