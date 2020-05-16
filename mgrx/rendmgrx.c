@@ -44,11 +44,13 @@ static double glob_vb_min_y;
 static double glob_scale_x;
 static double glob_scale_y;
 static double glob_thick1 = 1;
+static int glob_xorg;
+static int glob_yorg;
 
 static void get_icoord(int *x, int *y, double dx, double dy)
 {
-    *x = (dx - glob_vb_min_x) / glob_scale_x + 0.5;
-    *y = (dy - glob_vb_min_y) / glob_scale_y + 0.5;
+    *x = (dx - glob_vb_min_x) / glob_scale_x + 0.5 + glob_xorg;
+    *y = (dy - glob_vb_min_y) / glob_scale_y + 0.5 + glob_yorg;
 }
 
 static void DrawRectElement(MsvgElement *el, MsvgPaintCtx *pctx)
@@ -341,14 +343,19 @@ static void sufn2(MsvgElement *el, MsvgPaintCtx *pctx)
     MsvgDeleteElement(newel);
 }
 
-int DrawSVGtree(MsvgElement *root, int par, double zoom, GrColor bg)
+int DrawSVGtree(MsvgElement *root, int smode, double zoom, GrColor bg)
 {
     GrColor cfill;
     double ratiow, ratioh, rvb_width, rvb_height;
+    double old_width, old_height;
+    int mode, adj;
 
     if (root == NULL) return 0;
     if (root->eid != EID_SVG) return 0;
     if (root->psvgattr->tree_type != COOKED_SVGTREE) return 0;
+
+    mode = smode & SVGDRAWMODE_MASK;
+    adj = smode & SVGDRAWADJ_MASK;
 
     rvb_width = root->psvgattr->vb_width;
     rvb_height = root->psvgattr->vb_height;
@@ -356,28 +363,65 @@ int DrawSVGtree(MsvgElement *root, int par, double zoom, GrColor bg)
     ratiow = GrSizeX() / rvb_width;
     ratioh = GrSizeY() / rvb_height;
 
-    if (par) {
-        if (ratiow > ratioh) {
-            rvb_width = (GrSizeX() * rvb_height) / GrSizeY();
-        } else {
-            rvb_height = (GrSizeY() * rvb_width) / GrSizeX();
-        }
-        //printf("%g %g  %g %g  %d %d  %g %g\n", root->psvgattr->vb_width,
-        //       root->psvgattr->vb_height, ratiow, ratioh,
-        //       GrSizeX(), GrSizeY(), rvb_width, rvb_height);
-        glob_thick1 = (GrSizeX() / rvb_width) / zoom;
-    } else {
-        if (ratiow > ratioh) {
-            glob_thick1 = (GrSizeY() / rvb_height) / zoom;
-        } else {
-            glob_thick1 = (GrSizeX() / rvb_width) / zoom;
-        }
-    }
+    glob_xorg = 0;
+    glob_yorg = 0;
 
+    switch (mode) {
+        case SVGDRAWMODE_FIT :
+            if (ratiow > ratioh)
+                glob_thick1 = (GrSizeY() / rvb_height) * zoom;
+            else
+                glob_thick1 = (GrSizeX() / rvb_width) * zoom;
+            glob_scale_x = (rvb_width / zoom) / GrSizeX();
+            glob_scale_y = (rvb_height / zoom) / GrSizeY();
+            if (adj == SVGDRAWADJ_CENTER) {
+                glob_xorg = (GrSizeX() - GrSizeX() * zoom) / 2;
+                glob_yorg = (GrSizeY() - GrSizeY() * zoom) / 2;
+            } else if (adj == SVGDRAWADJ_RIGHT) {
+                glob_xorg = (GrSizeX() - GrSizeX() * zoom);
+                glob_yorg = (GrSizeY() - GrSizeY() * zoom);
+            }
+            break;
+        case SVGDRAWMODE_PAR :
+            old_width = rvb_width;
+            old_height = rvb_height;
+            if (ratiow > ratioh)
+                rvb_width = (GrSizeX() * rvb_height) / GrSizeY();
+            else
+                rvb_height = (GrSizeY() * rvb_width) / GrSizeX();
+            glob_thick1 = (GrSizeX() / rvb_width) * zoom;
+            glob_scale_x = (rvb_width / zoom) / GrSizeX();
+            glob_scale_y = (rvb_height / zoom) / GrSizeY();
+            if (adj == SVGDRAWADJ_CENTER) {
+                glob_xorg = ((rvb_width / zoom - old_width) /
+                         (rvb_width / zoom) / 2) * GrSizeX();
+                glob_yorg = ((rvb_height  / zoom - old_height) /
+                         (rvb_height / zoom) / 2) * GrSizeY();
+            } else if (adj == SVGDRAWADJ_RIGHT) {
+                glob_xorg = ((rvb_width / zoom - old_width) /
+                         (rvb_width / zoom)) * GrSizeX();
+                glob_yorg = ((rvb_height  / zoom - old_height) /
+                         (rvb_height / zoom)) * GrSizeY();
+            }
+            break;
+        case SVGDRAWMODE_SCOORD :
+            glob_thick1 = 1.0 * zoom;
+            glob_scale_x = 1 / zoom;
+            glob_scale_y = 1 / zoom;
+            if (adj == SVGDRAWADJ_CENTER) {
+                glob_xorg = (GrSizeX() - rvb_width * zoom) / 2;
+                glob_yorg = (GrSizeY() - rvb_height * zoom) / 2;
+            } else if (adj == SVGDRAWADJ_RIGHT) {
+                glob_xorg = (GrSizeX() - rvb_width * zoom);
+                glob_yorg = (GrSizeY() - rvb_height * zoom);
+            }
+            break;
+        default:
+            return 0;
+    }
+            
     glob_vb_min_x = root->psvgattr->vb_min_x * zoom;
     glob_vb_min_y = root->psvgattr->vb_min_y * zoom;
-    glob_scale_x = (rvb_width * zoom) / GrSizeX();
-    glob_scale_y = (rvb_height * zoom) / GrSizeY();
     
     if (root->psvgattr->vp_fill != NO_COLOR) {
         cfill = GrAllocColor2(root->psvgattr->vp_fill);
@@ -391,7 +435,7 @@ int DrawSVGtree(MsvgElement *root, int par, double zoom, GrColor bg)
     return 1;
 }
 
-int DrawSVGtreeUsingDB(MsvgElement *root, int par, double zoom, GrColor bg)
+int DrawSVGtreeUsingDB(MsvgElement *root, int smode, double zoom, GrColor bg)
 {
     GrContext *grc, grcaux;
     int ret;
@@ -401,7 +445,7 @@ int DrawSVGtreeUsingDB(MsvgElement *root, int par, double zoom, GrColor bg)
 
     GrSaveContext(&grcaux);
     GrSetContext(grc);
-    ret = DrawSVGtree(root, par, zoom, bg);
+    ret = DrawSVGtree(root, smode, zoom, bg);
     GrSetContext(&grcaux);
     GrBitBlt(&grcaux, 0, 0, grc, 0, 0, grc->gc_xmax, grc->gc_ymax, GrWRITE);
     GrDestroyContext(grc);

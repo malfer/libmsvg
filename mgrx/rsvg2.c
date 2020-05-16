@@ -40,7 +40,7 @@ static int gwidth = 1024;
 static int gheight = 728;
 static int gbpp = 24;
 
-static void DrawSvgFile(char *fname, int par, double zoom, int rotang, GrColor bg)
+static void DrawSvgFile(char *fname, int smode, double zoom, int rotang, GrColor bg)
 {
     MsvgElement *root;
     char s[81];
@@ -55,8 +55,8 @@ static void DrawSvgFile(char *fname, int par, double zoom, int rotang, GrColor b
 
     if (!MsvgRaw2CookedTree(root)) return;
 
-    //DrawSVGtree(root, par, zoom, bg);
-    DrawSVGtreeUsingDB(root, par, zoom, bg);
+    //DrawSVGtree(root, smode, zoom, bg);
+    DrawSVGtreeUsingDB(root, smode, zoom, bg);
     MsvgDeleteElement(root);
 }
 
@@ -65,7 +65,7 @@ int main(int argc,char **argv)
     GrEvent ev;
     char *fname;
     int yhelptext;
-    int par;
+    int mode, adj;
     char s[121];
     double zoom = 1;
     GrColor bg;
@@ -92,7 +92,8 @@ int main(int argc,char **argv)
     sprintf(s, "%s file renderized", fname);
     GrTextXY(10, yhelptext+25, s, GrBlack(), GrNOCOLOR);
     GrTextXY(10, yhelptext+40,
-             "[p] [b] [w] [+] [-] [n] [m], [q] to quit",
+             "mode: [f] [p] [s]  adj: [l] [c] [r]  zoom: [+] [-]  "
+             "rotate: [<] [>]  color: [b] [w]  quit: [q]",
              GrBlack(), GrNOCOLOR);
     
     ctx = GrCreateSubContext(10, 10, GrScreenX()-10, yhelptext, NULL, NULL);
@@ -103,18 +104,24 @@ int main(int argc,char **argv)
     setlocale(LC_NUMERIC, "C");
     bg = GrBlack();
 
-    par = 1;
+    mode = SVGDRAWMODE_PAR;
+    adj = SVGDRAWADJ_LEFT;
     while (1) {
-        DrawSvgFile(fname, par, zoom, rotang, bg);
+        DrawSvgFile(fname, mode|adj, zoom, rotang, bg);
         GrEventWait(&ev);
         if (ev.p1 == 'q') break;
-        if (ev.p1 == 'b') bg = GrBlack();
-        if (ev.p1 == 'w') bg = GrWhite();
-        if (ev.p1 == 'p') par = !par;
-        if (ev.p1 == '+') zoom = zoom / 2;
-        if (ev.p1 == '-') zoom = zoom * 2;
-        if (ev.p1 == 'm') rotang++;
-        if (ev.p1 == 'n') rotang--;
+        else if (ev.p1 == 'b') bg = GrBlack();
+        else if (ev.p1 == 'w') bg = GrWhite();
+        else if (ev.p1 == 'f') mode = SVGDRAWMODE_FIT;
+        else if (ev.p1 == 'p') mode = SVGDRAWMODE_PAR;
+        else if (ev.p1 == 's') mode = SVGDRAWMODE_SCOORD;
+        else if (ev.p1 == 'l') adj = SVGDRAWADJ_LEFT;
+        else if (ev.p1 == 'c') adj = SVGDRAWADJ_CENTER;
+        else if (ev.p1 == 'r') adj = SVGDRAWADJ_RIGHT;
+        else if (ev.p1 == '+') zoom = zoom * 2;
+        else if (ev.p1 == '-') zoom = zoom / 2;
+        else if (ev.p1 == '>') rotang++;
+        else if (ev.p1 == '<') rotang--;
     }
     
     GrEventUnInit();

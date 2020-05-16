@@ -24,5 +24,15 @@
  *
  */
 
-int DrawSVGtree(MsvgElement *root, int par, double zoom, GrColor bg);
-int DrawSVGtreeUsingDB(MsvgElement *root, int par, double zoom, GrColor bg);
+#define SVGDRAWMODE_FIT      0x00  // fit to context
+#define SVGDRAWMODE_PAR      0x01  // preserve aspect/ratio
+#define SVGDRAWMODE_SCOORD   0x02  // same coordinates as context
+#define SVGDRAWMODE_MASK     0x0F  // mode mask
+
+#define SVGDRAWADJ_LEFT      0x00  // fit to left
+#define SVGDRAWADJ_CENTER    0x10  // fit to center
+#define SVGDRAWADJ_RIGHT     0x20  // fit to right
+#define SVGDRAWADJ_MASK      0xF0  // adj mask
+
+int DrawSVGtree(MsvgElement *root, int smode, double zoom, GrColor bg);
+int DrawSVGtreeUsingDB(MsvgElement *root, int smode, double zoom, GrColor bg);
