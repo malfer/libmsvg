@@ -34,14 +34,20 @@
 #include <msvg.h>
 #include "rendmgrx.h"
 
+#define TEST_FILE "test.svg"
+
 static void TestFunc(void)
 {
     GrEvent ev;
     MsvgElement *root;
+    int error;
     
     //GrClearContext(GrBlack());
-    root = MsvgReadSvgFile("test.svg");
-    if (root == NULL) return;
+    root = MsvgReadSvgFile(TEST_FILE, &error);
+    if (root == NULL) {
+        printf("Error %d reading %s\n", error, TEST_FILE);
+        return;
+    }
     if (!MsvgRaw2CookedTree(root)) return;
     DrawSVGtree(root, 0, 1, GrBlack());
     GrEventWaitKeyOrClick(&ev);

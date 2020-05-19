@@ -68,7 +68,7 @@ void MsvgPrintRawElementTree(FILE *f, MsvgElement *el, int depth)
     
     MsvgPrintRawElementTree(f, el->fson, depth+1);
     
-    MsvgPrintRawElementTree(f, el->nsibling, depth);
+    if (depth) MsvgPrintRawElementTree(f, el->nsibling, depth);
 }
 
 static char * printcolor(rgbcolor color)

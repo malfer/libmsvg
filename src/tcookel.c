@@ -128,12 +128,6 @@ static MsvgElement * transCookCircle(MsvgElement *el, MsvgPaintCtx *cpctx, int b
 static MsvgElement * transCookEllipse(MsvgElement *el, MsvgPaintCtx *cpctx, int bef)
 {
     MsvgElement *newel;
-    //double rx_x, rx_y, ry_x, ry_y, dx, dy;
-    //double rotang;
-
-    // TODO: manage rotations, converting to polygon? NO!!, now using axis coord
-    //if (!bef && TMHaveRotation(&(cpctx->tmatrix)))
-    //    return NULL;
     
     newel = MsvgNewElement(EID_ELLIPSE, NULL);
     if (newel == NULL) return NULL;
@@ -142,23 +136,6 @@ static MsvgElement * transCookEllipse(MsvgElement *el, MsvgPaintCtx *cpctx, int 
     *(newel->pellipseattr) = *(el->pellipseattr);
 
     if (TMIsIdentity(&(cpctx->tmatrix))) return newel;
-
-    /*rx_x = newel->pellipseattr->cx + newel->pellipseattr->rx;
-    rx_y = newel->pellipseattr->cy;
-    ry_x = newel->pellipseattr->cx;
-    ry_y = newel->pellipseattr->cy + newel->pellipseattr->ry;
-    TMTransformCoord(&(newel->pellipseattr->cx), &(newel->pellipseattr->cy),
-                     &(cpctx->tmatrix));
-    TMTransformCoord(&rx_x, &rx_y, &(cpctx->tmatrix));
-    TMTransformCoord(&ry_x, &ry_y, &(cpctx->tmatrix));
-    dx = rx_x - newel->pellipseattr->cx;
-    dy = rx_y - newel->pellipseattr->cy;
-    rotang = atan2(dy, dx);
-    newel->pellipseattr->rx = sqrt(dx*dx + dy*dy);
-    dx = ry_x - newel->pellipseattr->cx;
-    dy = ry_y - newel->pellipseattr->cy;
-    newel->pellipseattr->ry = sqrt(dx*dx + dy*dy);
-    //printf("rotang %g\n", rotang);*/
 
     TMTransformCoord(&(newel->pellipseattr->cx), &(newel->pellipseattr->cy),
                      &(cpctx->tmatrix));

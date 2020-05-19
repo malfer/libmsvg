@@ -41,6 +41,7 @@ static void sufn(MsvgElement *el, MsvgPaintCtx *pctx)
 int main(int argc, char **argv)
 {
     MsvgElement *root;
+    int error;
     
     if (argc <2) {
         printf("Usage: tcook file [utc]\n");
@@ -49,10 +50,10 @@ int main(int argc, char **argv)
     
     if (argc >= 3 && strcmp(argv[2], "utc") == 0) usetranscooked = 1;
     
-    root = MsvgReadSvgFile(argv[1]);
+    root = MsvgReadSvgFile(argv[1], &error);
 
     if (root == NULL) {
-        printf("Error opening %s\n", argv[1]);
+        printf("Error %d reading %s\n", error, argv[1]);
         return 0;
     }
     

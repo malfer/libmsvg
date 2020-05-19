@@ -19,6 +19,7 @@ LIBOBJS=tables.o \
         serializ.o \
         tmatrix.o \
         tcookel.o \
+        find.o \
         util.o
 
 LIB=libmsvg.a

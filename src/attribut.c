@@ -189,8 +189,9 @@ int MsvgCopyCookedAttributes(MsvgElement *desel, MsvgElement *srcel)
             *(desel->pdefsattr) = *(srcel->pdefsattr);
             break;
         case EID_USE :
+            if (desel->puseattr->refel) free(desel->puseattr->refel);
             *(desel->puseattr) = *(srcel->puseattr);
-            //desel->puseattr->ref = srcel->puseattr->ref;
+            desel->puseattr->refel = strdup(srcel->puseattr->refel);
             break;
         default :
             break;

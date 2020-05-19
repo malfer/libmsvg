@@ -25,7 +25,7 @@
 
 #include <stdio.h>
 
-#define LIBMSVG_VERSION_API 0x0014
+#define LIBMSVG_VERSION_API 0x0015
 
 /* define id's for supported elements */
 
@@ -109,7 +109,7 @@ typedef struct _MsvgConten *MsvgContentPtr;
 typedef struct _MsvgConten {
     MsvgContentPtr ncontent; /* next content */
     int len;                 /* len content */
-    char s[1];               /* content (not actual size) */
+    char s[1];               /* content (real size = len+1) */
 } MsvgContent;
 
 /* transformation matrix */
@@ -200,9 +200,9 @@ typedef struct _MsvgDefsAttributes {
 } MsvgDefsAttributes;
 
 typedef struct _MsvgUseAttributes {
-    MsvgElementPtr ref; /* referenced element */
     double x;           /* x attibute */
     double y;           /* y attibute */
+    char * refel;       /* referenced element */
 } MsvgUseAttributes;
 
 /* element structure */
@@ -273,7 +273,7 @@ MsvgElement *MsvgDupElement(MsvgElement *el);
 
 /* functions in rdsvgf.c */
 
-MsvgElement *MsvgReadSvgFile(const char *fname);
+MsvgElement *MsvgReadSvgFile(const char *fname, int *error);
 
 /* functions in wtsvgf.c */
 
@@ -294,6 +294,8 @@ int MsvgRaw2CookedTree(MsvgElement *root);
 
 typedef void (*MsvgSerUserFn)(MsvgElement *el, MsvgPaintCtx *pctx);
 
+#define MAX_NESTED_USE_ELEMENT 5
+
 int MsvgSerCookedTree(MsvgElement *root, MsvgSerUserFn sufn);
 
 /* functions in tcookel.c */
@@ -313,5 +315,36 @@ void TMSetRotationOrigin(TMatrix *des, double ang);
 void TMSetRotation(TMatrix *des, double ang, double cx, double cy);
 void TMTransformCoord(double *x, double *y, TMatrix *ctm);
 
+/* MsvgTreeCounts structure */
+
+typedef struct {
+    int nelem[EID_LAST+1];  // num elements per type
+    int totelem;            // total num elements
+    int totelwid;           // num elements with id != NULL
+} MsvgTreeCounts;
+
+/* MsvgTableId structure */
+
+typedef struct {
+    char *id;
+    MsvgElement *el;
+} MsvgTableIdItem;
+
+typedef struct {
+    int nelem;                // nume elements in table
+    MsvgTableIdItem item[1];  // real size = nelem
+} MsvgTableId;
+
+/* functions in find.c */
+
+MsvgElement *MsvgFindFirstFather(MsvgElement *el);
+void MsvgCalcCountsCookedTree(MsvgElement *el, MsvgTreeCounts *tc);
+void MsvgCalcCountsRawTree(MsvgElement *el, MsvgTreeCounts *tc);
+MsvgElement * MsvgFindIdCookedTree(MsvgElement *el, char *id);
+MsvgElement * MsvgFindIdRawTree(MsvgElement *el, char *id);
+MsvgTableId * MsvgBuildTableIdCookedTree(MsvgElement *el);
+MsvgTableId * MsvgBuildTableIdRawTree(MsvgElement *el);
+void MsvgDestroyTableId(MsvgTableId *tid);
+MsvgElement *MsvgFindIdTableId(MsvgTableId *tid, char *id);
 
 #endif  /* whole file */

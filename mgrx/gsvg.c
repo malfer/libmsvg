@@ -35,29 +35,58 @@
 
 static MsvgElement *CreateTree(void)
 {
-    MsvgElement *root;
+    MsvgElement *root, *son, *gson;
+
     root = MsvgNewElement(EID_SVG, NULL);
     root->psvgattr->vb_min_x = 0;
     root->psvgattr->vb_min_y = 0;
     root->psvgattr->vb_width = 640;
     root->psvgattr->vb_height = 480;
     root->psvgattr->tree_type = COOKED_SVGTREE;
-    
-    MsvgElement *son;
+
+    son = MsvgNewElement(EID_DEFS, root);
+
+    gson = MsvgNewElement(EID_RECT, son);
+    gson->prectattr->width = 100;
+    gson->prectattr->height = 50;
+    gson->id = strdup("MyRect");
+
     son = MsvgNewElement(EID_RECT, root);
     son->prectattr->x = 50;
     son->prectattr->y = 50;
     son->prectattr->width = 300;
     son->prectattr->height = 300;
-    son->pctx.fill = 0XFF;
-    son->pctx.stroke = 0XFF0000;
-    
+    son->pctx.fill = 0x0000FF;
+    son->pctx.stroke = 0xFF0000;
+
     son = MsvgNewElement(EID_CIRCLE, root);
     son->pcircleattr->cx = 100;
     son->pcircleattr->cy = 100;
     son->pcircleattr->r = 80;
-    son->pctx.fill = 0XFF00;
-    son->pctx.stroke = 0X8800;
+    son->pctx.fill = 0x888888;
+    son->pctx.stroke = 0x00FF00;
+    son->pctx.stroke_width = 5;
+
+    son = MsvgNewElement(EID_USE, root);
+    son->puseattr->x = 400;
+    son->puseattr->y = 200;
+    son->puseattr->refel = strdup("MyRect");
+    son->pctx.fill = 0xFFFF00;
+    
+    son = MsvgNewElement(EID_USE, root);
+    son->puseattr->x = 450;
+    son->puseattr->y = 300;
+    son->puseattr->refel = strdup("MyRect");
+    son->pctx.fill = 0x008888;
+    son->pctx.stroke = 0x00FFFF;
+    TMSetRotation(&(son->pctx.tmatrix), 30, 500, 325);
+    
+    son = MsvgNewElement(EID_USE, root);
+    son->puseattr->x = 500;
+    son->puseattr->y = 400;
+    son->puseattr->refel = strdup("MyRect");
+    son->pctx.fill = 0x888800;
+    son->pctx.stroke = 0xFFFFFF;
     
     return root;
 }
@@ -65,9 +94,11 @@ static MsvgElement *CreateTree(void)
 static void TestFunc(void)
 {
     GrEvent ev;
+    int smode;
     
     //GrClearContext(GrBlack());
-    DrawSVGtree(CreateTree(), 0, 1, GrBlack());
+    smode = SVGDRAWMODE_PAR | SVGDRAWADJ_CENTER;
+    DrawSVGtree(CreateTree(), smode, 1, GrBlack());
     GrEventWaitKeyOrClick(&ev);
 }
 

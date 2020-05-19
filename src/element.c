@@ -275,7 +275,7 @@ MsvgElement *MsvgNewUseElement(MsvgElement *father)
         return NULL;
     }
     
-    element->puseattr->ref = NULL;
+    element->puseattr->refel = NULL;
     element->puseattr->x = 0;
     element->puseattr->y = 0;
 

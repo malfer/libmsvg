@@ -85,6 +85,7 @@ static void MsvgFreeElement(MsvgElement *el)
             free(el->pdefsattr);
             break;
         case EID_USE :
+            if (el->puseattr->refel) free(el->puseattr->refel);
             free(el->puseattr);
             break;
         default :

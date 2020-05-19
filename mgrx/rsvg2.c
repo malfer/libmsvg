@@ -40,24 +40,27 @@ static int gwidth = 1024;
 static int gheight = 728;
 static int gbpp = 24;
 
-static void DrawSvgFile(char *fname, int smode, double zoom, int rotang, GrColor bg)
+static int DrawSvgFile(char *fname, int smode, double zoom, int rotang, GrColor bg)
 {
     MsvgElement *root;
     char s[81];
+    int error = 0;
     
-    root = MsvgReadSvgFile(fname);
-    if (root == NULL) return;
+    root = MsvgReadSvgFile(fname, &error);
+    if (root == NULL) return error;
 
     if (rotang != 0) {
         sprintf(s, "rotate(%d %d %d)", rotang, 250, 500);
         MsvgAddRawAttribute(root, "transform", s);
     }
 
-    if (!MsvgRaw2CookedTree(root)) return;
+    if (!MsvgRaw2CookedTree(root)) return -5;
 
     //DrawSVGtree(root, smode, zoom, bg);
     DrawSVGtreeUsingDB(root, smode, zoom, bg);
     MsvgDeleteElement(root);
+
+    return 0;
 }
 
 int main(int argc,char **argv)
@@ -70,6 +73,7 @@ int main(int argc,char **argv)
     double zoom = 1;
     GrColor bg;
     int rotang = 0;
+    int error;
     
     if (argc <2) {
         printf("Usage: rsvg2 file.svg [width height bpp]\n");
@@ -107,7 +111,11 @@ int main(int argc,char **argv)
     mode = SVGDRAWMODE_PAR;
     adj = SVGDRAWADJ_LEFT;
     while (1) {
-        DrawSvgFile(fname, mode|adj, zoom, rotang, bg);
+        error = DrawSvgFile(fname, mode|adj, zoom, rotang, bg);
+        if (error) {
+            printf("Error %d reading %s\n", error, fname);
+            break;
+        }
         GrEventWait(&ev);
         if (ev.p1 == 'q') break;
         else if (ev.p1 == 'b') bg = GrBlack();
@@ -127,5 +135,5 @@ int main(int argc,char **argv)
     GrEventUnInit();
     GrSetMode(GR_default_text);
 
-    return(0);
+    return 1;
 }

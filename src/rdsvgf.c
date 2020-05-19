@@ -32,6 +32,7 @@ typedef struct {
     int skip_depth;
     int svg_found;
     int process_finished;
+    int mem_error;
     MsvgElement *root;
     MsvgElement *active_element;
 } MyUserData;
@@ -57,9 +58,13 @@ static void startElement(void *userData, const char *name, const char **attr)
     if (!mudptr->skip_depth) {
         if (!mudptr->svg_found) {
             if (strcmp(name, "svg") == 0) {
-                mudptr->svg_found = 1;
                 mudptr->root = MsvgNewElement(EID_SVG, NULL);
-                // TODO: test error
+                if (mudptr->root == NULL) {
+                    mudptr->mem_error = 1;
+                    mudptr->process_finished = 1;
+                    return;
+                }
+                mudptr->svg_found = 1;
                 mudptr->root->psvgattr->tree_type = RAW_SVGTREE;
                 addAttributes(mudptr->root, attr);
                 mudptr->active_element = mudptr->root;
@@ -72,8 +77,12 @@ static void startElement(void *userData, const char *name, const char **attr)
                 mudptr->skip_depth = mudptr->depth;
             } else {
                 ptr = MsvgNewElement(eid, mudptr->active_element);
+                if (ptr == NULL) {
+                    mudptr->mem_error = 1;
+                    mudptr->process_finished = 1;
+                    return;
+                }
                 addAttributes(ptr, attr);
-                // TODO: test error
                 mudptr->active_element = ptr;
                 //        printf("new element %s\n",name);
             }
@@ -136,21 +145,31 @@ static void data(void *userData, const char *s, int len)
     free(saux);
 }
 
-MsvgElement *MsvgReadSvgFile(const char *fname)
+MsvgElement *MsvgReadSvgFile(const char *fname, int *error)
 {
     #define BUFRSIZE 8192
     FILE *f;
     char buf[BUFRSIZE];
     int done;
     XML_Parser parser;
-    MyUserData mud = {1, 0, 0, 0, 0, NULL, NULL};
+    MyUserData mud = {1, 0, 0, 0, 0, 0, NULL, NULL};
+
+    *error = 0;
+    // -1 error opening file
+    // -2 memory error creating parser
+    // -3 memory error building the tree
+    // >0 expat error
     
     f = fopen(fname, "rt");
-    if (f == NULL) return NULL;
+    if (f == NULL) {
+        *error = -1;
+        return NULL;
+    }
     
     parser = XML_ParserCreate(NULL);
     if (parser == NULL) {
         fclose(f);
+        *error = -2;
         return NULL;
     }
     
@@ -162,8 +181,9 @@ MsvgElement *MsvgReadSvgFile(const char *fname)
         size_t len = fread(buf, 1, sizeof(buf), f);
         done = len < sizeof(buf);
         if (!XML_Parse(parser, buf, len, done)) {
-            // TODO: free root
+            *error = XML_GetErrorCode(parser);
             XML_ParserFree(parser);
+            if (mud.root) MsvgDeleteElement(mud.root);
             fclose(f);
             return NULL;
         }
@@ -171,5 +191,12 @@ MsvgElement *MsvgReadSvgFile(const char *fname)
     
     XML_ParserFree(parser);
     fclose(f);
+
+    if (mud.mem_error) {
+        if (mud.root) MsvgDeleteElement(mud.root);
+        *error = -3;
+        return NULL;
+    }
+
     return mud.root;
 }

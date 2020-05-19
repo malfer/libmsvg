@@ -6,9 +6,9 @@
 </head>
 
 <body>
-<h1>libmsvg v0.14</h1>
+<h1>libmsvg v0.15</h1>
 <h2>Programmer's guide</h2>
-<p>Last update: May 10, 2020</p>
+<p>Last update: May 20, 2020</p>
 
 <hr>
 <h2>Abstract</h2>
@@ -55,14 +55,17 @@ so here there are.</p>
 int main(int argc, char **argv)
 {
     MsvgElement *root;
+    int error;
 
-    if (argc &lt;2)
+    if (argc &lt;2) {
+        printf("Usage: example svgfile\n");
         return 0;
+    }
 
-    root = MsvgReadSvgFile(argv[1]);
-
+    root = MsvgReadSvgFile(argv[1], &amp;error);
+    
     if (root == NULL) {
-        printf("Error opening %s\n", argv[1]);
+        printf("Error %d reading %s\n", error, argv[1]);
         return 0;
     }
 
@@ -439,6 +442,62 @@ element is a container (like  EID_SVG or EID_G) it duplicates all the element
 child too.</p>
 
 <hr>
+<h2><a name="finding">Finding elements in a MsvgElement tree</a></h2>
+<p>There are some functions to find elements in a MsvgElement tree.</p>
+
+<pre>
+MsvgElement *MsvgFindFirstFather(MsvgElement *el);
+</pre>
+<p>returns the first father of an element, normally a EID_SVG element</p>
+
+<pre>
+typedef struct {
+    int nelem[EID_LAST+1];  // num elements per type
+    int totelem;            // total num elements
+    int totelwid;           // num elements with id != NULL
+} MsvgTreeCounts;
+
+void MsvgCalcCountsCookedTree(MsvgElement *el, MsvgTreeCounts *tc);
+void MsvgCalcCountsRawTree(MsvgElement *el, MsvgTreeCounts *tc);
+</pre>
+<p>fill a MsvgTreeCounts structure counting elements for the tree
+pointed by el, note that there are a version for raw trees and another
+for cooked trees, this is necsary to populate the totelwid variable
+because in raw trees is necesary to check the raw attribute "id" and
+for cooked trees we can use the id cooked attribute. Note that the root
+EID_SVG element is not counted</p>
+
+<pre>
+MsvgElement * MsvgFindIdCookedTree(MsvgElement *el, char *id);
+MsvgElement * MsvgFindIdRawTree(MsvgElement *el, char *id);
+</pre>
+<p>find for the element with the provided id in the tree pointed by el,
+again there is a version for raw trees and another for cooked trees. It
+returns NULL if not found</p>
+
+<p>The above functions walk all the tree comparing ids to find the element
+every time they are called, if you have to find lot of elements it is better
+to construct first a MsvgTableId structure calling one of these functions (
+one for raw trees and one for cooked trees):</p>
+<pre>
+MsvgTableId * MsvgBuildTableIdCookedTree(MsvgElement *el);
+MsvgTableId * MsvgBuildTableIdRawTree(MsvgElement *el);
+</pre>
+
+<p>After that you can use next function to find elements (it does an
+efficient binary search):</p>
+<pre>
+MsvgElement *MsvgFindIdTableId(MsvgTableId *tid, char *id);
+</pre>
+
+<p>Note that if you add or delete elements in the tree you have to build
+a new MsvgTableId structure. when it is no longer necessary use next function
+to free memory:</p>
+<pre>
+void MsvgDestroyTableId(MsvgTableId *tid);
+</pre>
+
+<hr>
 <h2><a name="tmatrix">Working with cooked transformation matrix</a></h2>
 <p>libmsvg has a number of functions to work with the transformation matrix
 cooked parameter TMatrix. Note that the transformation matrix is like that:</p>
@@ -497,7 +556,10 @@ to a constructed MsvgPaintCtx whit all the inherit and initial values processed
 and the current transformation matrix calculated, so the user program must use
 this painting context instead the element one to do the drawing.</p>
 
-<p>At this point libmsvg provides a function that can be called by the user function
+<p>The serialization process has in account the EID_USE elements, replacing them
+with the referenced element (that can be a subtree).</p>
+
+<p>Another function than libmsvg provides can be called by the user function
 to process the element coordinates using the current transformation matrix
 (pctx->tmatrix):</p>
 
@@ -637,17 +699,17 @@ can have any attribute.</p>
   </tr>
   <tr valign=top>
     <td width=25%>
-      <p>&lt;defs&gt; (TO DO)</p>
+      <p>&lt;defs&gt;</p>
     </td>
     <td width=44%>
-      <p>id=&quot;valor&quot; (TO DO)</p>
+      <p>id=&quot;valor&quot; (ok)</p>
       <p>--- for inheritance ---</p>
-      <p>fill=&quot;color&quot; (TO DO)</p>
-      <p>fill-opacity=&quot;n&quot; (TO DO)</p>
-      <p>stroke=&quot;color&quot; (TO DO)</p>
-      <p>stroke-width=&quot;n&quot; (TO DO)</p>
-      <p>stroke-opacity=&quot;n&quot; (TO DO)</p>
-      <p>transform=&quot;transformation&quot; (TO DO)</p>
+      <p>fill=&quot;color&quot; (ok)</p>
+      <p>fill-opacity=&quot;n&quot; (ok)</p>
+      <p>stroke=&quot;color&quot; (ok)</p>
+      <p>stroke-width=&quot;n&quot; (ok)</p>
+      <p>stroke-opacity=&quot;n&quot; (ok)</p>
+      <p>transform=&quot;transformation&quot; (ok)</p>
     </td>
     <td width=31%>
       <p>-- possible child elements --
@@ -677,22 +739,22 @@ can have any attribute.</p>
   </tr>
   <tr valign=top>
     <td width=25%>
-      <p>&lt;use&gt; (TO DO)</p>
+      <p>&lt;use&gt;</p>
     </td>
     <td width=44%>
-      <p>xlink:href =&quot;IRI&quot; (TO DO)</p>
-      <p>x=&quot;n&quot; (TO DO)</p>
-      <p>y=&quot;n&quot; (TO DO)</p>
+      <p>xlink:href =&quot;#id&quot; (ok)</p>
+      <p>x=&quot;n&quot; (ok)</p>
+      <p>y=&quot;n&quot; (ok)</p>
       <p>--- for inheritance ---</p>
-      <p>fill=&quot;color&quot; (TO DO)</p>
-      <p>fill-opacity=&quot;n&quot; (TO DO)</p>
-      <p>stroke=&quot;color&quot; (TO DO)</p>
-      <p>stroke-width=&quot;n&quot; (TO DO)</p>
-      <p>stroke-opacity=&quot;n&quot; (TO DO)</p>
-      <p>transform=&quot;transformation&quot; (TO DO)</p>
+      <p>fill=&quot;color&quot; (ok)</p>
+      <p>fill-opacity=&quot;n&quot; (ok)</p>
+      <p>stroke=&quot;color&quot; (ok)</p>
+      <p>stroke-width=&quot;n&quot; (ok)</p>
+      <p>stroke-opacity=&quot;n&quot; (ok)</p>
+      <p>transform=&quot;transformation&quot; (ok)</p>
     </td>
     <td width=31%>
-      <p><br>
+      <p>Only local references supported
       </p>
     </td>
   </tr>

@@ -246,6 +246,8 @@ static void cookUseGenAttr(MsvgElement *el, char *key, char *value)
 {
     if (strcmp(key, "x") == 0) el->puseattr->x = atof(value);
     else if (strcmp(key, "y") == 0) el->puseattr->y = atof(value);
+    else if (strcmp(key, "xlink:href") == 0 && value[0] == '#')
+        el->puseattr->refel = strdup(&(value[1]));
 }
 
 static void checkSvgCookedAttr(MsvgElement *el)
@@ -291,50 +293,48 @@ static void cookElement(MsvgElement *el, int depth)
 {
     MsvgRawAttribute *pattr;
     
-    if (el->frattr != NULL) {
-        pattr = el->frattr;
-        while (pattr != NULL) {
-            if (!cookPCtxAttr(el, pattr->key, pattr->value)) {
-                switch (el->eid) {
-                    case EID_SVG :
-                        cookSvgGenAttr(el, pattr->key, pattr->value);
-                        break;
-                    case EID_G :
-                        cookGGenAttr(el, pattr->key, pattr->value);
-                        break;
-                    case EID_RECT :
-                        cookRectGenAttr(el, pattr->key, pattr->value);
-                        break;
-                    case EID_CIRCLE :
-                        cookCircleGenAttr(el, pattr->key, pattr->value);
-                        break;
-                    case EID_ELLIPSE :
-                        cookEllipseGenAttr(el, pattr->key, pattr->value);
-                        break;
-                    case EID_LINE :
-                        cookLineGenAttr(el, pattr->key, pattr->value);
-                        break;
-                    case EID_POLYLINE :
-                        cookPolylineGenAttr(el, pattr->key, pattr->value);
-                        break;
-                    case EID_POLYGON :
-                        cookPolygonGenAttr(el, pattr->key, pattr->value);
-                        break;
-                    case EID_TEXT :
-                        cookTextGenAttr(el, pattr->key, pattr->value);
-                        break;
-                    case EID_DEFS :
-                        cookDefsGenAttr(el, pattr->key, pattr->value);
-                        break;
-                    case EID_USE :
-                        cookUseGenAttr(el, pattr->key, pattr->value);
-                        break;
-                    default :
-                        break;
-                }
+    pattr = el->frattr;
+    while (pattr != NULL) {
+        if (!cookPCtxAttr(el, pattr->key, pattr->value)) {
+            switch (el->eid) {
+                case EID_SVG :
+                    cookSvgGenAttr(el, pattr->key, pattr->value);
+                    break;
+                case EID_G :
+                    cookGGenAttr(el, pattr->key, pattr->value);
+                    break;
+                case EID_RECT :
+                    cookRectGenAttr(el, pattr->key, pattr->value);
+                    break;
+                case EID_CIRCLE :
+                    cookCircleGenAttr(el, pattr->key, pattr->value);
+                    break;
+                case EID_ELLIPSE :
+                    cookEllipseGenAttr(el, pattr->key, pattr->value);
+                    break;
+                case EID_LINE :
+                    cookLineGenAttr(el, pattr->key, pattr->value);
+                    break;
+                case EID_POLYLINE :
+                    cookPolylineGenAttr(el, pattr->key, pattr->value);
+                    break;
+                case EID_POLYGON :
+                    cookPolygonGenAttr(el, pattr->key, pattr->value);
+                    break;
+                case EID_TEXT :
+                    cookTextGenAttr(el, pattr->key, pattr->value);
+                    break;
+                case EID_DEFS :
+                    cookDefsGenAttr(el, pattr->key, pattr->value);
+                    break;
+                case EID_USE :
+                    cookUseGenAttr(el, pattr->key, pattr->value);
+                    break;
+                default :
+                    break;
             }
-            pattr = pattr->nrattr;
         }
+        pattr = pattr->nrattr;
     }
     
     switch (el->eid) {
