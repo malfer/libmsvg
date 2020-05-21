@@ -11,7 +11,8 @@ LIBS=../src/libmsvg.a -lm
 LIBSdos= $(subst /,\,$(LIBS))
 
 SAMPLES=tread$(EXE) \
-        tbuild$(EXE) \
+        trbuild$(EXE) \
+        tcbuild$(EXE) \
         tdel$(EXE) \
         tcook$(EXE)
 

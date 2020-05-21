@@ -54,8 +54,15 @@ static void MsvgFreeElement(MsvgElement *el)
         case EID_SVG :
             free(el->psvgattr);
             break;
+        case EID_DEFS :
+            free(el->pdefsattr);
+            break;
         case EID_G :
             free(el->pgattr);
+            break;
+        case EID_USE :
+            if (el->puseattr->refel) free(el->puseattr->refel);
+            free(el->puseattr);
             break;
         case EID_RECT :
             free(el->prectattr);
@@ -77,16 +84,13 @@ static void MsvgFreeElement(MsvgElement *el)
             if (el->ppolygonattr->points) free(el->ppolygonattr->points);
             free(el->ppolygonattr);
             break;
+        case EID_PATH :
+            if (el->ppathattr->path) free(el->ppathattr->path);
+            free(el->ppathattr);
+            break;
         case EID_TEXT :
             if (el->ptextattr->font_family) free(el->ptextattr->font_family);
             free(el->ptextattr);
-            break;
-        case EID_DEFS :
-            free(el->pdefsattr);
-            break;
-        case EID_USE :
-            if (el->puseattr->refel) free(el->puseattr->refel);
-            free(el->puseattr);
             break;
         default :
             break; // TODO: test error

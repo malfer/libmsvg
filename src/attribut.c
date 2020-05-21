@@ -141,8 +141,16 @@ int MsvgCopyCookedAttributes(MsvgElement *desel, MsvgElement *srcel)
         case EID_SVG :
             *(desel->psvgattr) = *(srcel->psvgattr);
             break;
+        case EID_DEFS :
+            *(desel->pdefsattr) = *(srcel->pdefsattr);
+            break;
         case EID_G :
             *(desel->pgattr) = *(srcel->pgattr);
+            break;
+        case EID_USE :
+            if (desel->puseattr->refel) free(desel->puseattr->refel);
+            *(desel->puseattr) = *(srcel->puseattr);
+            desel->puseattr->refel = strdup(srcel->puseattr->refel);
             break;
         case EID_RECT :
             *(desel->prectattr) = *(srcel->prectattr);
@@ -178,20 +186,21 @@ int MsvgCopyCookedAttributes(MsvgElement *desel, MsvgElement *srcel)
                     srcel->ppolygonattr->points[i*2+1];
             }
             break;
+        case EID_PATH :
+            if (desel->ppathattr->path) free (desel->ppathattr->path);
+            *(desel->ppathattr) = *(srcel->ppathattr);
+            if (srcel->ppathattr->path) {
+                desel->ppathattr->path = strdup(srcel->ppathattr->path);
+            }
+            break;
         case EID_TEXT :
+            if (desel->ptextattr->font_family)
+                free (desel->ptextattr->font_family);
             *(desel->ptextattr) = *(srcel->ptextattr);
             if (srcel->ptextattr->font_family) {
                 desel->ptextattr->font_family =
                     strdup(srcel->ptextattr->font_family);
             }
-            break;
-        case EID_DEFS :
-            *(desel->pdefsattr) = *(srcel->pdefsattr);
-            break;
-        case EID_USE :
-            if (desel->puseattr->refel) free(desel->puseattr->refel);
-            *(desel->puseattr) = *(srcel->puseattr);
-            desel->puseattr->refel = strdup(srcel->puseattr->refel);
             break;
         default :
             break;

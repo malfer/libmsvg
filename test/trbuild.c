@@ -1,4 +1,4 @@
-/* tbuild.c
+/* trbuild.c
  * 
  * libmsvg, a minimal library to read and write svg files
  *
@@ -43,19 +43,27 @@ int main(int argc, char **argv)
     MsvgAddRawAttribute(son, "stroke", "#0F0");
     MsvgAddRawAttribute(son, "fill", "none");
     
+    son = MsvgNewElement(EID_CIRCLE, root);
+    MsvgAddRawAttribute(son, "cx", "200");
+    MsvgAddRawAttribute(son, "cy", "200");
+    MsvgAddRawAttribute(son, "r", "100");
+    MsvgAddRawAttribute(son, "stroke", "none");
+    MsvgAddRawAttribute(son, "fill", "#00F");
+    
     printf("===== Constructed svgtree =====\n");
     MsvgPrintRawElementTree(stdout, root, 0);
     
+    printf("===== Writing svgtree on %s =====\n", TESTFILEA);
     if (!MsvgWriteSvgFile(root, TESTFILEA)) {
         printf("Error writing %s\n", TESTFILEA);
         return 0;
     }
     
-    rootdup = MsvgDupElement(root);
-    
     printf("===== Duplicate svgtree =====\n");
+    rootdup = MsvgDupElement(root);
     MsvgPrintRawElementTree(stdout, rootdup, 0);
     
+    printf("===== Writing duplicate svgtree on %s =====\n", TESTFILEB);
     if (!MsvgWriteSvgFile(rootdup, TESTFILEB)) {
         printf("Error writing %s\n", TESTFILEB);
         return 0;

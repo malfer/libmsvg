@@ -32,20 +32,21 @@ typedef struct {
 } MsvgIdElement;
 
 static MsvgIdElement supported_elements[] = {
-    {EID_SVG, "svg", 0, 10, {EID_G, EID_RECT, EID_CIRCLE, EID_ELLIPSE, EID_LINE,
-        EID_POLYLINE, EID_POLYGON, EID_TEXT, EID_DEFS, EID_USE} },
-    {EID_G, "g", 0, 10, {EID_G, EID_RECT, EID_CIRCLE, EID_ELLIPSE, EID_LINE,
-        EID_POLYLINE, EID_POLYGON, EID_TEXT, EID_DEFS, EID_USE} },
+    {EID_SVG, "svg", 0, 11, {EID_DEFS, EID_G, EID_USE, EID_RECT, EID_CIRCLE,
+        EID_ELLIPSE, EID_LINE, EID_POLYLINE, EID_POLYGON, EID_PATH, EID_TEXT} },
+    {EID_DEFS, "defs", 0, 9, {EID_G, EID_RECT, EID_CIRCLE, EID_ELLIPSE, EID_LINE,
+        EID_POLYLINE, EID_POLYGON, EID_PATH, EID_TEXT} },
+    {EID_G, "g", 0, 11, {EID_DEFS, EID_G, EID_USE, EID_RECT, EID_CIRCLE,
+        EID_ELLIPSE, EID_LINE, EID_POLYLINE, EID_POLYGON, EID_PATH, EID_TEXT} },
+    {EID_USE, "use", 0, 0},
     {EID_RECT, "rect", 0, 0},
     {EID_CIRCLE, "circle", 0, 0},
     {EID_ELLIPSE, "ellipse", 0, 0},
     {EID_LINE, "line", 0, 0},
     {EID_POLYLINE, "polyline", 0, 0},
     {EID_POLYGON, "polygon", 0, 0},
-    {EID_TEXT, "text", 1, 0},
-    {EID_DEFS, "defs", 0, 8, {EID_G, EID_RECT, EID_CIRCLE, EID_ELLIPSE, EID_LINE,
-        EID_POLYLINE, EID_POLYGON, EID_TEXT} },
-    {EID_USE, "use", 0, 0}
+    {EID_PATH, "path", 0, 0},
+    {EID_TEXT, "text", 1, 0}
 };
 
 enum EID MsvgFindElementId(const char *ename)

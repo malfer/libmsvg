@@ -319,22 +319,22 @@ static void sufn2(MsvgElement *el, MsvgPaintCtx *pctx)
 
     switch (newel->eid) {
         case EID_RECT :
-            DrawRectElement(newel, pctx);
+            DrawRectElement(newel, &(newel->pctx));
             break;
         case EID_CIRCLE :
-            DrawCircleElement(newel, pctx);
+            DrawCircleElement(newel, &(newel->pctx));
             break;
         case EID_ELLIPSE :
-            DrawEllipseElement(newel, pctx);
+            DrawEllipseElement(newel, &(newel->pctx));
             break;
         case EID_LINE :
-            DrawLineElement(newel, pctx);
+            DrawLineElement(newel, &(newel->pctx));
             break;
         case EID_POLYLINE :
-            DrawPolylineElement(newel, pctx);
+            DrawPolylineElement(newel, &(newel->pctx));
             break;
         case EID_POLYGON :
-            DrawPolygonElement(newel, pctx);
+            DrawPolygonElement(newel, &(newel->pctx));
             break;
         default :
             break;

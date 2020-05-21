@@ -125,8 +125,18 @@ static void printSvgCookedAttr(FILE *f, MsvgElement *el)
     fprintf(f, "  vp_fill_opacity %s\n", printvalue(el->psvgattr->vp_fill_opacity));
 }
 
+static void printDefsCookedAttr(FILE *f, MsvgElement *el)
+{
+}
+
 static void printGCookedAttr(FILE *f, MsvgElement *el)
 {
+}
+
+static void printUseCookedAttr(FILE *f, MsvgElement *el)
+{
+    fprintf(f, "  x              %g\n", el->puseattr->x);
+    fprintf(f, "  y              %g\n", el->puseattr->y);
 }
 
 static void printRectCookedAttr(FILE *f, MsvgElement *el)
@@ -190,22 +200,16 @@ static void printPolygonCookedAttr(FILE *f, MsvgElement *el)
     fprintf(f, "\n");
 }
 
+static void printPathCookedAttr(FILE *f, MsvgElement *el)
+{
+}
+
 static void printTextCookedAttr(FILE *f, MsvgElement *el)
 {
     fprintf(f, "  x              %g\n", el->ptextattr->x);
     fprintf(f, "  y              %g\n", el->ptextattr->y);
     fprintf(f, "  font_size      %g\n", el->ptextattr->font_size);
     fprintf(f, "  font_family    %s\n", el->ptextattr->font_family);
-}
-
-static void printDefsCookedAttr(FILE *f, MsvgElement *el)
-{
-}
-
-static void printUseCookedAttr(FILE *f, MsvgElement *el)
-{
-    fprintf(f, "  x              %g\n", el->puseattr->x);
-    fprintf(f, "  y              %g\n", el->puseattr->y);
 }
 
 void MsvgPrintCookedElement(FILE *f, MsvgElement *el)
@@ -220,8 +224,14 @@ void MsvgPrintCookedElement(FILE *f, MsvgElement *el)
         case EID_SVG :
             printSvgCookedAttr(f, el);
             break;
+        case EID_DEFS :
+            printDefsCookedAttr(f, el);
+            break;
         case EID_G :
             printGCookedAttr(f, el);
+            break;
+        case EID_USE :
+            printUseCookedAttr(f, el);
             break;
         case EID_RECT :
             printRectCookedAttr(f, el);
@@ -241,14 +251,11 @@ void MsvgPrintCookedElement(FILE *f, MsvgElement *el)
         case EID_POLYGON :
             printPolygonCookedAttr(f, el);
             break;
+        case EID_PATH :
+            printPathCookedAttr(f, el);
+            break;
         case EID_TEXT :
             printTextCookedAttr(f, el);
-            break;
-        case EID_DEFS :
-            printDefsCookedAttr(f, el);
-            break;
-        case EID_USE :
-            printUseCookedAttr(f, el);
             break;
         default :
             break;

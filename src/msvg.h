@@ -25,25 +25,25 @@
 
 #include <stdio.h>
 
-#define LIBMSVG_VERSION_API 0x0015
+#define LIBMSVG_VERSION_API 0x0016
 
 /* define id's for supported elements */
 
 enum EID {
     EID_NOTSUPPORTED = 0,
     EID_SVG = 1,
+    EID_DEFS,
     EID_G,
+    EID_USE,
     EID_RECT,
     EID_CIRCLE,
     EID_ELLIPSE,
     EID_LINE,
     EID_POLYLINE,
     EID_POLYGON,
+    EID_PATH,
     EID_TEXT,
-    EID_DEFS,
-    EID_USE,
-    //EID_LAST = EID_POLYGON
-    EID_LAST = EID_USE
+    EID_LAST = EID_TEXT
 };
 
 /* functions in tables.c */
@@ -143,39 +143,49 @@ typedef struct _MsvgSvgAttributes {
     double vp_fill_opacity; /* viewport-fill-opacity attribute */
 } MsvgSvgAttributes;
 
+typedef struct _MsvgDefsAttributes {
+    int dummy;
+} MsvgDefsAttributes;
+
 typedef struct _MsvgGAttributes {
     int dummy;
 } MsvgGAttributes;
 
+typedef struct _MsvgUseAttributes {
+    double x;       /* x attibute */
+    double y;       /* y attibute */
+    char * refel;   /* referenced element */
+} MsvgUseAttributes;
+
 typedef struct _MsvgRectAttributes {
-    double x;      /* x attribute */
-    double y;      /* y attribute */
-    double width;  /* width attribute */
-    double height; /* height attribute */
-    double rx;     /* rx attribute */
-    double ry;     /* ry attribute */
+    double x;       /* x attribute */
+    double y;       /* y attribute */
+    double width;   /* width attribute */
+    double height;  /* height attribute */
+    double rx;      /* rx attribute */
+    double ry;      /* ry attribute */
 } MsvgRectAttributes;
 
 typedef struct _MsvgCircleAttributes {
-    double cx; /* cx attribute */
-    double cy; /* cy attribute */
-    double r;  /* r attribute */
+    double cx;      /* cx attribute */
+    double cy;      /* cy attribute */
+    double r;       /* r attribute */
 } MsvgCircleAttributes;
 
 typedef struct _MsvgEllipseAttributes {
-    double cx; /* cx attribute */
-    double cy; /* cy attribute */
-    double rx_x; /* axis 1 x, y coord */
-    double rx_y; /* note rx = sqrt((rx_x-cx)^2 + (rx_y-cy)^2) */
-    double ry_x; /* axis 2 x, y coord */
-    double ry_y; /* note ry = sqrt((ry_x-cx)^2 + (ry_y-cy)^2) */
+    double cx;      /* cx attribute */
+    double cy;      /* cy attribute */
+    double rx_x;    /* axis 1 x, y coord */
+    double rx_y;    /* note rx = sqrt((rx_x-cx)^2 + (rx_y-cy)^2) */
+    double ry_x;    /* axis 2 x, y coord */
+    double ry_y;    /* note ry = sqrt((ry_x-cx)^2 + (ry_y-cy)^2) */
 } MsvgEllipseAttributes;
 
 typedef struct _MsvgLineAttributes {
-    double x1; /* x1 attribute */
-    double y1; /* y1 attribute */
-    double x2; /* x2 attribute */
-    double y2; /* y2 attribute */
+    double x1;      /* x1 attribute */
+    double y1;      /* y1 attribute */
+    double x2;      /* x2 attribute */
+    double y2;      /* y2 attribute */
 } MsvgLineAttributes;
 
 typedef struct _MsvgPolylineAttributes {
@@ -188,22 +198,16 @@ typedef struct _MsvgPolygonAttributes {
     int npoints;    /* number of points */
 } MsvgPolygonAttributes;
 
+typedef struct _MsvgPathAttributes {
+    char *path;     /* path-data normalized */
+} MsvgPathAttributes;
+
 typedef struct _MsvgTextAttributes {
     double x;          /* x attibute */
     double y;          /* y attibute */
     double font_size;  /* font-size attribute */
     char *font_family; /* font-family attribute */
 } MsvgTextAttributes;
-
-typedef struct _MsvgDefsAttributes {
-    int dummy;
-} MsvgDefsAttributes;
-
-typedef struct _MsvgUseAttributes {
-    double x;           /* x attibute */
-    double y;           /* y attibute */
-    char * refel;       /* referenced element */
-} MsvgUseAttributes;
 
 /* element structure */
 
@@ -224,16 +228,17 @@ typedef struct _MsvgElement {
     /* cooked specific attributes */
     union {
         MsvgSvgAttributes *psvgattr;
+        MsvgDefsAttributes *pdefsattr;
         MsvgGAttributes *pgattr;
+        MsvgUseAttributes *puseattr;
         MsvgRectAttributes *prectattr;
         MsvgCircleAttributes *pcircleattr;
         MsvgEllipseAttributes *pellipseattr;
         MsvgLineAttributes *plineattr;
         MsvgPolylineAttributes *ppolylineattr;
         MsvgPolygonAttributes *ppolygonattr;
+        MsvgPathAttributes *ppathattr;
         MsvgTextAttributes *ptextattr;
-        MsvgDefsAttributes *pdefsattr;
-        MsvgUseAttributes *puseattr;
     };
 } MsvgElement;
 
@@ -289,6 +294,10 @@ void MsvgPrintCookedElement(FILE *f, MsvgElement *el);
 /* functions in raw2cook.c */
 
 int MsvgRaw2CookedTree(MsvgElement *root);
+
+/* functions in cook2raw.c */
+
+int MsvgCooked2RawTree(MsvgElement *root);
 
 /* functions in serializ.c */
 

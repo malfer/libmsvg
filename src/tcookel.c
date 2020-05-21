@@ -29,6 +29,14 @@
 static MsvgElement * transCookEllipse(MsvgElement *el, MsvgPaintCtx *cpctx, int bef);
 static MsvgElement * transCookPolygon(MsvgElement *el, MsvgPaintCtx *cpctx, int bef);
 
+static void setElCptx(MsvgElement *el, MsvgPaintCtx *cpctx)
+{
+    el->pctx = *cpctx;
+    if (el->pctx.stroke_width > 0)
+        el->pctx.stroke_width *= (cpctx->tmatrix.a + cpctx->tmatrix.b);
+    TMSetIdentity(&(el->pctx.tmatrix));
+}
+
 static MsvgElement * transCookRect(MsvgElement *el, MsvgPaintCtx *cpctx, int bef)
 {
     MsvgElement *newel, *auxel;
@@ -39,7 +47,7 @@ static MsvgElement * transCookRect(MsvgElement *el, MsvgPaintCtx *cpctx, int bef
         newel = MsvgNewElement(EID_RECT, NULL);
         if (newel == NULL) return NULL;
 
-        newel->pctx =*cpctx;
+        setElCptx(newel, cpctx);
         *(newel->prectattr) = *(el->prectattr);
 
         if (TMIsIdentity(&(cpctx->tmatrix))) return newel;
@@ -55,7 +63,6 @@ static MsvgElement * transCookRect(MsvgElement *el, MsvgPaintCtx *cpctx, int bef
                          &(cpctx->tmatrix));
         newel->prectattr->rx -= zerox;
         newel->prectattr->ry -= zeroy;
-        TMSetIdentity(&(newel->pctx.tmatrix));
 
         return newel;
 
@@ -101,7 +108,7 @@ static MsvgElement * transCookCircle(MsvgElement *el, MsvgPaintCtx *cpctx, int b
     if (TMIsIdentity(&(cpctx->tmatrix))) {;
         newel = MsvgNewElement(EID_CIRCLE, NULL);
         if (newel == NULL) return NULL;
-        newel->pctx =*cpctx;
+        setElCptx(newel, cpctx);
         *(newel->pcircleattr) = *(el->pcircleattr);
         return newel;
     }
@@ -132,7 +139,7 @@ static MsvgElement * transCookEllipse(MsvgElement *el, MsvgPaintCtx *cpctx, int 
     newel = MsvgNewElement(EID_ELLIPSE, NULL);
     if (newel == NULL) return NULL;
 
-    newel->pctx =*cpctx;
+    setElCptx(newel, cpctx);
     *(newel->pellipseattr) = *(el->pellipseattr);
 
     if (TMIsIdentity(&(cpctx->tmatrix))) return newel;
@@ -144,8 +151,6 @@ static MsvgElement * transCookEllipse(MsvgElement *el, MsvgPaintCtx *cpctx, int 
     TMTransformCoord(&(newel->pellipseattr->ry_x), &(newel->pellipseattr->ry_y),
                      &(cpctx->tmatrix));
 
-    TMSetIdentity(&(newel->pctx.tmatrix));
-
     return newel;
 }
 
@@ -156,7 +161,7 @@ static MsvgElement * transCookLine(MsvgElement *el, MsvgPaintCtx *cpctx, int bef
     newel = MsvgNewElement(EID_LINE, NULL);
     if (newel == NULL) return NULL;
 
-    newel->pctx =*cpctx;
+    setElCptx(newel, cpctx);
     *(newel->plineattr) = *(el->plineattr);
 
     if (TMIsIdentity(&(cpctx->tmatrix))) return newel;
@@ -165,7 +170,6 @@ static MsvgElement * transCookLine(MsvgElement *el, MsvgPaintCtx *cpctx, int bef
                      &(cpctx->tmatrix));
     TMTransformCoord(&(newel->plineattr->x2), &(newel->plineattr->y2),
                      &(cpctx->tmatrix));
-    TMSetIdentity(&(newel->pctx.tmatrix));
 
     return newel;
 }
@@ -182,7 +186,7 @@ static MsvgElement * transCookPolyline(MsvgElement *el, MsvgPaintCtx *cpctx, int
         return NULL;
     }
 
-    newel->pctx =*cpctx;
+    setElCptx(newel, cpctx);
     newel->ppolylineattr->npoints = el->ppolylineattr->npoints;
     for (i=0; i< newel->ppolylineattr->npoints; i++) {
         newel->ppolylineattr->points[i*2] = el->ppolylineattr->points[i*2];
@@ -196,7 +200,6 @@ static MsvgElement * transCookPolyline(MsvgElement *el, MsvgPaintCtx *cpctx, int
                          &(newel->ppolylineattr->points[i*2+1]),
                         &(cpctx->tmatrix));
     }
-    TMSetIdentity(&(newel->pctx.tmatrix));
 
     return newel;
 }
@@ -213,7 +216,7 @@ static MsvgElement * transCookPolygon(MsvgElement *el, MsvgPaintCtx *cpctx, int 
         return NULL;
     }
 
-    newel->pctx =*cpctx;
+    setElCptx(newel, cpctx);
     newel->ppolygonattr->npoints = el->ppolygonattr->npoints;
     for (i=0; i< newel->ppolygonattr->npoints; i++) {
         newel->ppolygonattr->points[i*2] = el->ppolygonattr->points[i*2];
@@ -227,7 +230,6 @@ static MsvgElement * transCookPolygon(MsvgElement *el, MsvgPaintCtx *cpctx, int 
                          &(newel->ppolygonattr->points[i*2+1]),
                         &(cpctx->tmatrix));
     }
-    TMSetIdentity(&(newel->pctx.tmatrix));
 
     return newel;
 }

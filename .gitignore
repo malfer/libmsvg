@@ -5,7 +5,8 @@ expat/gennmtab/gennmtab
 expat/sample/elements
 # Ignore test programs
 test/tread
-test/tbuild
+test/trbuild
+test/tcbuild
 test/tdel
 test/tcook
 mgrx/rsvg
@@ -15,6 +16,7 @@ mgrx/rsvg2
 test/msvgt1.svg
 test/msvgt2a.svg
 test/msvgt2b.svg
+test/msvgt3.svg
 # Others
 svgexpls
 .directory
