@@ -19,14 +19,14 @@
 
 int main(int argc, char **argv)
 {
-    MsvgElement *root, *son, *rootdup;
-    
+    MsvgElement *root;
     root = MsvgNewElement(EID_SVG, NULL);
     MsvgAddRawAttribute(root, "xmlns", "http://www.w3.org/2000/svg");
     MsvgAddRawAttribute(root, "version", "1.2");
     MsvgAddRawAttribute(root, "baseProfile", "tiny");
     MsvgAddRawAttribute(root, "viewBox", "0 0 400 400");
     
+    MsvgElement *son;
     son = MsvgNewElement(EID_RECT, root);
     MsvgAddRawAttribute(son, "x", "1");
     MsvgAddRawAttribute(son, "y", "1");
@@ -34,21 +34,20 @@ int main(int argc, char **argv)
     MsvgAddRawAttribute(son, "height", "398");
     MsvgAddRawAttribute(son, "stroke", "#F00");
     MsvgAddRawAttribute(son, "fill", "#FFF");
-    
-    son = MsvgNewElement(EID_RECT, root);
-    MsvgAddRawAttribute(son, "x", "11");
-    MsvgAddRawAttribute(son, "y", "11");
-    MsvgAddRawAttribute(son, "width", "380");
-    MsvgAddRawAttribute(son, "height", "380");
+    son = MsvgNewElement(EID_G, root);
     MsvgAddRawAttribute(son, "stroke", "#0F0");
     MsvgAddRawAttribute(son, "fill", "none");
-    
-    son = MsvgNewElement(EID_CIRCLE, root);
-    MsvgAddRawAttribute(son, "cx", "200");
-    MsvgAddRawAttribute(son, "cy", "200");
-    MsvgAddRawAttribute(son, "r", "100");
-    MsvgAddRawAttribute(son, "stroke", "none");
-    MsvgAddRawAttribute(son, "fill", "#00F");
+    MsvgAddRawAttribute(son, "transform", "translate(50)");
+
+    MsvgElement *son2;
+    son2 = MsvgNewElement(EID_CIRCLE, son);
+    MsvgAddRawAttribute(son2, "id", "myrect");
+    MsvgAddRawAttribute(son2, "cx", "100");
+    MsvgAddRawAttribute(son2, "cy", "200");
+    MsvgAddRawAttribute(son2, "r", "80");
+    son2 = MsvgNewElement(EID_USE, son);
+    MsvgAddRawAttribute(son2, "xlink:href", "#myrect");
+    MsvgAddRawAttribute(son2, "x", "100");
     
     printf("===== Constructed svgtree =====\n");
     MsvgPrintRawElementTree(stdout, root, 0);
@@ -60,6 +59,7 @@ int main(int argc, char **argv)
     }
     
     printf("===== Duplicate svgtree =====\n");
+    MsvgElement *rootdup;
     rootdup = MsvgDupElement(root);
     MsvgPrintRawElementTree(stdout, rootdup, 0);
     
