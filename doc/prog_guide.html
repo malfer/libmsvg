@@ -8,7 +8,7 @@
 <body>
 <h1>libmsvg v0.16</h1>
 <h2>Programmer's guide</h2>
-<p>Last update: May 20, 2020</p>
+<p>Last update: May 22, 2020</p>
 
 <hr>
 <h2>Abstract</h2>
@@ -141,7 +141,7 @@ and next siblings and a pointer to his first son. The root element must be a
 EID_SVG. In this version of libmsvg only EID_SVG, EID_DEFS and EID_G can have
 child elements.
 The other supported elements are EID_RECT, EID_CIRCLE, EID_ELLIPSE, EID_LINE,
-EID_POLYLINE, EID_POLYGON, EID_TEXT and EID_USE.</p>
+EID_POLYLINE, EID_POLYGON, EID_PATH, EID_TEXT and EID_USE.</p>
 <p>This graph represents an example of a MsvgElement tree:</p>
 <p><center>
 <img src="elementtree.png" alt="MsvgElement tree example">
@@ -165,10 +165,10 @@ reordered and finally be written to a file using the MsvgWriteSvgFile function.<
 <p>Using the MsvgRaw2CookedTree funtion you
 can convert a MsvgElement tree to the COOKED_SVGTREE type. Only the supported
 attributes are processed and converted to cooked attributes. In this state the tree
-is easier to be manipulates and/or rasterized by a program.</p>
+is easier to be manipulated and/or rasterized by a program.</p>
 
 <h3>Content</h3>
-<p>In addition to parameters an element can have one or more contents, the contents
+<p>In addition to attributes an element can have one or more contents, the contents
 are stored in a simple linked list. In this version of the library only EID_TEXT
 element contents are stored in the tree.</p>
 
@@ -205,6 +205,7 @@ typedef struct _MsvgElement {
         MsvgPolygonAttributes *ppolygonattr;
         MsvgTextAttributes *ptextattr;
         MsvgDefsAttributes *pdefsattr;
+        MsvgPathAttributes *ppathattr;
         MsvgUseAttributes *puseattr;
     };
 } MsvgElement;
@@ -276,14 +277,16 @@ tree.</p>
 
 <pre>
     MsvgElement *root;
-    root = MsvgReadSvgFile("filein.svg");
+    int error;
+    root = MsvgReadSvgFile("filein.svg", &amp;error);
 </pre>
 
-<p>If the file doesn't exists or it isn't a valid SVG file root will be NULL,
-so you must check it. Only the supported elements are stored in the tree, the
-not supported ones are silently ignored. The tree will be a RAW tree, with all
-the element attributes stored as raw attributes. If you want a COOKED tree
-you can use the MsvgRaw2CookedTree funtion:</p>
+<p>If the file doesn't exists or if it isn't a valid SVG file, root will be NULL
+and error will be filled with the error number, so you must check it. Only the
+supported elements are stored in the tree, the not supported ones are silently
+ignored. The tree will be a RAW tree, with all the element attributes stored as
+raw attributes. If you want a COOKED tree you can use the MsvgRaw2CookedTree
+funtion:</p>
 
 <pre>
     int result;
@@ -306,10 +309,11 @@ call the MsvgDelAllTreeRawAttributes function:</p>
 <h2><a name="buildraw">Building a RAW MsvgElement tree by program</a></h2>
 <p>Using only two function we can construct a MsvgElement tree by program. The
 MsvgNewElement function takes two parameters: the element type id and the father
-element, that can be NULL. It returns the pointer to the constructed
-element.</p>
-<p>So we begin constructing the SVG element passing NULL in the father
-parameter, because it is the root element. By default the tree will be
+element, that can be NULL, it returns the pointer to the constructed
+element. The MsvgAddRawAttribute takes three parameters: an element pointer,
+a key and a value.</p>
+<p>Let's see an example. We begin constructing the SVG element passing NULL in
+the father parameter, because it is the root element. By default the tree will be
 RAW_SVGTREE.</p> 
 
 <pre>
@@ -344,19 +348,20 @@ drawing limits using the MsvgAddRawAttribute function.</p>
     MsvgAddRawAttribute(son, "transform", "translate(50)");
 </pre>
 
-<p>Finally we add two child CIRCLE elements to the G element. Note that they
-will inherit the stroke and fill attributes and the transformation matrix.</p>
+<p>Finally we add two child CIRCLE elements to the G element, one directly
+and the other indirectly by an USE element. Note that they will inherit the
+stroke and fill attributes and the transformation matrix.</p>
 
 <pre>
-    MsvgElement *soon2;
+    MsvgElement *son2;
     son2 = MsvgNewElement(EID_CIRCLE, son);
+    MsvgAddRawAttribute(son2, "id", "myrect");
     MsvgAddRawAttribute(son2, "cx", "100");
     MsvgAddRawAttribute(son2, "cy", "200");
     MsvgAddRawAttribute(son2, "r", "80");
-    son2 = MsvgNewElement(EID_CIRCLE, son);
-    MsvgAddRawAttribute(son2, "cx", "200");
-    MsvgAddRawAttribute(son2, "cy", "200");
-    MsvgAddRawAttribute(son2, "r", "80");
+    son2 = MsvgNewElement(EID_USE, son);
+    MsvgAddRawAttribute(son2, "xlink:href", "#myrect");
+    MsvgAddRawAttribute(son2, "x", "100");
 </pre>
 
 <p>We have now our MsvgElement tree and we can manipulate it or write it to
@@ -370,7 +375,9 @@ call MsvgRaw2CookedTree or you can construct a COOKED tree directly.</p>
 <p>Constructing a COOKED tree is the same like constructing a RAW one, except we
 don't use the MsvgAddRawAttribute function. Instead we set directly the element
 cooked attributes, there are no functions to hide the variables, because we are
-programmers and we know what are we doing, doesn't it.</p>
+programmers and we know what are we doing, doesn't it. The only precaution to
+take into account is to reserve memory when the parameter to be assigned is a
+pointer. This space will be freed if we delete the element.</p>
 
 <pre>
     MsvgElement *root;
@@ -394,15 +401,15 @@ programmers and we know what are we doing, doesn't it.</p>
     son->pctx.stroke = 0X00FF00;
     TMSetTranslation(&amp;(son->pctx.tmatrix), 50, 50);
 
-    MsvgElement *soon2;
+    MsvgElement *son2;
     son2 = MsvgNewElement(EID_CIRCLE, son);
+    son2->id = strdup(myrect);
     son2->pcircleattr->cx = 100;
     son2->pcircleattr->cy = 200;
     son2->pcircleattr->r = 80;
-    son2 = MsvgNewElement(EID_CIRCLE, son);
-    son2->pcircleattr->cx = 300;
-    son2->pcircleattr->cy = 200;
-    son2->pcircleattr->r = 80;
+    son2 = MsvgNewElement(EID_USE, son);
+    son2->puseattr->refel = strdup(myrect);
+    son2->puseattr->x = 100;
 </pre>
 
 <hr>
@@ -557,25 +564,27 @@ to a constructed MsvgPaintCtx whit all the inherit and initial values processed
 and the current transformation matrix calculated, so the user program must use
 this painting context instead the element one to do the drawing.</p>
 
-<p>The serialization process has in account the EID_USE elements, replacing them
+<p>The serialization process has into account the EID_USE elements, replacing them
 with the referenced element (that can be a subtree).</p>
 
-<p>Another function than libmsvg provides can be called by the user function
-to process the element coordinates using the current transformation matrix
-(pctx->tmatrix):</p>
+<p>Another function that libmsvg provides can be called by the user function:</p>
 
 <pre>
 MsvgElement * MsvgTransformCookedElement(MsvgElement *el, MsvgPaintCtx *pctx, int bef);
 </pre>
 
-<p>it returns a new drawable element that can be of different type that the original
-element, by example if a EID_RECT has to be rotated a EID_POLYGON is returned. There
-are some cases where MsvgTransformCookedElement cannot returns a properly transformed
-element (by example in this version a rotated EID_RECT with rounded borders). For
-these cases if the bef parameter (best effort) is 1, it returns the best transformed
-element it can. If bef is 0 it returns NULL and it is the user function responsability
-to manage correctly the element. Note that you have to delete the new element returned
-after using it.</p>
+<p>that process the element parameters using the current transformation matrix
+(pctx->tmatrix) and returns a new drawable element that can be of different type
+that the original one, by example if an EID_RECT has to be rotated an EID_POLYGON
+is returned. . The function adjust too the element paint context parameters and
+sets the transformation matrix to the identity matrix. Note that you have to
+delete the new element returned after using it.</p>
+
+<p>There are some cases where MsvgTransformCookedElement cannot returns a properly
+transformed element (by example in this version a rotated EID_RECT with rounded
+borders). For these cases if the bef parameter (best effort) is 1, it returns the
+best transformed element it can. If bef is 0 it returns NULL and it is the user
+function responsability to manage correctly the element.</p>
 
 <p>So using all the pieces the code to rasterize a SVG image will be like that:</p>
 
@@ -585,26 +594,26 @@ static void userfn(MsvgElement *el, MsvgPaintCtx *pctx)
     MsvgElement *newel;
 
     newel = MsvgTransformCookedElement(el, pctx, 1);
-    if (newel == NULL) return; // or manage "el" internally
+    if (newel == NULL) return; // or manage "el" + "pctx" by coding
 
     switch (newel->eid) {
         case EID_RECT :
-            DrawRectElement(newel, pctx);
+            YourDrawRectElement(newel);
             break;
         case EID_CIRCLE :
-            DrawCircleElement(newel, pctx);
+            YourDrawCircleElement(newel);
             break;
         case EID_ELLIPSE :
-            DrawEllipseElement(newel, pctx);
+            YourDrawEllipseElement(newel);
             break;
         case EID_LINE :
-            DrawLineElement(newel, pctx);
+            YourDrawLineElement(newel);
             break;
         case EID_POLYLINE :
-            DrawPolylineElement(newel, pctx);
+            YourDrawPolylineElement(newel);
             break;
         case EID_POLYGON :
-            DrawPolygonElement(newel, pctx);
+            YourDrawPolygonElement(newel);
             break;
         default :
             break;
@@ -638,13 +647,17 @@ static void userfn(MsvgElement *el, MsvgPaintCtx *pctx)
 </pre>
 
 <p>MsvgWriteSvgFile only know how to write RAW trees. If you want to write a COOKED
-only tree you need to use the MsvgCooked2RawTree funtion (<font color="#aa0000">to
-be added to the library</font>) first:</p>
+only tree you need to use the MsvgCooked2RawTree funtion first:</p>
 
 <pre>
     int result;
+    MsvgDelAllTreeRawAttributes(root);
     result = MsvgCooked2RawTree(root);
 </pre>
+
+<p>Note that after call  MsvgCooked2RawTree you continue to have a COOKED tree, but
+with all the raw parameters populated. Because the function doesn't delete any
+previous raw parameters, it is good idea to delete them in advance</p>
 
 <hr>
 <h2><a name="appendixa">Appendix A, the libmsvg SVG subset</a></h2>
@@ -694,8 +707,9 @@ can have any attribute.</p>
     </td>
     <td width=31%>
       <p>-- possible child elements --
-      <p>&lt;defs&gt;, &lt;g&gt;, &lt;rect&gt;, &lt;circle&gt;, &lt;ellipse&gt;,
-      &lt;line&gt;, &lt;polyline&gt;, &lt;polygon&gt;</p>
+      <p>&lt;defs&gt;, &lt;g&gt;, &lt;use&gt;, &lt;rect&gt;, &lt;circle&gt;,
+      &lt;ellipse&gt;, &lt;line&gt;, &lt;polyline&gt;, &lt;polygon&gt;,
+      &lt;path&gt;, &lt;text&gt;</p>
     </td>
   </tr>
   <tr valign=top>
@@ -715,7 +729,8 @@ can have any attribute.</p>
     <td width=31%>
       <p>-- possible child elements --
       <p>&lt;g&gt;, &lt;rect&gt;, &lt;circle&gt;, &lt;ellipse&gt;,
-      &lt;line&gt;, &lt;polyline&gt;, &lt;polygon&gt;</p>
+      &lt;line&gt;, &lt;polyline&gt;, &lt;polygon&gt;,
+      &lt;path&gt;, &lt;text&gt;</p>
     </td>
   </tr>
   <tr valign=top>
@@ -734,8 +749,9 @@ can have any attribute.</p>
     </td>
     <td width=31%>
       <p>-- possible child elements --
-      <p>&lt;g&gt;, &lt;rect&gt;, &lt;circle&gt;, &lt;ellipse&gt;,
-      &lt;line&gt;, &lt;polyline&gt;, &lt;polygon&gt;</p>
+      <p>&lt;g&gt;, &lt;use&gt;, &lt;rect&gt;, &lt;circle&gt;,
+      &lt;ellipse&gt;, &lt;line&gt;, &lt;polyline&gt;, &lt;polygon&gt;,
+      &lt;path&gt;, &lt;text&gt;</p>
     </td>
   </tr>
   <tr valign=top>
@@ -755,7 +771,8 @@ can have any attribute.</p>
       <p>transform=&quot;transformation&quot; (ok)</p>
     </td>
     <td width=31%>
-      <p>Only local references supported
+      <p>only a local reference is supported, it will be stored
+      in the "refel" cooked parameter.
       </p>
     </td>
   </tr>
