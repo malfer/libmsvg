@@ -244,7 +244,7 @@ static void cookPolygonGenAttr(MsvgElement *el, char *key, char *value)
 
 static void cookPathGenAttr(MsvgElement *el, char *key, char *value)
 {
-    // TODO
+    if (strcmp(key, "d") == 0) el->ppathattr->sp = MsvgScanPath(value);
     return;
 }
 

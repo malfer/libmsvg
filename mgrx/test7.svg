@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- libmsvg test file -->
 
-<svg xmlns="http://www.w3.org/2000/svg" version="1.2" baseProfile="tiny" viewBox="0 0 500 1000">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.2" baseProfile="tiny" viewBox="0 0 500 1000">
   <defs>
     <polygon id="penta" fill="lime" stroke="blue" stroke-width="10" 
              points="108,0  216,62 216,188

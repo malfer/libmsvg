@@ -25,7 +25,7 @@
 
 #include <stdio.h>
 
-#define LIBMSVG_VERSION_API 0x0016
+#define LIBMSVG_VERSION_API 0x0017
 
 /* define id's for supported elements */
 
@@ -198,8 +198,25 @@ typedef struct _MsvgPolygonAttributes {
     int npoints;    /* number of points */
 } MsvgPolygonAttributes;
 
+typedef struct {
+    double x;  // absolute x
+    double y;  // absolute y
+    char cmd;  // one of 'M', 'L', 'C', 'Q', ' '
+} MsvgSubPathPoint;
+
+typedef struct _MsvgSubPath *MsvgSubPathPtr;
+
+typedef struct _MsvgSubPath {
+    int maxpoints;           // max capacity (realloc if necesary)
+    int npoints;             // actual number of points
+    int closed;              // 1 = yes, 0 = no
+    int failed_realloc;      // 1 = yes, 0 = no
+    MsvgSubPathPoint *spp;   // SsubPath points
+    MsvgSubPathPtr next;     // next SubPath (can be NULL)
+} MsvgSubPath;
+
 typedef struct _MsvgPathAttributes {
-    char *path;     /* path-data normalized */
+    MsvgSubPath *sp;   /* path-data normalized */
 } MsvgPathAttributes;
 
 typedef struct _MsvgTextAttributes {
@@ -295,6 +312,16 @@ void MsvgPrintCookedElement(FILE *f, MsvgElement *el);
 
 int MsvgRaw2CookedTree(MsvgElement *root);
 
+/* functions in scanpath.c */
+
+MsvgSubPath * MsvgScanPath(char *d);
+MsvgSubPath * MsvgNewSubPath(int maxpoints);
+void MsvgExpandSubPath(MsvgSubPath *sp);
+void MsvgAddPointToSubPath(MsvgSubPath *sp, char cmd, double x, double y);
+MsvgSubPath * MsvgDupSubPath(MsvgSubPath *sp);
+int MsvgCountSubPaths(MsvgSubPath *sp);
+void MsvgDestroySubPath(MsvgSubPath *sp);
+
 /* functions in cook2raw.c */
 
 int MsvgCooked2RawTree(MsvgElement *root);
@@ -309,7 +336,8 @@ int MsvgSerCookedTree(MsvgElement *root, MsvgSerUserFn sufn);
 
 /* functions in tcookel.c */
 
-MsvgElement * MsvgTransformCookedElement(MsvgElement *el, MsvgPaintCtx *pctx, int bef);
+MsvgElement * MsvgTransformCookedElement(MsvgElement *el, MsvgPaintCtx *pctx);
+MsvgElement * MsvgPathEltoPolyEl(MsvgElement *el, int nsp);
 
 /* functions in tmatrix.c */
 

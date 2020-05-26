@@ -164,6 +164,7 @@ static void process_container(MsvgElement *el, SerData *sd,
             case EID_LINE :
             case EID_POLYLINE :
             case EID_POLYGON :
+            case EID_PATH :
             case EID_TEXT :
                 process_drawel_pctx(&sonpctx, &mypctx, &(pel->pctx));
                 sd->sufn(pel, &sonpctx);

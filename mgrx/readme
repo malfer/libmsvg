@@ -10,27 +10,31 @@ Them do that:
 
 Linux X11:
 gcc -c rendmgrx.c
-gcc -o rsvg rsvg.c rendmgrx.o -lmsvg -lmgrxX -lX11 -lm
-gcc -o gsvg gsvg.c rendmgrx.o -lmsvg -lmgrxX -lX11 -lm
-gcc -o rsvg2 rsvg2.c rendmgrx.o -lmsvg -lmgrxX -lX11 -lm
+gcc -c pathmgrx.c
+gcc -o rsvg rsvg.c rendmgrx.o pathmgrx.o -lmsvg -lmgrxX -lX11 -lm
+gcc -o gsvg gsvg.c rendmgrx.o pathmgrx.o -lmsvg -lmgrxX -lX11 -lm
+gcc -o rsvg2 rsvg2.c rendmgrx.o pathmgrx.o -lmsvg -lmgrxX -lX11 -lm
 
 Linux console:
 gcc -c rendmgrx.c
-gcc -o rsvg rsvg.c rendmgrx.o -lmsvg -lmgrx -lm
-gcc -o gsvg gsvg.c rendmgrx.o -lmsvg -lmgrx -lm
-gcc -o rsvg2 rsvg2.c rendmgrx.o -lmsvg -lmgrx -lm
+gcc -c pathmgrx.c
+gcc -o rsvg rsvg.c rendmgrx.o pathmgrx.o -lmsvg -lmgrx -lm
+gcc -o gsvg gsvg.c rendmgrx.o pathmgrx.o -lmsvg -lmgrx -lm
+gcc -o rsvg2 rsvg2.c rendmgrx.o pathmgrx.o -lmsvg -lmgrx -lm
 
 DOS (djgpp):
 gcc -c rendmgrx.c
-gcc -o rsvg.exe rsvg.c rendmgrx.o -lmsvg -lmgrx -lm
-gcc -o gsvg.exe gsvg.c rendmgrx.o -lmsvg -lmgrx -lm
-gcc -o rsvg2.exe rsvg2.c rendmgrx.o -lmsvg -lmgrx -lm
+gcc -c pathmgrx.c
+gcc -o rsvg.exe rsvg.c rendmgrx.o pathmgrx.o -lmsvg -lmgrx -lm
+gcc -o gsvg.exe gsvg.c rendmgrx.o pathmgrx.o -lmsvg -lmgrx -lm
+gcc -o rsvg2.exe rsvg2.c rendmgrx.o pathmgrx.o -lmsvg -lmgrx -lm
 
 Win32 (mingw):
 gcc -c rendmgrx.c
-gcc -o rsvg.exe rsvg.c rendmgrx.o -lmsvg -lmgrx -lm -mwindows
-gcc -o gsvg.exe gsvg.c rendmgrx.o -lmsvg -lmgrx -lm -mwindows
-gcc -o rsvg2.exe rsvg2.c rendmgrx.o -lmsvg -lmgrx -lm -mwindows
+gcc -c pathmgrx.c
+gcc -o rsvg.exe rsvg.c rendmgrx.o pathmgrx.o -lmsvg -lmgrx -lm -mwindows
+gcc -o gsvg.exe gsvg.c rendmgrx.o pathmgrx.o -lmsvg -lmgrx -lm -mwindows
+gcc -o rsvg2.exe rsvg2.c rendmgrx.o pathmgrx.o -lmsvg -lmgrx -lm -mwindows
 
 There is a simple makefile for the X11 version, run it by:
     make -f makefile.x11

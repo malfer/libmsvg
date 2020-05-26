@@ -6,7 +6,7 @@
  * In the future this will be added to MGRX
  *
  * libmsvg, a minimal library to read and write svg files
- * Copyright (C) 2010 Mariano Alvarez Fernandez (malfer at telefonica.net)
+ * Copyright (C) 2010, 2020 Mariano Alvarez Fernandez (malfer at telefonica.net)
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public

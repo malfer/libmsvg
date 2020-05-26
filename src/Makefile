@@ -13,6 +13,7 @@ LIBOBJS=tables.o \
         attribut.o \
         content.o \
         raw2cook.o \
+        scanpath.o \
         cook2raw.o \
         printree.o \
         rdsvgf.o \

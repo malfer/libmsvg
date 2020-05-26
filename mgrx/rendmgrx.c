@@ -6,7 +6,7 @@
  * In the future this will be added to MGRX
  *
  * libmsvg, a minimal library to read and write svg files
- * Copyright (C) 2010 Mariano Alvarez Fernandez (malfer at telefonica.net)
+ * Copyright (C) 2010, 2020 Mariano Alvarez Fernandez (malfer at telefonica.net)
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -31,6 +31,7 @@
 #include <mgrx.h>
 #include <msvg.h>
 #include "rendmgrx.h"
+#include "pathmgrx.h"
 
 /*
  * typedef struct _DrawSettings {
@@ -280,6 +281,69 @@ static void DrawPolygonElement(MsvgElement *el, MsvgPaintCtx *pctx)
     free(points);
 }
 
+static void DrawPathElement(MsvgElement *el, MsvgPaintCtx *pctx)
+{
+    GrColor cfill;
+    GrColor cstroke;
+    GrLineOption lopt;
+    int istroke_width;
+    MsvgSubPath *sp;
+    GrPath *gp;
+    GrExpPointArray *pa;
+    int x, y, i;
+
+    if (pctx->fill != NO_COLOR) {
+        cfill = GrAllocColor2(pctx->fill);
+    }
+    if (pctx->stroke != NO_COLOR) {
+        cstroke = GrAllocColor2(pctx->stroke);
+        istroke_width = pctx->stroke_width * glob_thick1 + 0.5;
+        lopt.lno_color = cstroke;
+        lopt.lno_width = istroke_width;
+        lopt.lno_pattlen = 0;
+        lopt.lno_dashpat = NULL;
+    }
+
+    sp = el->ppathattr->sp;
+    while (sp) {
+        gp = GrNewPath(sp->npoints);
+        if (gp) {
+            for (i=0; i< sp->npoints; i++) {
+                get_icoord(&x, &y, sp->spp[i].x, sp->spp[i].y);
+                GrAddPointToPath(gp, sp->spp[i].cmd, x, y);
+            }
+            gp->closed = sp->closed;
+            pa = GrPathToExpPointArray(gp);
+            if (pa) {
+                pa->npoints = GrReducePoints(pa->npoints, pa->points);
+                if (pa->closed) {
+                    //printf("polygon\n");
+                    if (pctx->fill != NO_COLOR) {
+                        GrFilledPolygon(pa->npoints, pa->points, cfill);
+                    }
+                    if (pctx->stroke != NO_COLOR) {
+                        if (istroke_width > 1)
+                            GrCustomPolygon(pa->npoints, pa->points, &lopt);
+                        else
+                            GrPolygon(pa->npoints, pa->points, cstroke);
+                    }
+                } else {
+                    //printf("polyline\n");
+                    if (pctx->stroke != NO_COLOR) {
+                        if (istroke_width > 1)
+                            GrCustomPolyLine(pa->npoints, pa->points, &lopt);
+                        else
+                            GrPolyLine(pa->npoints, pa->points, cstroke);
+                    }
+                }
+                GrDestroyExpPointArray(pa);
+            }
+            GrDestroyPath(gp);
+        }
+        sp = sp->next;
+    }
+}
+
 /*static void sufn(MsvgElement *el, MsvgPaintCtx *pctx)
 {
     switch (el->eid) {
@@ -309,6 +373,7 @@ static void DrawPolygonElement(MsvgElement *el, MsvgPaintCtx *pctx)
 static void sufn2(MsvgElement *el, MsvgPaintCtx *pctx)
 {
     MsvgElement *newel;
+    //int i, nsp;
 
     //printf("before ");
     //MsvgPrintCookedElement(stdout, el);
@@ -335,6 +400,22 @@ static void sufn2(MsvgElement *el, MsvgPaintCtx *pctx)
             break;
         case EID_POLYGON :
             DrawPolygonElement(newel, &(newel->pctx));
+            break;
+        case EID_PATH :
+            DrawPathElement(newel, &(newel->pctx));
+            /*nsp = MsvgCountSubPaths(newel->ppathattr->sp);
+            for (i=0; i<nsp; i++) {
+                newel2 = MsvgPathEltoPolyEl(newel, i);
+                if (newel2) {
+                    newel2->pctx.fill = NO_COLOR;
+                    newel2->pctx.stroke = 0;
+                    if (newel2->eid == EID_POLYGON)
+                        DrawPolygonElement(newel2, &(newel2->pctx));
+                    else if (newel2->eid == EID_POLYLINE)
+                        DrawPolylineElement(newel2, &(newel2->pctx));
+                    MsvgDeleteElement(newel2);
+                }
+            }*/
             break;
         default :
             break;

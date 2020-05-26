@@ -69,6 +69,8 @@ int main(int argc, char **argv)
 
     printf("===== Serialize cooked tree\n");
     MsvgSerCookedTree(root, sufn);
-    
+
+    MsvgDeleteElement(root);
+
     return 1;
 }

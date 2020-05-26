@@ -85,7 +85,7 @@ static void MsvgFreeElement(MsvgElement *el)
             free(el->ppolygonattr);
             break;
         case EID_PATH :
-            if (el->ppathattr->path) free(el->ppathattr->path);
+            if (el->ppathattr->sp) MsvgDestroySubPath(el->ppathattr->sp);
             free(el->ppathattr);
             break;
         case EID_TEXT :

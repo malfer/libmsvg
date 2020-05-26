@@ -202,6 +202,20 @@ static void printPolygonCookedAttr(FILE *f, MsvgElement *el)
 
 static void printPathCookedAttr(FILE *f, MsvgElement *el)
 {
+    MsvgSubPath *sp;
+    int i;
+
+    sp = el->ppathattr->sp;
+    while (sp) {
+        fprintf(f, "  sp             (npoints:%d closed:%d) ",
+                sp->npoints, sp->closed);
+        for (i=0; i<sp->npoints; i++) {
+            if (sp->spp[i].cmd != ' ') fprintf(f, "%c ", sp->spp[i].cmd);
+            fprintf(f, "%g,%g ", sp->spp[i].x, sp->spp[i].y);
+        }
+        fprintf(f, "\n");
+        sp = sp->next;
+    }
 }
 
 static void printTextCookedAttr(FILE *f, MsvgElement *el)

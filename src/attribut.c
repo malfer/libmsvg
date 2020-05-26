@@ -24,7 +24,7 @@
 #include <string.h>
 #include "msvg.h"
 
-int MsvgAddRawAttribute(MsvgElement *el, const char *key, const char *value)
+static int addRawAttribute(MsvgElement *el, const char *key, const char *value)
 {
     MsvgRawAttribute **dptr;
     MsvgRawAttribute *pattr;
@@ -55,6 +55,35 @@ int MsvgAddRawAttribute(MsvgElement *el, const char *key, const char *value)
     return 1;
 }
 
+int MsvgAddRawAttribute(MsvgElement *el, const char *key, const char *value)
+{
+    char *sdup, *token1, *token2;
+    
+    if (strcmp(key, "style") != 0)
+        return addRawAttribute(el, key, value);
+
+    // style is not a valid Tiny 1.2 parameter, but it is widelly used
+    sdup = strdup(value);
+    if (sdup == NULL) return 0;
+
+    token1 = strtok(sdup, ":");
+    while (token1) {
+        token2 = strtok(NULL,";");
+        if (token2) {
+            if (!addRawAttribute(el, token1, token2)) {
+                free(sdup);
+                return 0;
+            }
+        } else {
+            break;
+        }
+        token1 = strtok(NULL,":");
+    }
+
+    free(sdup);
+
+    return 1;
+}
 
 int MsvgDelRawAttribute(MsvgElement *el, const char *key)
 {
@@ -189,10 +218,10 @@ int MsvgCopyCookedAttributes(MsvgElement *desel, MsvgElement *srcel)
             }
             break;
         case EID_PATH :
-            if (desel->ppathattr->path) free (desel->ppathattr->path);
+            if (desel->ppathattr->sp) MsvgDestroySubPath(desel->ppathattr->sp);
             *(desel->ppathattr) = *(srcel->ppathattr);
-            if (srcel->ppathattr->path) {
-                desel->ppathattr->path = strdup(srcel->ppathattr->path);
+            if (srcel->ppathattr->sp) {
+                desel->ppathattr->sp = MsvgDupSubPath(srcel->ppathattr->sp);
             }
             break;
         case EID_TEXT :
