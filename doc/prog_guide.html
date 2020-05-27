@@ -6,9 +6,9 @@
 </head>
 
 <body>
-<h1>libmsvg v0.16</h1>
+<h1>libmsvg v0.17</h1>
 <h2>Programmer's guide</h2>
-<p>Last update: May 22, 2020</p>
+<p>Last update: May 27, 2020</p>
 
 <hr>
 <h2>Abstract</h2>
@@ -19,7 +19,7 @@ static SVG files.</p>
 World Wide Web Consortium (see <a href="http://www.w3.org/Graphics/SVG/">
 http://www.w3.org/Graphics/SVG/</a>).</p>
 
-<p><b>libmsvg</b> concentrates on a small subset of SVG to be useful. More
+<p><b>libmsvg</b> concentrates on a subset of SVG to be useful. More
 specifically on a subset of the <a href="http://www.w3.org/TR/SVGTiny12/">
 SVG Tiny 1.2 specification</a>. The subset is described in <a href="#appendixa">
 Appendix A</a>.</p>
@@ -570,21 +570,20 @@ with the referenced element (that can be a subtree).</p>
 <p>Another function that libmsvg provides can be called by the user function:</p>
 
 <pre>
-MsvgElement * MsvgTransformCookedElement(MsvgElement *el, MsvgPaintCtx *pctx, int bef);
+MsvgElement * MsvgTransformCookedElement(MsvgElement *el, MsvgPaintCtx *pctx,);
 </pre>
 
 <p>that process the element parameters using the current transformation matrix
 (pctx->tmatrix) and returns a new drawable element that can be of different type
 that the original one, by example if an EID_RECT has to be rotated an EID_POLYGON
-is returned. . The function adjust too the element paint context parameters and
-sets the transformation matrix to the identity matrix. Note that you have to
-delete the new element returned after using it.</p>
+or a EID_PATH (if it has rounded corners) is returned. . The function adjust
+too the element paint context parameters and sets the transformation matrix to
+the identity matrix. Note that you have to delete the new element returned after
+using it.</p>
 
-<p>There are some cases where MsvgTransformCookedElement cannot returns a properly
-transformed element (by example in this version a rotated EID_RECT with rounded
-borders). For these cases if the bef parameter (best effort) is 1, it returns the
-best transformed element it can. If bef is 0 it returns NULL and it is the user
-function responsability to manage correctly the element.</p>
+<p>If MsvgTransformCookedElement cannot returns a properly transformed element it
+returns NULL and it is the user function responsability to manage correctly the
+element.</p>
 
 <p>So using all the pieces the code to rasterize a SVG image will be like that:</p>
 
@@ -593,7 +592,7 @@ static void userfn(MsvgElement *el, MsvgPaintCtx *pctx)
 {
     MsvgElement *newel;
 
-    newel = MsvgTransformCookedElement(el, pctx, 1);
+    newel = MsvgTransformCookedElement(el, pctx);
     if (newel == NULL) return; // or manage "el" + "pctx" by coding
 
     switch (newel->eid) {
@@ -841,7 +840,7 @@ can have any attribute.</p>
     <td width=31%>
       <p>using the "rx" and "ry" raw parameters there will be populated
       the "rx_x", "rx_y", "ry_x", "ry_y" cooked parameters, storing
-      the real semi-axis points, so it will be easier to transforming
+      the real semi-axis points, so it will be easier transforming
       and rasterizing an ellipse </p>
     </td>
   </tr>
@@ -905,17 +904,17 @@ can have any attribute.</p>
   </tr>
   <tr valign=top>
     <td width=25%>
-      <p>&lt;path&gt; (TO DO)</p>
+      <p>&lt;path&gt; (ok)</p>
     </td>
     <td width=44%>
-      <p>id=&quot;valor&quot; (TO DO)</p>
-      <p>d=&quot;path-data&quot; (TO DO)</p>
-      <p>fill=&quot;color&quot; (TO DO)</p>
-      <p>fill-opacity=&quot;n&quot; (TO DO)</p>
-      <p>stroke=&quot;color&quot; (TO DO)</p>
-      <p>stroke-width=&quot;n&quot; (TO DO)</p>
-      <p>stroke-opacity=&quot;n&quot; (TO DO)</p>
-      <p>transform=&quot;transformation&quot; (TO DO)</p>
+      <p>id=&quot;valor&quot; (ok)</p>
+      <p>d=&quot;path-data&quot; (ok)</p>
+      <p>fill=&quot;color&quot; (ok)</p>
+      <p>fill-opacity=&quot;n&quot; (ok)</p>
+      <p>stroke=&quot;color&quot; (ok)</p>
+      <p>stroke-width=&quot;n&quot; (ok)</p>
+      <p>stroke-opacity=&quot;n&quot; (ok)</p>
+      <p>transform=&quot;transformation&quot; (ok)</p>
     </td>
     <td width=31%>
       <p><br></p>
@@ -946,7 +945,8 @@ can have any attribute.</p>
 
 <hr>
 <h2><a name="appendixb">Appendix B, parameters values</a></h2>
-<p>This table list the possible values that some parameters can have.</p>
+<p>This table list the possible values that some parameters can have 
+(obvious parameters are not listed).</p>
 <p>Note that these are the values that are expected when converting to a COOKED tree,
 RAW parameters can have any value.</p>
 <p>A status mark is added to each value: (ok) means it is already supported,
@@ -1058,9 +1058,25 @@ RAW parameters can have any value.</p>
       <p>points</p>
     </td>
     <td width=40%>
-      <p>x1,y1 x2,y2 ... => same values (ok)</p>
+      <p>x1,y1 x2,y2 ... => double values (ok)</p>
     </td>
     <td width=40%>
+        <p>Stored in:<br>
+        double *points; // points values<br>
+        int npoints;    // number of points</p>
+    </td>
+  </tr>
+  <tr valign=top>
+    <td width=20%>
+      <p>d</p>
+    </td>
+    <td width=40%>
+      <p>path string => linked list of normalized MsvgSubPath structs (ok)</p>
+    </td>
+    <td width=40%>
+        <p>Stored in:<br>
+        MsvgSubPath *sp;<br>
+        Normalized paths only have M (at the begining), L, C or Q commands</p>
     </td>
   </tr>
 
