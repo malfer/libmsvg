@@ -21,6 +21,7 @@ LIBOBJS=tables.o \
         serializ.o \
         tmatrix.o \
         tcookel.o \
+        path2ply.o \
         find.o \
         util.o
 

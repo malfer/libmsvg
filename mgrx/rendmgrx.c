@@ -47,6 +47,7 @@ static double glob_scale_y;
 static double glob_thick1 = 1;
 static int glob_xorg;
 static int glob_yorg;
+static GrColor glob_bg;
 
 static void get_icoord(int *x, int *y, double dx, double dy)
 {
@@ -283,7 +284,7 @@ static void DrawPolygonElement(MsvgElement *el, MsvgPaintCtx *pctx)
 
 static void DrawPathElement(MsvgElement *el, MsvgPaintCtx *pctx)
 {
-    GrColor cfill;
+    GrColor cfill, rcfill;
     GrColor cstroke;
     GrLineOption lopt;
     int istroke_width;
@@ -291,9 +292,12 @@ static void DrawPathElement(MsvgElement *el, MsvgPaintCtx *pctx)
     GrPath *gp;
     GrExpPointArray *pa;
     int x, y, i;
+    int changercfill = 0;
 
     if (pctx->fill != NO_COLOR) {
         cfill = GrAllocColor2(pctx->fill);
+        rcfill = cfill;
+        changercfill = 1;
     }
     if (pctx->stroke != NO_COLOR) {
         cstroke = GrAllocColor2(pctx->stroke);
@@ -319,7 +323,7 @@ static void DrawPathElement(MsvgElement *el, MsvgPaintCtx *pctx)
                 if (pa->closed) {
                     //printf("polygon\n");
                     if (pctx->fill != NO_COLOR) {
-                        GrFilledPolygon(pa->npoints, pa->points, cfill);
+                        GrFilledPolygon(pa->npoints, pa->points, rcfill);
                     }
                     if (pctx->stroke != NO_COLOR) {
                         if (istroke_width > 1)
@@ -339,6 +343,10 @@ static void DrawPathElement(MsvgElement *el, MsvgPaintCtx *pctx)
                 GrDestroyExpPointArray(pa);
             }
             GrDestroyPath(gp);
+        }
+        if (changercfill) {
+            rcfill = glob_bg;
+            changercfill = 0;
         }
         sp = sp->next;
     }
@@ -373,11 +381,12 @@ static void DrawPathElement(MsvgElement *el, MsvgPaintCtx *pctx)
 static void sufn2(MsvgElement *el, MsvgPaintCtx *pctx)
 {
     MsvgElement *newel;
+    //MsvgElement *newel2;
     //int i, nsp;
 
     //printf("before ");
     //MsvgPrintCookedElement(stdout, el);
-    newel = MsvgTransformCookedElement(el, pctx, 1);
+    newel = MsvgTransformCookedElement(el, pctx);
     if (newel == NULL) return;
     //printf("after ");
     //MsvgPrintCookedElement(stdout, newel);
@@ -407,8 +416,6 @@ static void sufn2(MsvgElement *el, MsvgPaintCtx *pctx)
             for (i=0; i<nsp; i++) {
                 newel2 = MsvgPathEltoPolyEl(newel, i);
                 if (newel2) {
-                    newel2->pctx.fill = NO_COLOR;
-                    newel2->pctx.stroke = 0;
                     if (newel2->eid == EID_POLYGON)
                         DrawPolygonElement(newel2, &(newel2->pctx));
                     else if (newel2->eid == EID_POLYLINE)
@@ -504,9 +511,11 @@ int DrawSVGtree(MsvgElement *root, int smode, double zoom, GrColor bg)
     glob_vb_min_x = root->psvgattr->vb_min_x * zoom;
     glob_vb_min_y = root->psvgattr->vb_min_y * zoom;
     
+    glob_bg = bg;
     if (root->psvgattr->vp_fill != NO_COLOR) {
         cfill = GrAllocColor2(root->psvgattr->vp_fill);
         GrClearContext(cfill);
+        glob_bg = cfill;
     } else if (bg != NO_COLOR) {
         GrClearContext(bg);
     }
