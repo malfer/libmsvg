@@ -23,7 +23,7 @@ static void sufn(MsvgElement *el, MsvgPaintCtx *pctx)
     MsvgElement *newel;
 
     if (usetranscooked) {
-        newel = MsvgTransformCookedElement(el, pctx, 1);
+        newel = MsvgTransformCookedElement(el, pctx);
         if (newel == NULL) return;
     } else {
         newel = el;
