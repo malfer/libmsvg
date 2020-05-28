@@ -43,3 +43,11 @@ rsvg read test.svg and render it on screen.
 gsvg generates a MsvgElemnt tree programmatically and render it on screen.
 rsvg2 is a bit more elaborated, it must be run by:
     rsvg2 filename.svg [width height bpp]
+
+License
+-------
+rendmgrx.c, rendmgrx.h, pathmgrx.c and pathmgrx.h will be part of the
+MGRX library, and are under the LGPL license, see copying.txt
+
+rsvg.x, rsvg2.c and tsvg.c are libmsvg+MGRX tests programs, and are
+in the public domain.

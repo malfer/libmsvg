@@ -4,10 +4,9 @@
  * 
  * Copyright (C) 2010, 2020 Mariano Alvarez Fernandez (malfer at telefonica.net)
  *
- * This is a test/demo file of the libmsvg library.
- * libmsvg test/demo are in the Public Domain, this apply only to test/demo
- * files, the library itself is under the terms of the GNU Library General
- * Public License.
+ * This is a test file of the libmsvg library.
+ * libmsvg test files are in the Public Domain, this apply only to test
+ * files, the library itself is under the terms of the Expat license
  *
  */
 

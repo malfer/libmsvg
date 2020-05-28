@@ -1,26 +1,16 @@
 /* gsvg.c ---- test generated svg for MGRX
  * 
- * These test programs are a dirty hack to test the libmsvg librarie with the
- * mgrx graphics library. It is NOT part of the librarie really.
+ * This is a dirty hack to test the libmsvg librarie with the MGRX
+ * graphics library. It is NOT part of the libmsvg librarie really.
  *
- * In the future this will be added to MGRX
+ * In the future this will be added to MGRX, this is why the LGPL is aplied
  *
- * libmsvg, a minimal library to read and write svg files
  * Copyright (C) 2010 Mariano Alvarez Fernandez (malfer at telefonica.net)
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Library General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Library General Public License for more details.
- *
- * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, write to the Free
- * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ * This is a test file of the libmsvg+MGRX libraries.
+ * libmsvg+MGRX test files are in the Public Domain, this apply only to test
+ * files, the libmsvg library itself is under the terms of the Expat license
+ * and the MGRX library under the LGPL license
  *
  */
 
