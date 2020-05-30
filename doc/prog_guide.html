@@ -6,16 +6,16 @@
 </head>
 
 <body>
-<h1>libmsvg v0.17</h1>
+<h1>libmsvg v0.19</h1>
 <h2>Programmer's guide</h2>
 <p>Last update: May 27, 2020</p>
 
 <hr>
 <h2>Abstract</h2>
-<p><b>libmsvg</b> is a minimal and generic C library to read and write
+<p><b>libmsvg</b> is a minimal and generic C library for reading and writing
 static SVG files.</p>
 
-<p>SVG stand for Scalable Vector Graphics, it is a standard defined by the
+<p>SVG stand for Scalable Vector Graphics. It is a standard defined by the
 World Wide Web Consortium (see <a href="http://www.w3.org/Graphics/SVG/">
 http://www.w3.org/Graphics/SVG/</a>).</p>
 
@@ -130,7 +130,7 @@ platforms:</p>
 <ul>
 	<li>Linux: gcc -o example example.c -lmsvg -lm
 	<li>DJGPP: gcc -o example.exe example.c -lmsvg -lm
-	<li>Mingw: gcc -o example.exe example.c -lmsvg -lm mconsole
+	<li>Mingw: gcc -o example.exe example.c -lmsvg -lm -mconsole
 </ul>
 
 <hr>
@@ -613,6 +613,9 @@ static void userfn(MsvgElement *el, MsvgPaintCtx *pctx)
             break;
         case EID_POLYGON :
             YourDrawPolygonElement(newel);
+            break;
+        case EID_PATH :
+            YourDrawPathElement(newel);
             break;
         default :
             break;

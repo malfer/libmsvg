@@ -38,6 +38,8 @@ typedef struct {
     int svg_found;
     int process_finished;
     int mem_error;
+    int strip_spaces;
+    int pre_space;
     MsvgElement *root;
     MsvgElement *active_element;
 } MyUserData;
@@ -78,7 +80,7 @@ static void startElement(void *userData, const char *name, const char **attr)
         }  else {
             eid = MsvgFindElementId(name);
             //      printf("element %d %d\n",mudptr->active_element->eid, eid);
-            if (!MsvgIsSupSonElementId(mudptr->active_element->eid, eid)) {
+            if (!MsvgIsSupSonElement(mudptr->active_element->eid, eid)) {
                 mudptr->skip_depth = mudptr->depth;
             } else {
                 ptr = MsvgNewElement(eid, mudptr->active_element);
@@ -111,7 +113,10 @@ static void endElement(void *userData, const char *name)
             mudptr->skip_depth = 0;
         return;
     }
-    
+
+    mudptr->strip_spaces = 1;
+    mudptr->pre_space = 0;
+
     mudptr->active_element = mudptr->active_element->father;
     
     if (mudptr->svg_found && (mudptr->depth == mudptr->svg_depth))
@@ -122,30 +127,55 @@ static void data(void *userData, const char *s, int len)
 {
     MyUserData *mudptr = userData;
     char *saux;
-    int i, fch, rlen;
+    int i, fch, rlen, presp;
 
+    if (mudptr->process_finished) return;
+    if (mudptr->skip_depth) return;
+    if (!mudptr->active_element) return;
     if (!MsvgElementCanHaveContent(mudptr->active_element->eid)) return;
+    
+    //for (i=0; i<len; i++)
+    //    printf("%2x ", s[i]);
+    //printf("\n");
 
     fch = 0;
-    for (i=0; i<len; i++) {
-        if (s[i] == '\n' || s[i] == '\t' || s[i] == ' ')
-            fch = i + 1;
-        else
-            break;
+    if (mudptr->strip_spaces) {
+        for (i=0; i<len; i++) {
+            if (s[i] == '\n' || s[i] == '\t' || s[i] == ' ')
+                fch = i + 1;
+            else
+                break;
+        }
     }
 
     if (fch >= len) return;
 
+    mudptr->strip_spaces = 0;
+
     rlen = len - fch;
-    saux = malloc((rlen+1)*sizeof(char));
+
+    if (rlen == 1 && s[fch] == 0xa) {
+        mudptr->strip_spaces = 1;
+        mudptr->pre_space = 1;
+        return;
+    }
+
+    saux = malloc((rlen+2)*sizeof(char)); // +2 because possible pre_space
     if (saux == NULL) return;
-    
-    memcpy(saux, &(s[fch]), rlen);
+
+    presp = 0;
+    if (mudptr->pre_space) {
+        saux[0] = ' ';
+        presp = 1;
+        mudptr->pre_space = 0;
+    }
+    memcpy(&(saux[presp]), &(s[fch]), rlen);
+    rlen += presp;
     saux[rlen] = '\0';
 
     //printf("  (%d) %s\n", len, saux);
 
-    MsvgAddContent(mudptr->active_element, len, saux);
+    MsvgAddContent(mudptr->active_element, rlen, saux);
 
     free(saux);
 }
@@ -157,7 +187,7 @@ MsvgElement *MsvgReadSvgFile(const char *fname, int *error)
     char buf[BUFRSIZE];
     int done;
     XML_Parser parser;
-    MyUserData mud = {1, 0, 0, 0, 0, 0, NULL, NULL};
+    MyUserData mud = {1, 0, 0, 0, 0, 0, 1, 0, NULL, NULL};
 
     *error = 0;
     // -1 error opening file

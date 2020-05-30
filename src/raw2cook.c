@@ -269,6 +269,11 @@ static void checkSvgCookedAttr(MsvgElement *el)
     if (el->psvgattr->height == 0) el->psvgattr->height = el->psvgattr->vb_height;
 }
    
+static void cookVContentGenAttr(MsvgElement *el, char *key, char *value)
+{
+    return;
+}
+
 static void checkRectCookedAttr(MsvgElement *el)
 {
     if (el->prectattr->rx == NODEFINED_VALUE &&
@@ -344,6 +349,9 @@ static void cookElement(MsvgElement *el, int depth)
                 case EID_TEXT :
                     cookTextGenAttr(el, pattr->key, pattr->value);
                     break;
+                case EID_V_CONTENT :
+                    cookVContentGenAttr(el, pattr->key, pattr->value);
+                    break;
                 default :
                     break;
             }
@@ -387,6 +395,9 @@ static void cookElement(MsvgElement *el, int depth)
             break;
         case EID_TEXT :
             //checkTextCookedAttr(el);
+            break;
+        case EID_V_CONTENT :
+            //checkVContentCookedAttr(el);
             break;
         default :
             break;

@@ -33,18 +33,28 @@ static int gbpp = 24;
 static int DrawSvgFile(char *fname, int smode, double zoom, int rotang, GrColor bg)
 {
     MsvgElement *root;
-    char s[81];
+    //char s[81];
     int error = 0;
+    double cx, cy;
+    TMatrix trot, taux;
     
     root = MsvgReadSvgFile(fname, &error);
     if (root == NULL) return error;
 
-    if (rotang != 0) {
+    /*if (rotang != 0) {
         sprintf(s, "rotate(%d %d %d)", rotang, 250, 500);
         MsvgAddRawAttribute(root, "transform", s);
-    }
+    }*/
 
     if (!MsvgRaw2CookedTree(root)) return -5;
+
+    if (rotang != 0) {
+        cx = root->psvgattr->vb_width / 2 + root->psvgattr->vb_min_x;
+        cy = root->psvgattr->vb_height / 2 + root->psvgattr->vb_min_y;
+        TMSetRotation(&trot, rotang, cx, cy);
+        taux = root->pctx.tmatrix;
+        TMMpy(&(root->pctx.tmatrix), &taux, &trot);
+    }
 
     //DrawSVGtree(root, smode, zoom, bg);
     DrawSVGtreeUsingDB(root, smode, zoom, bg);
@@ -84,10 +94,12 @@ int main(int argc,char **argv)
     
     yhelptext = GrScreenY() - 60;
     sprintf(s, "%s file renderized", fname);
-    GrTextXY(10, yhelptext+25, s, GrBlack(), GrNOCOLOR);
-    GrTextXY(10, yhelptext+40,
-             "mode: [f] [p] [s]  adj: [l] [c] [r]  zoom: [+] [-]  "
-             "rotate: [<] [>]  color: [b] [w]  quit: [q]",
+    GrTextXY(10, yhelptext+6, s, GrBlack(), GrNOCOLOR);
+    GrTextXY(10, yhelptext+24,
+             "mode: [f] [p] [s]  adj: [l] [c] [r]  bgcolor: [b] [w]  quit: [q]",
+             GrBlack(), GrNOCOLOR);
+    GrTextXY(10, yhelptext+42,
+             "zoom: [+] [-]  rotate: [<] [>]",
              GrBlack(), GrNOCOLOR);
     
     ctx = GrCreateSubContext(10, 10, GrScreenX()-10, yhelptext, NULL, NULL);

@@ -28,7 +28,7 @@
 #include <stdlib.h>
 #include "msvg.h"
 
-MsvgElement *MsvgNewGenericElement(enum EID eid, MsvgElement *father)
+static MsvgElement *MsvgNewGenericElement(enum EID eid, MsvgElement *father)
 {
     MsvgElement *element;
     MsvgElement *ptr;
@@ -64,7 +64,7 @@ MsvgElement *MsvgNewGenericElement(enum EID eid, MsvgElement *father)
     return element;
 }
 
-MsvgElement *MsvgNewSvgElement(MsvgElement *father)
+static MsvgElement *MsvgNewSvgElement(MsvgElement *father)
 {
     MsvgElement *element;
     
@@ -89,7 +89,7 @@ MsvgElement *MsvgNewSvgElement(MsvgElement *father)
     return element;
 }
 
-MsvgElement *MsvgNewDefsElement(MsvgElement *father)
+static MsvgElement *MsvgNewDefsElement(MsvgElement *father)
 {
     MsvgElement *element;
     
@@ -105,7 +105,7 @@ MsvgElement *MsvgNewDefsElement(MsvgElement *father)
     return element;
 }
 
-MsvgElement *MsvgNewGElement(MsvgElement *father)
+static MsvgElement *MsvgNewGElement(MsvgElement *father)
 {
     MsvgElement *element;
     
@@ -121,7 +121,7 @@ MsvgElement *MsvgNewGElement(MsvgElement *father)
     return element;
 }
 
-MsvgElement *MsvgNewUseElement(MsvgElement *father)
+static MsvgElement *MsvgNewUseElement(MsvgElement *father)
 {
     MsvgElement *element;
     
@@ -141,7 +141,7 @@ MsvgElement *MsvgNewUseElement(MsvgElement *father)
     return element;
 }
 
-MsvgElement *MsvgNewRectElement(MsvgElement *father)
+static MsvgElement *MsvgNewRectElement(MsvgElement *father)
 {
     MsvgElement *element;
     
@@ -164,7 +164,7 @@ MsvgElement *MsvgNewRectElement(MsvgElement *father)
     return element;
 }
 
-MsvgElement *MsvgNewCircleElement(MsvgElement *father)
+static MsvgElement *MsvgNewCircleElement(MsvgElement *father)
 {
     MsvgElement *element;
     
@@ -184,7 +184,7 @@ MsvgElement *MsvgNewCircleElement(MsvgElement *father)
     return element;
 }
 
-MsvgElement *MsvgNewEllipseElement(MsvgElement *father)
+static MsvgElement *MsvgNewEllipseElement(MsvgElement *father)
 {
     MsvgElement *element;
     
@@ -207,7 +207,7 @@ MsvgElement *MsvgNewEllipseElement(MsvgElement *father)
     return element;
 }
 
-MsvgElement *MsvgNewLineElement(MsvgElement *father)
+static MsvgElement *MsvgNewLineElement(MsvgElement *father)
 {
     MsvgElement *element;
     
@@ -228,7 +228,7 @@ MsvgElement *MsvgNewLineElement(MsvgElement *father)
     return element;
 }
 
-MsvgElement *MsvgNewPolylineElement(MsvgElement *father)
+static MsvgElement *MsvgNewPolylineElement(MsvgElement *father)
 {
     MsvgElement *element;
     
@@ -247,7 +247,7 @@ MsvgElement *MsvgNewPolylineElement(MsvgElement *father)
     return element;
 }
 
-MsvgElement *MsvgNewPolygonElement(MsvgElement *father)
+static MsvgElement *MsvgNewPolygonElement(MsvgElement *father)
 {
     MsvgElement *element;
     
@@ -266,7 +266,7 @@ MsvgElement *MsvgNewPolygonElement(MsvgElement *father)
     return element;
 }
 
-MsvgElement *MsvgNewPathElement(MsvgElement *father)
+static MsvgElement *MsvgNewPathElement(MsvgElement *father)
 {
     MsvgElement *element;
     
@@ -282,7 +282,7 @@ MsvgElement *MsvgNewPathElement(MsvgElement *father)
     return element;
 }
 
-MsvgElement *MsvgNewTextElement(MsvgElement *father)
+static MsvgElement *MsvgNewTextElement(MsvgElement *father)
 {
     MsvgElement *element;
     
@@ -300,6 +300,16 @@ MsvgElement *MsvgNewTextElement(MsvgElement *father)
     element->ptextattr->font_size = 10;
     element->ptextattr->font_family = NULL;
 
+    return element;
+}
+
+static MsvgElement *MsvgNewVContentElement(MsvgElement *father)
+{
+    MsvgElement *element;
+    
+    element = MsvgNewGenericElement(EID_V_CONTENT, father);
+    if (element == NULL) return NULL;
+    
     return element;
 }
 
@@ -343,6 +353,9 @@ MsvgElement *MsvgNewElement(enum EID eid, MsvgElement *father)
             break;
         case EID_TEXT :
             element = MsvgNewTextElement(father);
+            break;
+        case EID_V_CONTENT :
+            element = MsvgNewVContentElement(father);
             break;
         default :
             return NULL;

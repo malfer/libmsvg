@@ -39,6 +39,21 @@ static void printRawAttribute(FILE *f, MsvgRawAttribute *el)
 
 static void printContents(FILE *f, MsvgElement *el, int depth)
 {
+    int i;
+   
+    if (el->fcontent == NULL) return;
+
+    if (depth > 0) {
+        for (i=0; i<depth; i++)
+            fputs("  |", f);
+        fputs("   ", f);
+    }
+    fprintf(f, "(%d) %s\n", el->fcontent->len, el->fcontent->s);
+}
+
+/*static void printContents(FILE *f, MsvgElement *el, int depth)
+{
+    // linked list of contents version
     MsvgContent *cnt;
      int i;
    
@@ -52,7 +67,7 @@ static void printContents(FILE *f, MsvgElement *el, int depth)
         fprintf(f, "(%d) %s\n", cnt->len, cnt->s);
         cnt = cnt->ncontent;
     }
-}
+}*/
 
 void MsvgPrintRawElementTree(FILE *f, MsvgElement *el, int depth)
 {
@@ -231,6 +246,11 @@ static void printTextCookedAttr(FILE *f, MsvgElement *el)
     fprintf(f, "  font_family    %s\n", el->ptextattr->font_family);
 }
 
+static void printVContentCookedAttr(FILE *f, MsvgElement *el)
+{
+    return;
+}
+
 void MsvgPrintCookedElement(FILE *f, MsvgElement *el)
 {
     fprintf(f, "%s", MsvgFindElementName(el->eid));
@@ -275,6 +295,9 @@ void MsvgPrintCookedElement(FILE *f, MsvgElement *el)
             break;
         case EID_TEXT :
             printTextCookedAttr(f, el);
+            break;
+        case EID_V_CONTENT :
+            printVContentCookedAttr(f, el);
             break;
         default :
             break;

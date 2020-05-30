@@ -31,6 +31,53 @@
 
 int MsvgAddContent(MsvgElement *el, int len, char *cnt)
 {
+    MsvgContent *pcnt;
+    int olen, nlen;
+    
+    if (el->fcontent == NULL) {
+        pcnt = calloc(1, sizeof(MsvgContent)+len*sizeof(char));
+        if (pcnt == NULL) return 0;
+        pcnt->len = len;
+        strncpy(pcnt->s, cnt, len);
+        pcnt->s[len] = '\0';
+        el->fcontent = pcnt;
+    } else {
+        olen = el->fcontent->len;
+        nlen = olen + len;
+        pcnt = realloc(el->fcontent, sizeof(MsvgContent)+nlen*sizeof(char));
+        if (pcnt == NULL) return 0;
+        pcnt->len = nlen;
+        strncpy(&(pcnt->s[olen]), cnt, len);
+        pcnt->s[nlen] = '\0';
+        el->fcontent = pcnt;
+    }
+
+    return 1;
+}
+
+int MsvgDelContents(MsvgElement *el)
+{
+    if (el->fcontent != NULL) {
+        free(el->fcontent);
+        return 1;
+    }
+
+    return 0;
+}
+
+int MsvgCopyContents(MsvgElement *desel, MsvgElement *srcel)
+{
+    if (srcel->fcontent == NULL) return 0;
+
+    if (desel->fcontent != NULL) MsvgDelContents(desel);
+
+    return MsvgAddContent(desel, srcel->fcontent->len, srcel->fcontent->s);;
+}
+
+// linked list of contents version
+/*
+int MsvgAddContent(MsvgElement *el, int len, char *cnt)
+{
     MsvgContent **dpcnt;
     MsvgContent *pcnt;
     
@@ -81,3 +128,4 @@ int MsvgCopyContents(MsvgElement *desel, MsvgElement *srcel)
     
     return copied;
 }
+*/

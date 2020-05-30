@@ -97,6 +97,8 @@ static void MsvgFreeElement(MsvgElement *el)
             if (el->ptextattr->font_family) free(el->ptextattr->font_family);
             free(el->ptextattr);
             break;
+        case EID_V_CONTENT :
+            break;
         default :
             break; // TODO: test error
     }
@@ -123,7 +125,7 @@ int MsvgInsertSonElement(MsvgElement *el, MsvgElement *father)
     MsvgElement *ptr;
     
     if (father == NULL) return 0;
-    if (!MsvgIsSupSonElementId(father->eid, el->eid)) return 0;
+    if (!MsvgIsSupSonElement(father->eid, el->eid)) return 0;
     
     el->father = father;
     el->psibling = el->nsibling = NULL;

@@ -320,6 +320,23 @@ static MsvgElement * transCookPath(MsvgElement *el, MsvgPaintCtx *cpctx)
     return newel;
 }
 
+static MsvgElement * transCookText(MsvgElement *el, MsvgPaintCtx *cpctx)
+{
+    MsvgElement *newel;
+
+    newel = MsvgDupElement(el);
+    if (newel == NULL) return NULL;
+
+    setElPctx(newel, cpctx);
+
+    if (TMIsIdentity(&(cpctx->tmatrix))) return newel;
+    
+    TMTransformCoord(&(newel->ptextattr->x), &(newel->ptextattr->y),
+                     &(cpctx->tmatrix));
+
+    return newel;
+}
+
 MsvgElement * MsvgTransformCookedElement(MsvgElement *el, MsvgPaintCtx *pctx)
 {
     switch (el->eid) {
@@ -337,6 +354,8 @@ MsvgElement * MsvgTransformCookedElement(MsvgElement *el, MsvgPaintCtx *pctx)
             return transCookPolygon(el, pctx);
         case EID_PATH :
             return transCookPath(el, pctx);
+        case EID_TEXT :
+            return transCookText(el, pctx);
         default :
             return NULL;
     }

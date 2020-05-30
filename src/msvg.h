@@ -30,7 +30,7 @@
 
 #include <stdio.h>
 
-#define LIBMSVG_VERSION_API 0x0018
+#define LIBMSVG_VERSION_API 0x0019
 
 /* define id's for supported elements */
 
@@ -48,15 +48,17 @@ enum EID {
     EID_POLYGON,
     EID_PATH,
     EID_TEXT,
-    EID_LAST = EID_TEXT
+    EID_V_CONTENT, // defined but not used by now
+    EID_LAST = EID_V_CONTENT
 };
 
 /* functions in tables.c */
 
 enum EID MsvgFindElementId(const char *ename);
 char * MsvgFindElementName(enum EID eid);
-int MsvgIsSupSonElementId(enum EID fatherid, enum EID sonid);
+int MsvgIsSupSonElement(enum EID fatherid, enum EID sonid);
 int MsvgElementCanHaveContent(enum EID eid);
+int MsvgIsVirtualElement(enum EID eid);
 
 /* define types of svg trees */
 
@@ -112,7 +114,9 @@ typedef struct _MsvgRawAttribute {
 typedef struct _MsvgConten *MsvgContentPtr;
 
 typedef struct _MsvgConten {
-    MsvgContentPtr ncontent; /* next content */
+    // By now only one content, not sure in the future, when elements between
+    // contents are allowed, it can be nested contents or virtual elements
+    //MsvgContentPtr ncontent; /* next content */
     int len;                 /* len content */
     char s[1];               /* content (real size = len+1) */
 } MsvgContent;
