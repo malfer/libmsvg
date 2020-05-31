@@ -1,4 +1,4 @@
-Welcome to libmsvg version 0.18
+Welcome to libmsvg version 0.19
 
 libmsvg is a work in progress to make a minimal and generic library to read
 and write SVG files.
@@ -33,7 +33,7 @@ libmsvg installation instructions
 Requirements:
 -------------
 
-  The source files:  libmsvg0018.tar.gz or msvg0018.zip
+  The source files:  libmsvg0019.tar.gz or msvg0019.zip
   This document:     readme
 
 A. Unpacking the libmsvg archive
@@ -52,9 +52,9 @@ A. Unpacking the libmsvg archive
 
   3) unpack the libmsvg archive:
 
-         tar xzvf libmsvg0018.tar.gz
+         tar xzvf libmsvg0019.tar.gz
      or
-         unzip msvg0018.zip
+         unzip msvg0019.zip
 
      This will create the subdirectory 'libmsvg'.
 
@@ -103,9 +103,10 @@ D. Installing libmsvg
 Help
 ====
 
-  Read the programmer's guide in the 'doc' subdir.
+  Read the programmer's guide in the 'doc' subdir or online 
+  http://www.fgrim.com/libmsvg/prog_guide.html
 
-  Check the libmsvg site (www.fgrim.com/libmsvg) for updates, tips, ... 
+  Check the libmsvg site http://www.fgrim.com/libmsvg for updates, etc 
 
   Send me a mail <malfer at telefonica.net>
 
@@ -118,5 +119,5 @@ License
   the 'mgrx' subdir is not part of libmsvg, some day it will be part of
   the MGRX library under the LGPL license.
 
-Enjoy, Mariano Alvarez <malfer at telefonica.net>
+Enjoy, Mariano Alvarez
 

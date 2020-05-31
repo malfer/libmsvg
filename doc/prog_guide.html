@@ -8,7 +8,7 @@
 <body>
 <h1>libmsvg v0.19</h1>
 <h2>Programmer's guide</h2>
-<p>Last update: May 27, 2020</p>
+<p>Last update: May 31, 2020</p>
 
 <hr>
 <h2>Abstract</h2>
@@ -90,9 +90,9 @@ int main(int argc, char **argv)
     MsvgElement *root, *son;
 
     root = MsvgNewElement(EID_SVG, NULL);
-    MsvgAddRawAttribute(root, "xmlns", "http://www.w3.org/2000/svg");
     MsvgAddRawAttribute(root, "version", "1.2");
     MsvgAddRawAttribute(root, "baseProfile", "tiny");
+    MsvgAddRawAttribute(root, "xmlns", "http://www.w3.org/2000/svg");
     MsvgAddRawAttribute(root, "viewBox", "0 0 400 400");
 
     son = MsvgNewElement(EID_RECT, root);
@@ -168,9 +168,10 @@ attributes are processed and converted to cooked attributes. In this state the t
 is easier to be manipulated and/or rasterized by a program.</p>
 
 <h3>Content</h3>
-<p>In addition to attributes an element can have one or more contents, the contents
-are stored in a simple linked list. In this version of the library only EID_TEXT
-element contents are stored in the tree.</p>
+<p>In addition to attributes an element can have content, content
+is stored in a MsvgContent variable, and it is shared by RAW and SHARED trees.
+In this version of the library only EID_TEXT element contents are stored in the
+tree.</p>
 
 <hr>
 <h2><a name="element">The MsvgElement structure</a></h2>
@@ -187,7 +188,7 @@ typedef struct _MsvgElement {
     MsvgElementPtr fson;        /* pointer to first son element */
 
     MsvgRawAttributePtr frattr; /* pointer to first raw attribute */
-    MsvgContentPtr fcontent;    /* pointer to first content */
+    MsvgContentPtr fcontent;    /* pointer to content */
 
     /* cooked generic attributes */
     char *id;                   /* id attribute */
@@ -196,17 +197,17 @@ typedef struct _MsvgElement {
     /* cooked specific attributes */
     union {
         MsvgSvgAttributes *psvgattr;
+        MsvgDefsAttributes *pdefsattr;
         MsvgGAttributes *pgattr;
+        MsvgUseAttributes *puseattr;
         MsvgRectAttributes *prectattr;
         MsvgCircleAttributes *pcircleattr;
         MsvgEllipseAttributes *pellipseattr;
         MsvgLineAttributes *plineattr;
         MsvgPolylineAttributes *ppolylineattr;
         MsvgPolygonAttributes *ppolygonattr;
-        MsvgTextAttributes *ptextattr;
-        MsvgDefsAttributes *pdefsattr;
         MsvgPathAttributes *ppathattr;
-        MsvgUseAttributes *puseattr;
+        MsvgTextAttributes *ptextattr;
     };
 } MsvgElement;
 </pre>
@@ -223,13 +224,9 @@ typedef struct _MsvgRawAttribute {
 } MsvgRawAttribute;
 </pre>
 
-<p>Similarly contents are stored in a simple linked list of MsvgContent
-variables:</p>
+<p>Content is stored in a MsvgContent variable:</p>
 <pre>
-typedef struct _MsvgConten *MsvgContentPtr;
-
 typedef struct _MsvgConten {
-    MsvgContentPtr ncontent; /* next content */
     int len;                 /* len content */
     char s[1];               /* content (not actual size) */
 } MsvgContent;
@@ -249,15 +246,20 @@ typedef struct _MsvgPaintCtx {
     double stroke_width;   /* stroke-width attribute */
     double stroke_opacity; /* stroke-opacity attribute */
     TMatrix tmatrix;       /* transformation matrix */
+    int font_family;       /* font-family attribute */
+    int font_style;        /* font-style attribute */
+    int font_weight;       /* font-weight attribute */
+    int font_size;         /* font-size attribute */
 } MsvgPaintCtx;
 </pre>
 
 <p>it is important to note that all attributes in the MsvgPaintCtx can
 be inherited from his father element. This can be do explicitly with the value
-INHERIT_COLOR (for colors) or INHERIT_VALUE (for doubles), that correspond
-to the raw keyword value "inherit", or implicitly when
-the value is NODEFINED_COLOR (for colors) or NODEFINED_VALUE, that occurs when
-the raw value is not defined, and the father value is defined.</p>
+INHERIT_COLOR (for colors) INHERIT_VALUE (for doubles) or INHERIT_IVALUE
+(for ints), that correspond to the raw keyword value "inherit", or implicitly
+when the value is NODEFINED_COLOR (for colors) NODEFINED_VALUE (for doubles)
+or NODEFINED_IVALUE (for ints), that occurs when the raw value is not defined
+and the father value is defined.</p>
 
 <p>fill and stroke colors can have the value NO_COLOR, that correspond
 to the raw keyword value "none" that means fill or stroke must not be done.</p>
@@ -266,6 +268,8 @@ to the raw keyword value "none" that means fill or stroke must not be done.</p>
 rasterizing any element it is neceary to calculate the Current Transformation
 Matrix, multiplying all the ancestors transformation matrix in order and
 finally with the own element transformation matrix.</p>
+
+<p>Values that can be converted from raw to cooked are listend in Appendix B.</p>
 
 <p>Cooked specific attributes are different for each element type id and are stored
 in a union, you can inspect each one in the msvg.h include file.</p>
@@ -325,9 +329,10 @@ RAW_SVGTREE.</p>
 drawing limits using the MsvgAddRawAttribute function.</p>
 
 <pre>
-    MsvgAddRawAttribute(root, "xmlns", "http://www.w3.org/2000/svg");
     MsvgAddRawAttribute(root, "version", "1.2");
     MsvgAddRawAttribute(root, "baseProfile", "tiny");
+    MsvgAddRawAttribute(root, "xmlns", "http://www.w3.org/2000/svg");
+    MsvgAddRawAttribute(root, "xmlns:xlink", "http://www.w3.org/1999/xlink");
     MsvgAddRawAttribute(root, "viewBox", "0 0 400 400");
 </pre>
 
@@ -659,18 +664,17 @@ only tree you need to use the MsvgCooked2RawTree funtion first:</p>
 
 <p>Note that after call  MsvgCooked2RawTree you continue to have a COOKED tree, but
 with all the raw parameters populated. Because the function doesn't delete any
-previous raw parameters, it is good idea to delete them in advance</p>
+previous raw parameters, it is good idea to delete them in advance.</p>
 
 <hr>
 <h2><a name="appendixa">Appendix A, the libmsvg SVG subset</a></h2>
-<p>This table lists the SVG elementes and attributes that will be
+<p>This table lists the SVG elements and attributes that are intended to be
 supported when libmsvg reaches version 0.20.</p>
 <p>Each row lists an element, the supported attributes and the
 possible child elements.</p>
 <p>Note that attributes listed only affects to COOKED trees, RAW trees
 can have any attribute.</p>
-<p>A status mark is added to each attribute: (ok) means it is already supported,
-(TO DO) means... you know: to do.</p>
+<p>A status mark (TO DO) means... you know: to do.</p>
 
 <table width=100% border=1 cellpadding=4 cellspacing=3>
   <tr valign=top>
@@ -689,23 +693,29 @@ can have any attribute.</p>
       <p>&lt;svg&gt;</p>
     </td>
     <td width=44%>
-      <p>xmlns=&quot;http://www.w3.org/2000/svg&quot; (fixed value)</p>
       <p>version=&quot;1.2&quot; (fixed value)</p>
       <p>baseprofile=&quot;tiny&quot; (fixed value)</p>
-      <p>viewbox=&quot;min-x min-y width height&quot; (ok)</p>
+      <p>xmlns=&quot;http://www.w3.org/2000/svg&quot; (fixed value)</p>
+      <p>xmlns:xlink=&quot;http://www.w3.org/1999/xlink&quot; (fixed value)</p>
+      <p>---  ---</p>
+      <p>viewbox=&quot;min-x min-y width height&quot;</p>
       <p>width=&quot;width&quot; (need to record units)</p>
       <p>height=&quot;height&quot; (need to record units)</p>
       <p>preserveaspectratio=&quot;valor&quot; (TO DO)</p>
-      <p>viewport-fill=&quot;color&quot; (ok)</p>
-      <p>viewport-fill-opacity=&quot;n&quot; (ok)</p>
-      <p>id=&quot;valor&quot; (ok)</p>
+      <p>viewport-fill=&quot;color&quot;</p>
+      <p>viewport-fill-opacity=&quot;n&quot;</p>
+      <p>id=&quot;value&quot;</p>
       <p>--- for inheritance ---</p>
-      <p>fill=&quot;color&quot; (ok)</p>
-      <p>fill-opacity=&quot;n&quot; (ok)</p>
-      <p>stroke=&quot;color&quot; (ok)</p>
-      <p>stroke-width=&quot;n&quot; (ok)</p>
-      <p>stroke-opacity=&quot;n&quot; (ok)</p>
-      <p>transform=&quot;transformation&quot; (ok)</p>
+      <p>fill=&quot;color&quot;</p>
+      <p>fill-opacity=&quot;n&quot;</p>
+      <p>stroke=&quot;color&quot;</p>
+      <p>stroke-width=&quot;n&quot;</p>
+      <p>stroke-opacity=&quot;n&quot;</p>
+      <p>transform=&quot;transformation&quot;</p>
+      <p>font-family=&quot;value&quot;</p>
+      <p>font-style=&quot;value&quot;</p>
+      <p>font-weight=&quot;value&quot;</p>
+      <p>font-size=&quot;value&quot;</p>
     </td>
     <td width=31%>
       <p>-- possible child elements --
@@ -719,14 +729,18 @@ can have any attribute.</p>
       <p>&lt;defs&gt;</p>
     </td>
     <td width=44%>
-      <p>id=&quot;valor&quot; (ok)</p>
+      <p>id=&quot;value&quot;</p>
       <p>--- for inheritance ---</p>
-      <p>fill=&quot;color&quot; (ok)</p>
-      <p>fill-opacity=&quot;n&quot; (ok)</p>
-      <p>stroke=&quot;color&quot; (ok)</p>
-      <p>stroke-width=&quot;n&quot; (ok)</p>
-      <p>stroke-opacity=&quot;n&quot; (ok)</p>
-      <p>transform=&quot;transformation&quot; (ok)</p>
+      <p>fill=&quot;color&quot;</p>
+      <p>fill-opacity=&quot;n&quot;</p>
+      <p>stroke=&quot;color&quot;</p>
+      <p>stroke-width=&quot;n&quot;</p>
+      <p>stroke-opacity=&quot;n&quot;</p>
+      <p>transform=&quot;transformation&quot;</p>
+      <p>font-family=&quot;value&quot;</p>
+      <p>font-style=&quot;value&quot;</p>
+      <p>font-weight=&quot;value&quot;</p>
+      <p>font-size=&quot;value&quot;</p>
     </td>
     <td width=31%>
       <p>-- possible child elements --
@@ -740,14 +754,18 @@ can have any attribute.</p>
       <p>&lt;g&gt;</p>
     </td>
     <td width=44%>
-      <p>id=&quot;valor&quot; (ok)</p>
+      <p>id=&quot;value&quot;</p>
       <p>--- for inheritance ---</p>
-      <p>fill=&quot;color&quot; (ok)</p>
-      <p>fill-opacity=&quot;n&quot; (ok)</p>
-      <p>stroke=&quot;color&quot; (ok)</p>
-      <p>stroke-width=&quot;n&quot; (ok)</p>
-      <p>stroke-opacity=&quot;n&quot; (ok)</p>
-      <p>transform=&quot;transformation&quot; (ok)</p>
+      <p>fill=&quot;color&quot;</p>
+      <p>fill-opacity=&quot;n&quot;</p>
+      <p>stroke=&quot;color&quot;</p>
+      <p>stroke-width=&quot;n&quot;</p>
+      <p>stroke-opacity=&quot;n&quot;</p>
+      <p>transform=&quot;transformation&quot;</p>
+      <p>font-family=&quot;value&quot;</p>
+      <p>font-style=&quot;value&quot;</p>
+      <p>font-weight=&quot;value&quot;</p>
+      <p>font-size=&quot;value&quot;</p>
     </td>
     <td width=31%>
       <p>-- possible child elements --
@@ -761,19 +779,23 @@ can have any attribute.</p>
       <p>&lt;use&gt;</p>
     </td>
     <td width=44%>
-      <p>xlink:href =&quot;#id&quot; (ok)</p>
-      <p>x=&quot;n&quot; (ok)</p>
-      <p>y=&quot;n&quot; (ok)</p>
+      <p>xlink:href =&quot;#id&quot;</p>
+      <p>x=&quot;n&quot;</p>
+      <p>y=&quot;n&quot;</p>
       <p>--- for inheritance ---</p>
-      <p>fill=&quot;color&quot; (ok)</p>
-      <p>fill-opacity=&quot;n&quot; (ok)</p>
-      <p>stroke=&quot;color&quot; (ok)</p>
-      <p>stroke-width=&quot;n&quot; (ok)</p>
-      <p>stroke-opacity=&quot;n&quot; (ok)</p>
-      <p>transform=&quot;transformation&quot; (ok)</p>
+      <p>fill=&quot;color&quot;</p>
+      <p>fill-opacity=&quot;n&quot;</p>
+      <p>stroke=&quot;color&quot;</p>
+      <p>stroke-width=&quot;n&quot;</p>
+      <p>stroke-opacity=&quot;n&quot;</p>
+      <p>transform=&quot;transformation&quot;</p>
+      <p>font-family=&quot;value&quot;</p>
+      <p>font-style=&quot;value&quot;</p>
+      <p>font-weight=&quot;value&quot;</p>
+      <p>font-size=&quot;value&quot;</p>
     </td>
     <td width=31%>
-      <p>only a local reference is supported, it will be stored
+      <p>Only local references are supported, stored
       in the "refel" cooked parameter.
       </p>
     </td>
@@ -783,19 +805,19 @@ can have any attribute.</p>
       <p>&lt;rect&gt;</p>
     </td>
     <td width=44%>
-      <p>id=&quot;valor&quot; (ok)</p>
-      <p>x=&quot;n&quot; (ok)</p>
-      <p>y=&quot;n&quot; (ok)</p>
-      <p>width=&quot;n&quot; (ok)</p>
-      <p>height=&quot;n&quot; (ok)</p>
-      <p>rx=&quot;n&quot; (ok)</p>
-      <p>ry=&quot;n&quot; (ok)</p>
-      <p>fill=&quot;color&quot; (ok)</p>
-      <p>fill-opacity=&quot;n&quot; (ok)</p>
-      <p>stroke=&quot;color&quot; (ok)</p>
-      <p>stroke-width=&quot;n&quot; (ok)</p>
-      <p>stroke-opacity=&quot;n&quot; (ok)</p>
-      <p>transform=&quot;transformation&quot; (ok)</p>
+      <p>id=&quot;value&quot;</p>
+      <p>x=&quot;n&quot;</p>
+      <p>y=&quot;n&quot;</p>
+      <p>width=&quot;n&quot;</p>
+      <p>height=&quot;n&quot;</p>
+      <p>rx=&quot;n&quot;</p>
+      <p>ry=&quot;n&quot;</p>
+      <p>fill=&quot;color&quot;</p>
+      <p>fill-opacity=&quot;n&quot;</p>
+      <p>stroke=&quot;color&quot;</p>
+      <p>stroke-width=&quot;n&quot;</p>
+      <p>stroke-opacity=&quot;n&quot;</p>
+      <p>transform=&quot;transformation&quot;</p>
     </td>
     <td width=31%>
       <p><br>
@@ -807,16 +829,16 @@ can have any attribute.</p>
       <p>&lt;circle&gt;</p>
     </td>
     <td width=44%>
-      <p>id=&quot;valor&quot; (ok)</p>
-      <p>cx=&quot;n&quot; (ok)</p>
-      <p>cy=&quot;n&quot; (ok)</p>
-      <p>r=&quot;n&quot; (ok)</p>
-      <p>fill=&quot;color&quot; (ok)</p>
-      <p>fill-opacity=&quot;n&quot; (ok)</p>
-      <p>stroke=&quot;color&quot; (ok)</p>
-      <p>stroke-width=&quot;n&quot; (ok)</p>
-      <p>stroke-opacity=&quot;n&quot; (ok)</p>
-      <p>transform=&quot;transformation&quot; (ok)</p>
+      <p>id=&quot;value&quot;</p>
+      <p>cx=&quot;n&quot;</p>
+      <p>cy=&quot;n&quot;</p>
+      <p>r=&quot;n&quot;</p>
+      <p>fill=&quot;color&quot;</p>
+      <p>fill-opacity=&quot;n&quot;</p>
+      <p>stroke=&quot;color&quot;</p>
+      <p>stroke-width=&quot;n&quot;</p>
+      <p>stroke-opacity=&quot;n&quot;</p>
+      <p>transform=&quot;transformation&quot;</p>
     </td>
     <td width=31%>
       <p><br>
@@ -828,23 +850,24 @@ can have any attribute.</p>
       <p>&lt;ellipse&gt;</p>
     </td>
     <td width=44%>
-      <p>id=&quot;valor&quot; (ok)</p>
-      <p>cx=&quot;n&quot; (ok)</p>
-      <p>cy=&quot;n&quot; (ok)</p>
-      <p>rx=&quot;n&quot; (ok)</p>
-      <p>ry=&quot;n&quot; (ok)</p>
-      <p>fill=&quot;color&quot; (ok)</p>
-      <p>fill-opacity=&quot;n&quot; (ok)</p>
-      <p>stroke=&quot;color&quot; (ok)</p>
-      <p>stroke-width=&quot;n&quot; (ok)</p>
-      <p>stroke-opacity=&quot;n&quot; (ok)</p>
-      <p>transform=&quot;transformation&quot; (ok)</p>
+      <p>id=&quot;value&quot;</p>
+      <p>cx=&quot;n&quot;</p>
+      <p>cy=&quot;n&quot;</p>
+      <p>rx=&quot;n&quot;</p>
+      <p>ry=&quot;n&quot;</p>
+      <p>fill=&quot;color&quot;</p>
+      <p>fill-opacity=&quot;n&quot;</p>
+      <p>stroke=&quot;color&quot;</p>
+      <p>stroke-width=&quot;n&quot;</p>
+      <p>stroke-opacity=&quot;n&quot;</p>
+      <p>transform=&quot;transformation&quot;</p>
     </td>
     <td width=31%>
-      <p>using the "rx" and "ry" raw parameters there will be populated
-      the "rx_x", "rx_y", "ry_x", "ry_y" cooked parameters, storing
-      the real semi-axis points, so it will be easier transforming
-      and rasterizing an ellipse </p>
+      <p>Using "rx", "ry" and "cx", "cy" raw parameters there will be
+      calculated the "rx_x", "rx_y", "ry_x", "ry_y" cooked parameters,
+      storing the real semi-axis points, so it will be easier transforming
+      and rasterizing an ellipse.
+      </p>
     </td>
   </tr>
   <tr valign=top>
@@ -852,15 +875,15 @@ can have any attribute.</p>
       <p>&lt;line&gt;</p>
     </td>
     <td width=44%>
-      <p>id=&quot;valor&quot; (ok)</p>
-      <p>x1=&quot;n&quot; (ok)</p>
-      <p>y1=&quot;n&quot; (ok)</p>
-      <p>x2=&quot;n&quot; (ok)</p>
-      <p>y2=&quot;n&quot; (ok)</p>
-      <p>stroke=&quot;color&quot; (ok)</p>
-      <p>stroke-width=&quot;n&quot; (ok)</p>
-      <p>stroke-opacity=&quot;n&quot; (ok)</p>
-      <p>transform=&quot;transformation&quot; (ok)</p>
+      <p>id=&quot;value&quot;</p>
+      <p>x1=&quot;n&quot;</p>
+      <p>y1=&quot;n&quot;</p>
+      <p>x2=&quot;n&quot;</p>
+      <p>y2=&quot;n&quot;</p>
+      <p>stroke=&quot;color&quot;</p>
+      <p>stroke-width=&quot;n&quot;</p>
+      <p>stroke-opacity=&quot;n&quot;</p>
+      <p>transform=&quot;transformation&quot;</p>
     </td>
     <td width=31%>
       <p><br>
@@ -872,14 +895,14 @@ can have any attribute.</p>
       <p>&lt;polyline&gt;</p>
     </td>
     <td width=44%>
-      <p>id=&quot;valor&quot; (ok)</p>
-      <p>points=&quot;data&quot; (ok)</p>
-      <p>fill=&quot;color&quot; (ok)</p>
-      <p>fill-opacity=&quot;n&quot; (ok)</p>
-      <p>stroke=&quot;color&quot; (ok)</p>
-      <p>stroke-width=&quot;n&quot; (ok)</p>
-      <p>stroke-opacity=&quot;n&quot; (ok)</p>
-      <p>transform=&quot;transformation&quot; (ok)</p>
+      <p>id=&quot;value&quot;</p>
+      <p>points=&quot;data&quot;</p>
+      <p>fill=&quot;color&quot;</p>
+      <p>fill-opacity=&quot;n&quot;</p>
+      <p>stroke=&quot;color&quot;</p>
+      <p>stroke-width=&quot;n&quot;</p>
+      <p>stroke-opacity=&quot;n&quot;</p>
+      <p>transform=&quot;transformation&quot;</p>
     </td>
     <td width=31%>
       <p><br>
@@ -891,14 +914,14 @@ can have any attribute.</p>
       <p>&lt;polygon&gt;</p>
     </td>
     <td width=44%>
-      <p>id=&quot;valor&quot; (ok)</p>
-      <p>points=&quot;data&quot; (ok)</p>
-      <p>fill=&quot;color&quot; (ok)</p>
-      <p>fill-opacity=&quot;n&quot; (ok)</p>
-      <p>stroke=&quot;color&quot; (ok)</p>
-      <p>stroke-width=&quot;n&quot; (ok)</p>
-      <p>stroke-opacity=&quot;n&quot; (ok)</p>
-      <p>transform=&quot;transformation&quot; (ok)</p>
+      <p>id=&quot;value&quot;</p>
+      <p>points=&quot;data&quot;</p>
+      <p>fill=&quot;color&quot;</p>
+      <p>fill-opacity=&quot;n&quot;</p>
+      <p>stroke=&quot;color&quot;</p>
+      <p>stroke-width=&quot;n&quot;</p>
+      <p>stroke-opacity=&quot;n&quot;</p>
+      <p>transform=&quot;transformation&quot;</p>
     </td>
     <td width=31%>
       <p><br>
@@ -907,17 +930,17 @@ can have any attribute.</p>
   </tr>
   <tr valign=top>
     <td width=25%>
-      <p>&lt;path&gt; (ok)</p>
+      <p>&lt;path&gt;</p>
     </td>
     <td width=44%>
-      <p>id=&quot;valor&quot; (ok)</p>
-      <p>d=&quot;path-data&quot; (ok)</p>
-      <p>fill=&quot;color&quot; (ok)</p>
-      <p>fill-opacity=&quot;n&quot; (ok)</p>
-      <p>stroke=&quot;color&quot; (ok)</p>
-      <p>stroke-width=&quot;n&quot; (ok)</p>
-      <p>stroke-opacity=&quot;n&quot; (ok)</p>
-      <p>transform=&quot;transformation&quot; (ok)</p>
+      <p>id=&quot;value&quot;</p>
+      <p>d=&quot;path-data&quot;</p>
+      <p>fill=&quot;color&quot;</p>
+      <p>fill-opacity=&quot;n&quot;</p>
+      <p>stroke=&quot;color&quot;</p>
+      <p>stroke-width=&quot;n&quot;</p>
+      <p>stroke-opacity=&quot;n&quot;</p>
+      <p>transform=&quot;transformation&quot;</p>
     </td>
     <td width=31%>
       <p><br></p>
@@ -925,23 +948,25 @@ can have any attribute.</p>
   </tr>
   <tr valign=top>
     <td width=25%>
-      <p>&lt;text&gt; (TO DO)</p>
+      <p>&lt;text&gt;</p>
     </td>
     <td width=44%>
-      <p>id=&quot;valor&quot; (TO DO)</p>
-      <p>x=&quot;n&quot; (TO DO)</p>
-      <p>y=&quot;n&quot; (TO DO)</p>
-      <p>font-size=&quot;n&quot; (TO DO)</p>
-      <p>font-family=&quot;string&quot; (TO DO)</p>
-      <p>fill=&quot;color&quot; (TO DO)</p>
-      <p>fill-opacity=&quot;n&quot; (TO DO)</p>
-      <p>stroke=&quot;color&quot; (TO DO)</p>
-      <p>stroke-width=&quot;n&quot; (TO DO)</p>
-      <p>stroke-opacity=&quot;n&quot; (TO DO)</p>
-      <p>transform=&quot;transformation&quot; (TO DO)</p>
+      <p>id=&quot;value&quot;</p>
+      <p>x=&quot;n&quot;</p>
+      <p>y=&quot;n&quot;</p>
+      <p>fill=&quot;color&quot;</p>
+      <p>fill-opacity=&quot;n&quot;</p>
+      <p>stroke=&quot;color&quot;</p>
+      <p>stroke-width=&quot;n&quot;</p>
+      <p>stroke-opacity=&quot;n&quot;</p>
+      <p>transform=&quot;transformation&quot;</p>
+      <p>font-family=&quot;value&quot;</p>
+      <p>font-style=&quot;value&quot;</p>
+      <p>font-weight=&quot;value&quot;</p>
+      <p>font-size=&quot;value&quot;</p>
     </td>
     <td width=31%>
-      <p>Note that the TEXT contents are in MsvgContent variables</p>
+      <p>The TEXT content will be stored in a MsvgContent variable.</p>
     </td>
   </tr>
 </table>
@@ -952,8 +977,7 @@ can have any attribute.</p>
 (obvious parameters are not listed).</p>
 <p>Note that these are the values that are expected when converting to a COOKED tree,
 RAW parameters can have any value.</p>
-<p>A status mark is added to each value: (ok) means it is already supported,
-(TO DO) means... you know: to do.</p>
+<p>A status mark (TO DO) means... you know: to do.</p>
 
 <table width=100% border=1 cellpadding=4 cellspacing=3>
   <tr valign=top>
@@ -974,34 +998,34 @@ RAW parameters can have any value.</p>
       <p>stroke</p>
     </td>
     <td width=40%>
-      <p>NO DEFINED => NODEFINED_COLOR (ok)</p>
-      <p>none => NO_COLOR (ok)</p>
-      <p>currentColor => INHERIT_COLOR (ok)</p>
-      <p>inherit => INHERIT_COLOR (ok)</p>
-      <p>black => 0x000000 (ok)</p>
-      <p>silver => 0xc0c0c0 (ok)</p>
-      <p>gray => 0x808080 (ok)</p>
-      <p>white => 0xffffff (ok)</p>
-      <p>maroon => 0x800000 (ok)</p>
-      <p>red => 0xff0000 (ok)</p>
-      <p>purple => 0x800080 (ok)</p>
-      <p>fuchsia => 0xff00ff (ok)</p>
-      <p>green => 0x008000 (ok)</p>
-      <p>lime => 0x00ff00 (ok)</p>
-      <p>olive => 0x808000 (ok)</p>
-      <p>yellow => 0xffff00 (ok)</p>
-      <p>navy => 0x000080 (ok)</p>
-      <p>blue => 0x0000ff (ok)</p>
-      <p>teal => 0x008080 (ok)</p>
-      <p>aqua => 0x00ffff (ok)</p>
-      <p>#rgb => 0xrrggbb (ok)</p>
-      <p>#rrggbb => 0xrrggbb (ok)</p>
+      <p>NO DEFINED => NODEFINED_COLOR</p>
+      <p>none => NO_COLOR</p>
+      <p>currentColor => INHERIT_COLOR</p>
+      <p>inherit => INHERIT_COLOR</p>
+      <p>black => 0x000000</p>
+      <p>silver => 0xc0c0c0</p>
+      <p>gray => 0x808080</p>
+      <p>white => 0xffffff</p>
+      <p>maroon => 0x800000</p>
+      <p>red => 0xff0000</p>
+      <p>purple => 0x800080</p>
+      <p>fuchsia => 0xff00ff</p>
+      <p>green => 0x008000</p>
+      <p>lime => 0x00ff00</p>
+      <p>olive => 0x808000</p>
+      <p>yellow => 0xffff00</p>
+      <p>navy => 0x000080</p>
+      <p>blue => 0x0000ff</p>
+      <p>teal => 0x008080</p>
+      <p>aqua => 0x00ffff</p>
+      <p>#rgb => 0xrrggbb</p>
+      <p>#rrggbb => 0xrrggbb</p>
       <p>rgb(rrr, ggg, bbb) => 0xrrggbb (TO DO)</p>
     </td>
     <td width=40%>
-      <p>If viewport-fill is not defined it will be NO_COLOR</p>
-      <p>If after the inheritance process fill is not defined it will be 0x000000</p>
-      <p>If after the inheritance process stroke is not defined it will be NO_COLOR</p>
+      <p>If viewport-fill is not defined it will be NO_COLOR.</p>
+      <p>If after the inheritance process fill is not defined it will be 0x000000.</p>
+      <p>If after the inheritance process stroke is not defined it will be NO_COLOR.</p>
     </td>
   </tr>
   <tr valign=top>
@@ -1011,14 +1035,14 @@ RAW parameters can have any value.</p>
       <p>stroke-opacity</p>
     </td>
     <td width=40%>
-      <p>NO DEFINED => NODEFINED_VALUE (ok)</p>
-      <p>inherit => INHERIT_VALUE (ok)</p>
-      <p>number between 0.0 and 1.0 => same value (ok)</p>
+      <p>NO DEFINED => NODEFINED_VALUE</p>
+      <p>inherit => INHERIT_VALUE</p>
+      <p>number between 0.0 and 1.0 => same value</p>
     </td>
     <td width=40%>
-      <p>If viewport-fill-opacity is not defined it will be 1</p>
-      <p>If after the inheritance process fill-opacity is not defined it will be 1</p>
-      <p>If after the inheritance process stroke-opacity is not defined it will be 1</p>
+      <p>If viewport-fill-opacity is not defined it will be 1.</p>
+      <p>If after the inheritance process fill-opacity is not defined it will be 1.</p>
+      <p>If after the inheritance process stroke-opacity is not defined it will be 1.</p>
     </td>
   </tr>
   <tr valign=top>
@@ -1026,12 +1050,12 @@ RAW parameters can have any value.</p>
       <p>stroke-width</p>
     </td>
     <td width=40%>
-      <p>NO DEFINED => NODEFINED_VALUE (ok)</p>
-      <p>inherit => INHERIT_VALUE (ok)</p>
-      <p>number > 0.0 => same value (ok)</p>
+      <p>NO DEFINED => NODEFINED_VALUE</p>
+      <p>inherit => INHERIT_VALUE</p>
+      <p>number > 0.0 => same value</p>
     </td>
     <td width=40%>
-      <p>If after the inheritance process stroke-width is not defined it will be 1</p>
+      <p>If after the inheritance process stroke-width is not defined it will be 1.</p>
     </td>
   </tr>
   <tr valign=top>
@@ -1039,15 +1063,17 @@ RAW parameters can have any value.</p>
       <p>transform</p>
     </td>
     <td width=40%>
-      <p>NO DEFINED => (1 0 0 1 0 0) (ok)</p>
-      <p>none => (1 0 0 1 0 0) (ok)</p>
-      <p>matrix(a b c d e f) => (a b c d e f) (ok)</p>
-      <p>translate(x) => (1 0 0 1 x 0) (ok)</p>
-      <p>translate(x y) => (1 0 0 1 x y) (ok)</p>
-      <p>rotate(ang) => (cos(ang) sin(ang) -sin(ang) cos(ang) 0 0) (ok)</p>
-      <p>rotate(ang cx cy) => traslate(cx cy) * rotate(ang) * translate(-cx -cy) (ok)</p>
-      <p>scale(sx) => (sx 0 0 sx 0 0) (ok)</p>
-      <p>scale(sx sy) => (sx 0 0 sy 0 0) (ok)</p>
+      <p>NO DEFINED => (1 0 0 1 0 0)</p>
+      <p>none => (1 0 0 1 0 0)</p>
+      <p>matrix(a b c d e f) => (a b c d e f)</p>
+      <p>translate(x) => (1 0 0 1 x 0)</p>
+      <p>translate(x y) => (1 0 0 1 x y)</p>
+      <p>rotate(ang) => (cos(ang) sin(ang) -sin(ang) cos(ang) 0 0)</p>
+      <p>rotate(ang cx cy) => traslate(cx cy) * rotate(ang) * translate(-cx -cy)</p>
+      <p>scale(sx) => (sx 0 0 sx 0 0)</p>
+      <p>scale(sx sy) => (sx 0 0 sy 0 0)</p>
+      <p>skewX(ang) => (1 0 tan(ang) 1 0 0) (TO DO)</p>
+      <p>skewY(ang) => (1 tan(ang) 0 1 0 0) (TO DO)</p>
       <p>ref(svg) => no transform for this element (TO DO)</p>
     </td>
     <td width=40%>
@@ -1056,12 +1082,89 @@ RAW parameters can have any value.</p>
       matrix from his parents elements.</p>
     </td>
   </tr>
+
+  <tr valign=top>
+    <td width=20%>
+      <p>font-family</p>
+    </td>
+    <td width=40%>
+      <p>NO DEFINED => NODEFINED_IVALUE</p>
+      <p>inherit => INHERIT_IVALUE</p>
+      <p>value contents "sans" => FONTFAMILY_SANS</p>
+      <p>value contents "serif" => FONTFAMILY_SERIF</p>
+      <p>value contents "cursive" => FONTFAMILY_CURSIVE</p>
+      <p>value contents "fantasy" => FONTFAMILY_FANTASY</p>
+      <p>value contents "monospace" => FONTFAMILY_MONOSPACE</p>
+      <p>other values => (TO DO or NOT)</p>
+    </td>
+    <td width=40%>
+      <p>If after the inheritance process font-family is not defined it will
+      be FONTFAMILY_SANS.</p>
+    </td>
+  </tr>
+  <tr valign=top>
+    <td width=20%>
+      <p>font-style</p>
+    </td>
+    <td width=40%>
+      <p>NO DEFINED => NODEFINED_IVALUE</p>
+      <p>inherit => INHERIT_IVALUE</p>
+      <p>normal => FONTSTYLE_NORMAL</p>
+      <p>italic => FONTSTYLE_ITALIC</p>
+      <p>oblique => FONTSTYLE_OBLIQUE</p>
+    </td>
+    <td width=40%>
+      <p>If after the inheritance process font-style is not defined it will
+      be FONTSTYLE_NORMAL.</p>
+    </td>
+  </tr>
+  <tr valign=top>
+    <td width=20%>
+      <p>font-weight</p>
+    </td>
+    <td width=40%>
+      <p>NO DEFINED => NODEFINED_IVALUE</p>
+      <p>inherit => INHERIT_IVALUE</p>
+      <p>100 => FONTWEIGHT_100</p>
+      <p>200 => FONTWEIGHT_200</p>
+      <p>300 => FONTWEIGHT_300</p>
+      <p>400 => FONTWEIGHT_400</p>
+      <p>500 => FONTWEIGHT_500</p>
+      <p>600 => FONTWEIGHT_600</p>
+      <p>700 => FONTWEIGHT_700</p>
+      <p>800 => FONTWEIGHT_800</p>
+      <p>900 => FONTWEIGHT_900</p>
+      <p>normal => FONTWEIGHT_NORMAL (=FONTWEIGHT_400)</p>
+      <p>bold => FONTWEIGHT_BOLD (=FONTWEIGHT_700)</p>
+      <p>bolder => (TODO)</p>
+      <p>lighter => (TODO)</p>
+    </td>
+    <td width=40%>
+      <p>If after the inheritance process font-weight is not defined it will
+      be FONTWEIGHT_NORMAL.</p>
+    </td>
+  </tr>
+  <tr valign=top>
+    <td width=20%>
+      <p>font-size</p>
+    </td>
+    <td width=40%>
+      <p>NO DEFINED => NODEFINED_IVALUE</p>
+      <p>inherit => INHERIT_IVALUE</p>
+      <p>number > 0 => same value</p>
+    </td>
+    <td width=40%>
+      <p>If after the inheritance process font-size is not defined it will
+      be 12.</p>
+    </td>
+  </tr>
+
   <tr valign=top>
     <td width=20%>
       <p>points</p>
     </td>
     <td width=40%>
-      <p>x1,y1 x2,y2 ... => double values (ok)</p>
+      <p>x1,y1 x2,y2 ... => double values</p>
     </td>
     <td width=40%>
         <p>Stored in:<br>
@@ -1074,12 +1177,13 @@ RAW parameters can have any value.</p>
       <p>d</p>
     </td>
     <td width=40%>
-      <p>path string => linked list of normalized MsvgSubPath structs (ok)</p>
+      <p>path string => linked list of normalized MsvgSubPath structs</p>
     </td>
     <td width=40%>
         <p>Stored in:<br>
         MsvgSubPath *sp;<br>
-        Normalized paths only have M (at the begining), L, C or Q commands</p>
+        Normalized subpaths only have M (at the begining), L, C or Q commands,
+        the variable sp->closed indicated if it is a closed subpath or not.</p>
     </td>
   </tr>
 
