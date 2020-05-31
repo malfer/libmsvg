@@ -206,6 +206,7 @@ static void DrawLineElement(MsvgElement *el, MsvgPaintCtx *pctx)
 
 static void DrawPolylineElement(MsvgElement *el, MsvgPaintCtx *pctx)
 {
+    GrColor cfill;
     GrColor cstroke;
     GrLineOption lopt;
     int istroke_width;
@@ -221,6 +222,10 @@ static void DrawPolylineElement(MsvgElement *el, MsvgPaintCtx *pctx)
                    el->ppolylineattr->points[i*2+1]);
     }
     
+    if (pctx->fill != NO_COLOR) {
+        cfill = GrAllocColor2(pctx->fill);
+        GrFilledPolygon(npoints, points, cfill);
+    }
     if (pctx->stroke != NO_COLOR) {
         cstroke = GrAllocColor2(pctx->stroke);
         istroke_width = pctx->stroke_width * glob_thick1 + 0.5;
@@ -319,20 +324,16 @@ static void DrawPathElement(MsvgElement *el, MsvgPaintCtx *pctx)
             pa = GrPathToExpPointArray(gp);
             if (pa) {
                 pa->npoints = GrReducePoints(pa->npoints, pa->points);
-                if (pa->closed) {
-                    //printf("polygon\n");
-                    if (pctx->fill != NO_COLOR) {
-                        GrFilledPolygon(pa->npoints, pa->points, rcfill);
-                    }
-                    if (pctx->stroke != NO_COLOR) {
+                if (pctx->fill != NO_COLOR) {
+                    GrFilledPolygon(pa->npoints, pa->points, rcfill);
+                }
+                if (pctx->stroke != NO_COLOR) {
+                    if (pa->closed) {
                         if (istroke_width > 1)
                             GrCustomPolygon(pa->npoints, pa->points, &lopt);
                         else
                             GrPolygon(pa->npoints, pa->points, cstroke);
-                    }
-                } else {
-                    //printf("polyline\n");
-                    if (pctx->stroke != NO_COLOR) {
+                    } else {
                         if (istroke_width > 1)
                             GrCustomPolyLine(pa->npoints, pa->points, &lopt);
                         else

@@ -246,7 +246,7 @@ static char * scanSubPath(char *d, double xorg, double yorg, MsvgSubPath **psp)
             else if (strchr("LlTt", actcmd)) expected_pars = 2;
             else if (strchr("SsQq", actcmd)) expected_pars = 4;
             else if (strchr("Cc", actcmd)) expected_pars = 6;
-            else if (strchr("Aa", actcmd)) expected_pars = 6;
+            else if (strchr("Aa", actcmd)) expected_pars = 7;
             else if (strchr("Mm", actcmd)) {
                 // we have finished an open subpath
                 *psp = sp;
@@ -314,6 +314,8 @@ void MsvgExpandSubPath(MsvgSubPath *sp)
     MsvgSubPathPoint *newspp;
     int newmaxpoints;
 
+    if (sp->failed_realloc) return;
+
     newmaxpoints = sp->maxpoints * 2;
     newspp = realloc(sp->spp, sizeof(MsvgSubPathPoint)*newmaxpoints);
     if (newspp == NULL) {
@@ -328,9 +330,8 @@ void MsvgExpandSubPath(MsvgSubPath *sp)
 void MsvgAddPointToSubPath(MsvgSubPath *sp, char cmd, double x, double y)
 {
     if (sp->npoints >= sp->maxpoints) {
-        if (sp->failed_realloc) return;
         MsvgExpandSubPath(sp);
-        MsvgAddPointToSubPath(sp, cmd, x, y);
+        if (sp->failed_realloc) return;
     }
 
     sp->spp[sp->npoints].cmd = cmd;

@@ -69,6 +69,41 @@ static void addDoubleRawAttr(MsvgElement *el, char *key, double value)
     MsvgAddRawAttribute(el, key, s);
 }
 
+static void addTextTawAttr(MsvgElement *el, char *key, int value)
+{
+    char s[41];
+
+    if (value == NODEFINED_IVALUE) return;
+
+    if (value == INHERIT_VALUE) MsvgAddRawAttribute(el, key, "inherit");
+
+    if (strcmp(key,"font-family") == 0) {
+        if (value == FONTFAMILY_SANS) MsvgAddRawAttribute(el, key, "sans");
+        else if (value == FONTFAMILY_SERIF) MsvgAddRawAttribute(el, key, "serif");
+        else if (value == FONTFAMILY_CURSIVE) MsvgAddRawAttribute(el, key, "cursive");
+        else if (value == FONTFAMILY_FANTASY) MsvgAddRawAttribute(el, key, "fantasy");
+        else if (value == FONTFAMILY_MONOSPACE) MsvgAddRawAttribute(el, key, "monospace");
+    } else if (strcmp(key,"font-style") == 0) {
+        if (value == FONTSTYLE_NORMAL) MsvgAddRawAttribute(el, key, "normal");
+        else if (value == FONTSTYLE_ITALIC) MsvgAddRawAttribute(el, key, "italic");
+        else if (value == FONTSTYLE_OBLIQUE) MsvgAddRawAttribute(el, key, "oblique");
+    } else if (strcmp(key,"font-weight") == 0) {
+        if (value == FONTWEIGHT_100) MsvgAddRawAttribute(el, key, "100");
+        else if (value == FONTWEIGHT_100) MsvgAddRawAttribute(el, key, "100");
+        else if (value == FONTWEIGHT_200) MsvgAddRawAttribute(el, key, "200");
+        else if (value == FONTWEIGHT_300) MsvgAddRawAttribute(el, key, "300");
+        else if (value == FONTWEIGHT_400) MsvgAddRawAttribute(el, key, "normal");
+        else if (value == FONTWEIGHT_500) MsvgAddRawAttribute(el, key, "500");
+        else if (value == FONTWEIGHT_600) MsvgAddRawAttribute(el, key, "600");
+        else if (value == FONTWEIGHT_700) MsvgAddRawAttribute(el, key, "bold");
+        else if (value == FONTWEIGHT_800) MsvgAddRawAttribute(el, key, "800");
+        else if (value == FONTWEIGHT_900) MsvgAddRawAttribute(el, key, "900");
+    } else if (strcmp(key,"font-size") == 0) {
+        sprintf(s, "%d", value);
+        MsvgAddRawAttribute(el, key, s);
+    }
+}
+
 static void torawPCtxAttr(MsvgElement *el)
 {
     char s[121];
@@ -86,15 +121,20 @@ static void torawPCtxAttr(MsvgElement *el)
                 tm->a, tm->b, tm->c, tm->d, tm->e, tm->f);
         MsvgAddRawAttribute(el, "transform", s);
     }
+    addTextTawAttr(el, "font-family", el->pctx.font_family);
+    addTextTawAttr(el, "font-style", el->pctx.font_style);
+    addTextTawAttr(el, "font-weight", el->pctx.font_weight);
+    addTextTawAttr(el, "font-size", el->pctx.font_size);
 }
 
 static void toRawSvgCookedAttr(MsvgElement *el)
 {
     char s[81];
     
-    MsvgAddRawAttribute(el, "xmlns", "http://www.w3.org/2000/svg");
     MsvgAddRawAttribute(el, "version", "1.2");
     MsvgAddRawAttribute(el, "baseProfile", "tiny");
+    MsvgAddRawAttribute(el, "xmlns", "http://www.w3.org/2000/svg");
+    MsvgAddRawAttribute(el, "xmlns:xlink", "http://www.w3.org/1999/xlink");
     sprintf(s, "%g %g %g %g", el->psvgattr->vb_min_x, el->psvgattr->vb_min_y,
             el->psvgattr->vb_width, el->psvgattr->vb_height);
     MsvgAddRawAttribute(el, "viewBox", s);
@@ -215,10 +255,6 @@ static void toRawTextCookedAttr(MsvgElement *el)
 {
     addDoubleRawAttr(el, "x", el->ptextattr->x);
     addDoubleRawAttr(el, "y", el->ptextattr->y);
-    addDoubleRawAttr(el, "font-size", el->ptextattr->font_size);
-    if (el->ptextattr->font_family) {
-        MsvgAddRawAttribute(el, "font-family", el->ptextattr->font_family);
-    }
 }
 
 static void toRawElement(MsvgElement *el)

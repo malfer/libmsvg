@@ -107,7 +107,7 @@ static char * printcolor(rgbcolor color)
     return s;
 }
 
-static char * printvalue(double value)
+static char * printdvalue(double value)
 {
     static char s[81];
 
@@ -121,16 +121,34 @@ static char * printvalue(double value)
     return s;
 }
 
+static char * printivalue(int value)
+{
+    static char s[81];
+
+    if (value == INHERIT_IVALUE)
+        sprintf(s, "INHERIT_IVALUE");
+    else if (value == NODEFINED_IVALUE)
+        sprintf(s, "NODEFINED_IVALUE");
+    else
+        sprintf(s, "%d", value);
+
+    return s;
+}
+
 void MsvgPrintPctx(FILE *f, MsvgPaintCtx *pctx)
 {
     fprintf(f, "  fill           %s\n", printcolor(pctx->fill));
-    fprintf(f, "  fill_opacity   %s\n", printvalue(pctx->fill_opacity));
+    fprintf(f, "  fill_opacity   %s\n", printdvalue(pctx->fill_opacity));
     fprintf(f, "  stroke         %s\n", printcolor(pctx->stroke));
-    fprintf(f, "  stroke_width   %s\n", printvalue(pctx->stroke_width));
-    fprintf(f, "  stroke_opacity %s\n", printvalue(pctx->stroke_opacity));
+    fprintf(f, "  stroke_width   %s\n", printdvalue(pctx->stroke_width));
+    fprintf(f, "  stroke_opacity %s\n", printdvalue(pctx->stroke_opacity));
     fprintf(f, "  tmatrix        (%g %g %g %g %g %g)\n",
             pctx->tmatrix.a, pctx->tmatrix.b, pctx->tmatrix.c,
             pctx->tmatrix.d, pctx->tmatrix.e, pctx->tmatrix.f);
+    fprintf(f, "  font-family    %s\n", printivalue(pctx->font_family));
+    fprintf(f, "  font-style     %s\n", printivalue(pctx->font_style));
+    fprintf(f, "  font-weight    %s\n", printivalue(pctx->font_weight));
+    fprintf(f, "  font-size      %s\n", printivalue(pctx->font_size));
 }
 
 static void printSvgCookedAttr(FILE *f, MsvgElement *el)
@@ -142,7 +160,7 @@ static void printSvgCookedAttr(FILE *f, MsvgElement *el)
     fprintf(f, "  vb_width       %g\n", el->psvgattr->vb_width);
     fprintf(f, "  vb_height      %g\n", el->psvgattr->vb_height);
     fprintf(f, "  vp_fill         %s\n", printcolor(el->psvgattr->vp_fill));
-    fprintf(f, "  vp_fill_opacity %s\n", printvalue(el->psvgattr->vp_fill_opacity));
+    fprintf(f, "  vp_fill_opacity %s\n", printdvalue(el->psvgattr->vp_fill_opacity));
 }
 
 static void printDefsCookedAttr(FILE *f, MsvgElement *el)
@@ -242,8 +260,6 @@ static void printTextCookedAttr(FILE *f, MsvgElement *el)
 {
     fprintf(f, "  x              %g\n", el->ptextattr->x);
     fprintf(f, "  y              %g\n", el->ptextattr->y);
-    fprintf(f, "  font_size      %g\n", el->ptextattr->font_size);
-    fprintf(f, "  font_family    %s\n", el->ptextattr->font_family);
 }
 
 static void printVContentCookedAttr(FILE *f, MsvgElement *el)

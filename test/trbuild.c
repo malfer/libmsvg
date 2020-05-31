@@ -20,9 +20,10 @@ int main(int argc, char **argv)
 {
     MsvgElement *root;
     root = MsvgNewElement(EID_SVG, NULL);
-    MsvgAddRawAttribute(root, "xmlns", "http://www.w3.org/2000/svg");
     MsvgAddRawAttribute(root, "version", "1.2");
     MsvgAddRawAttribute(root, "baseProfile", "tiny");
+    MsvgAddRawAttribute(root, "xmlns", "http://www.w3.org/2000/svg");
+    MsvgAddRawAttribute(root, "xmlns:xlink", "http://www.w3.org/1999/xlink");
     MsvgAddRawAttribute(root, "viewBox", "0 0 400 400");
     
     MsvgElement *son;

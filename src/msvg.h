@@ -95,6 +95,35 @@ typedef int rgbcolor;
 #define INHERIT_VALUE   -1.0
 #define NODEFINED_VALUE -2.0
 
+/* define special values for int attributes */
+
+#define INHERIT_IVALUE      -1
+#define NODEFINED_IVALUE    -2
+
+/* define values for text context attributes */
+
+#define FONTFAMILY_SERIF        1
+#define FONTFAMILY_SANS         2
+#define FONTFAMILY_CURSIVE      3
+#define FONTFAMILY_FANTASY      4
+#define FONTFAMILY_MONOSPACE    5
+
+#define FONTSTYLE_NORMAL    1
+#define FONTSTYLE_ITALIC    2
+#define FONTSTYLE_OBLIQUE   3
+
+#define FONTWEIGHT_100      100
+#define FONTWEIGHT_200      200
+#define FONTWEIGHT_300      300
+#define FONTWEIGHT_400      400
+#define FONTWEIGHT_NORMAL   400
+#define FONTWEIGHT_500      500
+#define FONTWEIGHT_600      600
+#define FONTWEIGHT_700      700
+#define FONTWEIGHT_BOLD     700
+#define FONTWEIGHT_800      800
+#define FONTWEIGHT_900      900
+
 /* element pointer */
 
 typedef struct _MsvgElement *MsvgElementPtr;
@@ -136,6 +165,10 @@ typedef struct _MsvgPaintCtx {
     double stroke_width;   /* stroke-width attribute */
     double stroke_opacity; /* stroke-opacity attribute */
     TMatrix tmatrix;       /* transformation matrix */
+    int font_family;       /* font-family attribute */
+    int font_style;        /* font-style attribute */
+    int font_weight;       /* font-weight attribute */
+    int font_size;         /* font-size attribute */
 } MsvgPaintCtx;
 
 /* cooked specific attributes for each element */
@@ -231,8 +264,6 @@ typedef struct _MsvgPathAttributes {
 typedef struct _MsvgTextAttributes {
     double x;          /* x attibute */
     double y;          /* y attibute */
-    double font_size;  /* font-size attribute */
-    char *font_family; /* font-family attribute */
 } MsvgTextAttributes;
 
 /* element structure */
@@ -245,7 +276,7 @@ typedef struct _MsvgElement {
     MsvgElementPtr fson;        /* pointer to first son element */
 
     MsvgRawAttributePtr frattr; /* pointer to first raw attribute */
-    MsvgContentPtr fcontent;    /* pointer to first content */
+    MsvgContentPtr fcontent;    /* pointer to content */
 
     /* cooked generic attributes */
     char *id;                   /* id attribute */

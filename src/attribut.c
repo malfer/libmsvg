@@ -230,13 +230,7 @@ int MsvgCopyCookedAttributes(MsvgElement *desel, MsvgElement *srcel)
             }
             break;
         case EID_TEXT :
-            if (desel->ptextattr->font_family)
-                free (desel->ptextattr->font_family);
             *(desel->ptextattr) = *(srcel->ptextattr);
-            if (srcel->ptextattr->font_family) {
-                desel->ptextattr->font_family =
-                    strdup(srcel->ptextattr->font_family);
-            }
             break;
         default :
             break;

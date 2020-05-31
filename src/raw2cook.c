@@ -136,17 +136,47 @@ static void gettmatrix(char *value, TMatrix *t)
     free(valaux);
 }
 
-static void readpoints(char *value, double **points, int *npoints)
+static int fontfamily(char *value)
 {
-    int n;
-    
-    *npoints = 0;
-    n = MsvgI_count_numbers(value);
-    if (n < 2) return;
-    *points = (double *)calloc(n, sizeof(double));
-    if (*points == NULL) return;
-    MsvgI_read_numbers(value, *points, n);
-    *npoints = n / 2;
+    if (strcmp(value, "inherit") == 0) return INHERIT_IVALUE;
+    else if (strstr(value, "sans") != NULL) return FONTFAMILY_SANS;
+    else if (strstr(value, "serif") != NULL) return FONTFAMILY_SERIF;
+    else if (strstr(value, "cursive") != NULL) return FONTFAMILY_CURSIVE;
+    else if (strstr(value, "fantasy") != NULL) return FONTFAMILY_FANTASY;
+    else if (strstr(value, "monospace") != NULL) return FONTFAMILY_MONOSPACE;
+    else return NODEFINED_IVALUE;
+}
+
+static int fontstyle(char *value)
+{
+    if (strcmp(value, "inherit") == 0) return INHERIT_IVALUE;
+    else if (strcmp(value, "normal") == 0) return FONTSTYLE_NORMAL;
+    else if (strcmp(value, "italic") == 0) return FONTSTYLE_ITALIC;
+    else if (strcmp(value, "oblique") == 0) return FONTSTYLE_OBLIQUE;
+    else return NODEFINED_IVALUE;
+}
+
+static int fontweight(char *value)
+{
+    if (strcmp(value, "inherit") == 0) return INHERIT_IVALUE;
+    else if (strcmp(value, "100") == 0) return FONTWEIGHT_100;
+    else if (strcmp(value, "200") == 0) return FONTWEIGHT_200;
+    else if (strcmp(value, "300") == 0) return FONTWEIGHT_300;
+    else if (strcmp(value, "400") == 0) return FONTWEIGHT_400;
+    else if (strcmp(value, "500") == 0) return FONTWEIGHT_500;
+    else if (strcmp(value, "600") == 0) return FONTWEIGHT_600;
+    else if (strcmp(value, "700") == 0) return FONTWEIGHT_700;
+    else if (strcmp(value, "800") == 0) return FONTWEIGHT_800;
+    else if (strcmp(value, "900") == 0) return FONTWEIGHT_900;
+    else if (strcmp(value, "normal") == 0) return FONTWEIGHT_NORMAL;
+    else if (strcmp(value, "bold") == 0) return FONTWEIGHT_BOLD;
+    else return NODEFINED_IVALUE;
+}
+
+static int fontsize(char *value)
+{
+    if (strcmp(value, "inherit") == 0) return INHERIT_IVALUE;
+    return atoi(value);
 }
 
 static int cookPCtxAttr(MsvgElement *el, char *key, char *value)
@@ -159,6 +189,10 @@ static int cookPCtxAttr(MsvgElement *el, char *key, char *value)
     else if (strcmp(key, "stroke-width") == 0) el->pctx.stroke_width = widthtof(value);
     else if (strcmp(key, "stroke-opacity") == 0) el->pctx.stroke_opacity = opacitytof(value);
     else if (strcmp(key, "transform") == 0) gettmatrix(value, &(el->pctx.tmatrix));
+    else if (strcmp(key, "font-family") == 0) el->pctx.font_family = fontfamily(value);
+    else if (strcmp(key, "font-style") == 0) el->pctx.font_style = fontstyle(value);
+    else if (strcmp(key, "font-weight") == 0) el->pctx.font_weight = fontweight(value);
+    else if (strcmp(key, "font-size") == 0) el->pctx.font_size = fontsize(value);
     else return 0;
     return 1;
 }
@@ -235,6 +269,19 @@ static void cookLineGenAttr(MsvgElement *el, char *key, char *value)
     else if (strcmp(key, "y2") == 0) el->plineattr->y2 = atof(value);
 }
 
+static void readpoints(char *value, double **points, int *npoints)
+{
+    int n;
+    
+    *npoints = 0;
+    n = MsvgI_count_numbers(value);
+    if (n < 2) return;
+    *points = (double *)calloc(n, sizeof(double));
+    if (*points == NULL) return;
+    MsvgI_read_numbers(value, *points, n);
+    *npoints = n / 2;
+}
+
 static void cookPolylineGenAttr(MsvgElement *el, char *key, char *value)
 {
     if (strcmp(key, "points") == 0) 
@@ -257,8 +304,6 @@ static void cookTextGenAttr(MsvgElement *el, char *key, char *value)
 {
     if (strcmp(key, "x") == 0) el->ptextattr->x = atof(value);
     else if (strcmp(key, "y") == 0) el->ptextattr->y = atof(value);
-    else if (strcmp(key, "font-size") == 0) el->ptextattr->font_size = atof(value);
-    else if (strcmp(key, "font-family") == 0) el->ptextattr->font_family = strdup(value);
 }
 
 static void checkSvgCookedAttr(MsvgElement *el)

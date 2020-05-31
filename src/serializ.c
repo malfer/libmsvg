@@ -73,6 +73,34 @@ static void process_generic_pctx(MsvgPaintCtx *des, MsvgPaintCtx *fath,
     }
 
     TMMpy(&(des->tmatrix), &(fath->tmatrix), &(son->tmatrix));
+
+    if (son->font_family == INHERIT_IVALUE ||
+        son->font_family == NODEFINED_IVALUE) {
+        des->font_family = fath->font_family;
+    } else {
+        des->font_family = son->font_family;
+    }
+
+    if (son->font_style == INHERIT_IVALUE ||
+        son->font_style == NODEFINED_IVALUE) {
+        des->font_style = fath->font_style;
+    } else {
+        des->font_style = son->font_style;
+    }
+
+    if (son->font_weight == INHERIT_IVALUE ||
+        son->font_weight == NODEFINED_IVALUE) {
+        des->font_weight = fath->font_weight;
+    } else {
+        des->font_weight = son->font_weight;
+    }
+
+    if (son->font_size == INHERIT_IVALUE ||
+        son->font_size == NODEFINED_IVALUE) {
+        des->font_size = fath->font_size;
+    } else {
+        des->font_size = son->font_size;
+    }
 }
 
 static void process_drawel_pctx(MsvgPaintCtx *des, MsvgPaintCtx *fath,
@@ -103,6 +131,26 @@ static void process_drawel_pctx(MsvgPaintCtx *des, MsvgPaintCtx *fath,
     if (des->stroke_opacity == INHERIT_VALUE ||
         des->stroke_opacity == NODEFINED_VALUE) {
         des->stroke_opacity = 1.0;  // solid
+    }
+
+    if (des->font_family == INHERIT_VALUE ||
+        des->font_family == NODEFINED_VALUE) {
+        des->font_family = FONTFAMILY_SANS;
+    }
+
+    if (des->font_style == INHERIT_VALUE ||
+        des->font_style == NODEFINED_VALUE) {
+        des->font_style = FONTSTYLE_NORMAL;
+    }
+
+    if (des->font_weight == INHERIT_VALUE ||
+        des->font_weight == NODEFINED_VALUE) {
+        des->font_weight = FONTWEIGHT_NORMAL;
+    }
+
+    if (des->font_size == INHERIT_VALUE ||
+        des->font_size == NODEFINED_VALUE) {
+        des->font_size = 12;
     }
 }
 
