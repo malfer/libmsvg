@@ -23,16 +23,23 @@
  *
  */
 
-#define SVGDRAWMODE_FIT      0x00  // fit to context
-#define SVGDRAWMODE_PAR      0x01  // preserve aspect/ratio
-#define SVGDRAWMODE_SCOORD   0x02  // same coordinates as context
-#define SVGDRAWMODE_MASK     0x0F  // mode mask
+#define SVGDRAWMODE_FIT      0  // fit to context
+#define SVGDRAWMODE_PAR      1  // preserve aspect/ratio
+#define SVGDRAWMODE_SCOORD   2  // same coordinates as context
 
-#define SVGDRAWADJ_LEFT      0x00  // fit to left
-#define SVGDRAWADJ_CENTER    0x10  // fit to center
-#define SVGDRAWADJ_RIGHT     0x20  // fit to right
-#define SVGDRAWADJ_MASK      0xF0  // adj mask
+#define SVGDRAWADJ_LEFT      0  // fit to left
+#define SVGDRAWADJ_CENTER    1  // fit to center
+#define SVGDRAWADJ_RIGHT     2  // fit to right
 
-int DrawSVGtree(MsvgElement *root, int smode, double zoom, GrColor bg);
-int DrawSVGtreeUsingDB(MsvgElement *root, int smode, double zoom, GrColor bg);
+typedef struct {
+    int mode;
+    int adj;
+    double zoom;
+    int xdespl;
+    int ydespl;
+    GrColor bg;
+} GrSVGDrawMode;
+
+int GrDrawSVGtree(MsvgElement *root, GrSVGDrawMode *sdm);
+int GrDrawSVGtreeUsingDB(MsvgElement *root, GrSVGDrawMode *sdm);
 

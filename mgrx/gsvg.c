@@ -5,7 +5,7 @@
  *
  * In the future this will be added to MGRX, this is why the LGPL is aplied
  *
- * Copyright (C) 2010 Mariano Alvarez Fernandez (malfer at telefonica.net)
+ * Copyright (C) 2010, 2020 Mariano Alvarez Fernandez (malfer at telefonica.net)
  *
  * This is a test file of the libmsvg+MGRX libraries.
  * libmsvg+MGRX test files are in the Public Domain, this apply only to test
@@ -39,6 +39,8 @@ static MsvgElement *CreateTree(void)
     gson = MsvgNewElement(EID_RECT, son);
     gson->prectattr->width = 100;
     gson->prectattr->height = 50;
+    gson->prectattr->rx = 0;
+    gson->prectattr->ry = 0;
     gson->id = strdup("MyRect");
 
     son = MsvgNewElement(EID_RECT, root);
@@ -46,6 +48,8 @@ static MsvgElement *CreateTree(void)
     son->prectattr->y = 50;
     son->prectattr->width = 300;
     son->prectattr->height = 300;
+    son->prectattr->rx = 10;
+    son->prectattr->ry = 10;
     son->pctx.fill = 0x0000FF;
     son->pctx.stroke = 0xFF0000;
 
@@ -84,12 +88,14 @@ static MsvgElement *CreateTree(void)
 static void TestFunc(void)
 {
     GrEvent ev;
-    int smode;
-    
-    //GrClearContext(GrBlack());
-    smode = SVGDRAWMODE_PAR | SVGDRAWADJ_CENTER;
-    DrawSVGtree(CreateTree(), smode, 1, GrBlack());
+    GrSVGDrawMode sdm = {SVGDRAWMODE_PAR, SVGDRAWADJ_CENTER, 1.0, 0, 0, 0};
+    MsvgElement *root;
+
+    root = CreateTree();
+    GrDrawSVGtree(root, &sdm);
     GrEventWaitKeyOrClick(&ev);
+    MsvgCooked2RawTree(root);
+    MsvgWriteSvgFile(root, "tgsvg.svg");
 }
 
 int main(int argc,char **argv)

@@ -30,7 +30,7 @@
 
 #include <stdio.h>
 
-#define LIBMSVG_VERSION_API 0x0019
+#define LIBMSVG_VERSION_API 0x0020
 
 /* define id's for supported elements */
 

@@ -5,7 +5,7 @@
  *
  * In the future this will be added to MGRX, this is why the LGPL is aplied
  *
- * Copyright (C) 2010 Mariano Alvarez Fernandez (malfer at telefonica.net)
+ * Copyright (C) 2010, 2020 Mariano Alvarez Fernandez (malfer at telefonica.net)
  *
  * This is a test file of the libmsvg+MGRX libraries.
  * libmsvg+MGRX test files are in the Public Domain, this apply only to test
@@ -31,6 +31,7 @@ static void TestFunc(void)
     GrEvent ev;
     MsvgElement *root;
     int error;
+    GrSVGDrawMode sdm = {SVGDRAWMODE_FIT, SVGDRAWADJ_LEFT, 1.0, 0, 0, 0};
     
     //GrClearContext(GrBlack());
     root = MsvgReadSvgFile(TEST_FILE, &error);
@@ -39,7 +40,7 @@ static void TestFunc(void)
         return;
     }
     if (!MsvgRaw2CookedTree(root)) return;
-    DrawSVGtree(root, 0, 1, GrBlack());
+    GrDrawSVGtree(root, &sdm);
     GrEventWaitKeyOrClick(&ev);
     MsvgDeleteElement(root);
 }

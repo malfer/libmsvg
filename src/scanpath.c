@@ -269,7 +269,8 @@ static char * scanSubPath(char *d, double xorg, double yorg, MsvgSubPath **psp)
 MsvgSubPath * MsvgScanPath(char *d)
 {
     MsvgSubPath *firstsp, **psp;
-    int xorg, yorg, nextpos;
+    double xorg, yorg;
+    int nextpos;
 
     xorg = 0;
     yorg = 0;
@@ -345,6 +346,7 @@ MsvgSubPath * MsvgDupSubPath(MsvgSubPath *srcsp)
     MsvgSubPath *dessp;
     int i;
 
+    if (srcsp == NULL) return NULL;
     dessp = MsvgNewSubPath(srcsp->npoints);
     if (dessp == NULL) return NULL;
     dessp->npoints = srcsp->npoints;

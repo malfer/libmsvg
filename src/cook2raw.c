@@ -210,7 +210,7 @@ static void toRawPolylineCookedAttr(MsvgElement *el)
     int i, n;
     char *s, *p;
 
-    s = malloc(sizeof(char)*el->ppolylineattr->npoints*30+1);
+    s = malloc(sizeof(char)*el->ppolylineattr->npoints*40+1);
     if (s == NULL) return;
     p = s;
 
@@ -230,7 +230,7 @@ static void toRawPolygonCookedAttr(MsvgElement *el)
     int i, n;
     char *s, *p;
 
-    s = malloc(sizeof(char)*el->ppolygonattr->npoints*30+1);
+    s = malloc(sizeof(char)*el->ppolygonattr->npoints*40+1);
     if (s == NULL) return;
     p = s;
 
@@ -247,8 +247,30 @@ static void toRawPolygonCookedAttr(MsvgElement *el)
 
 static void toRawPathCookedAttr(MsvgElement *el)
 {
-    // TODO
-    return;
+    MsvgSubPath *sp;
+    int i, n;
+    char *s, *p;
+
+    sp = el->ppathattr->sp;
+
+    s = malloc(sizeof(char)*sp->npoints*40+1);
+    if (s == NULL) return;
+    p = s;
+
+    for (i=0; i<sp->npoints; i++) {
+        if (sp->spp[i].cmd != ' ') {
+            n = sprintf(p, "%c", sp->spp[i].cmd);
+            p += n;
+        }
+        n = sprintf(p, "%g,%g ", sp->spp[i].x, sp->spp[i].y);
+        p += n;
+    }
+
+    if (sp->closed) sprintf(p, "Z");
+
+    MsvgAddRawAttribute(el, "d", s);
+
+    free(s);
 }
 
 static void toRawTextCookedAttr(MsvgElement *el)

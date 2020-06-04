@@ -48,10 +48,16 @@ static int glob_xorg;
 static int glob_yorg;
 static GrColor glob_bg;
 
+//static int minx=0, miny=0, maxx=0, maxy=0;
+
 static void get_icoord(int *x, int *y, double dx, double dy)
 {
     *x = (dx - glob_vb_min_x) / glob_scale_x + 0.5 + glob_xorg;
     *y = (dy - glob_vb_min_y) / glob_scale_y + 0.5 + glob_yorg;
+    //if (*x < minx) minx = *x;
+    //if (*x > maxx) maxx = *x;
+    //if (*y < miny) miny = *x;
+    //if (*y > maxy) maxy = *x;
 }
 
 static void DrawRectElement(MsvgElement *el, MsvgPaintCtx *pctx)
@@ -323,7 +329,9 @@ static void DrawPathElement(MsvgElement *el, MsvgPaintCtx *pctx)
             gp->closed = sp->closed;
             pa = GrPathToExpPointArray(gp);
             if (pa) {
+                //printf("npoints before %d\n", pa->npoints);
                 pa->npoints = GrReducePoints(pa->npoints, pa->points);
+                //printf("npoints after %d\n", pa->npoints);
                 if (pctx->fill != NO_COLOR) {
                     GrFilledPolygon(pa->npoints, pa->points, rcfill);
                 }
@@ -384,7 +392,7 @@ static void sufn2(MsvgElement *el, MsvgPaintCtx *pctx)
     //MsvgElement *newel2;
     //int i, nsp;
 
-    //printf("before ");
+    //printf("id %s\n", el->id);
     //MsvgPrintCookedElement(stdout, el);
     newel = MsvgTransformCookedElement(el, pctx);
     if (newel == NULL) return;
@@ -429,21 +437,19 @@ static void sufn2(MsvgElement *el, MsvgPaintCtx *pctx)
     }
 
     MsvgDeleteElement(newel);
+    //GrEvent ev;
+    //GrEventWaitKeyOrClick(&ev);
 }
 
-int DrawSVGtree(MsvgElement *root, int smode, double zoom, GrColor bg)
+int GrDrawSVGtree(MsvgElement *root, GrSVGDrawMode *sdm)
 {
     GrColor cfill;
     double ratiow, ratioh, rvb_width, rvb_height;
-    double old_width, old_height;
-    int mode, adj;
+    double old_width, old_height, zoom;
 
     if (root == NULL) return 0;
     if (root->eid != EID_SVG) return 0;
     if (root->psvgattr->tree_type != COOKED_SVGTREE) return 0;
-
-    mode = smode & SVGDRAWMODE_MASK;
-    adj = smode & SVGDRAWADJ_MASK;
 
     rvb_width = root->psvgattr->vb_width;
     rvb_height = root->psvgattr->vb_height;
@@ -453,8 +459,10 @@ int DrawSVGtree(MsvgElement *root, int smode, double zoom, GrColor bg)
 
     glob_xorg = 0;
     glob_yorg = 0;
+    
+    zoom = sdm->zoom;
 
-    switch (mode) {
+    switch (sdm->mode) {
         case SVGDRAWMODE_FIT :
             if (ratiow > ratioh)
                 glob_thick1 = (GrSizeY() / rvb_height) * zoom;
@@ -462,10 +470,10 @@ int DrawSVGtree(MsvgElement *root, int smode, double zoom, GrColor bg)
                 glob_thick1 = (GrSizeX() / rvb_width) * zoom;
             glob_scale_x = (rvb_width / zoom) / GrSizeX();
             glob_scale_y = (rvb_height / zoom) / GrSizeY();
-            if (adj == SVGDRAWADJ_CENTER) {
+            if (sdm->adj == SVGDRAWADJ_CENTER) {
                 glob_xorg = (GrSizeX() - GrSizeX() * zoom) / 2;
                 glob_yorg = (GrSizeY() - GrSizeY() * zoom) / 2;
-            } else if (adj == SVGDRAWADJ_RIGHT) {
+            } else if (sdm->adj == SVGDRAWADJ_RIGHT) {
                 glob_xorg = (GrSizeX() - GrSizeX() * zoom);
                 glob_yorg = (GrSizeY() - GrSizeY() * zoom);
             }
@@ -480,12 +488,12 @@ int DrawSVGtree(MsvgElement *root, int smode, double zoom, GrColor bg)
             glob_thick1 = (GrSizeX() / rvb_width) * zoom;
             glob_scale_x = (rvb_width / zoom) / GrSizeX();
             glob_scale_y = (rvb_height / zoom) / GrSizeY();
-            if (adj == SVGDRAWADJ_CENTER) {
+            if (sdm->adj == SVGDRAWADJ_CENTER) {
                 glob_xorg = ((rvb_width / zoom - old_width) /
                          (rvb_width / zoom) / 2) * GrSizeX();
                 glob_yorg = ((rvb_height  / zoom - old_height) /
                          (rvb_height / zoom) / 2) * GrSizeY();
-            } else if (adj == SVGDRAWADJ_RIGHT) {
+            } else if (sdm->adj == SVGDRAWADJ_RIGHT) {
                 glob_xorg = ((rvb_width / zoom - old_width) /
                          (rvb_width / zoom)) * GrSizeX();
                 glob_yorg = ((rvb_height  / zoom - old_height) /
@@ -496,10 +504,10 @@ int DrawSVGtree(MsvgElement *root, int smode, double zoom, GrColor bg)
             glob_thick1 = 1.0 * zoom;
             glob_scale_x = 1 / zoom;
             glob_scale_y = 1 / zoom;
-            if (adj == SVGDRAWADJ_CENTER) {
+            if (sdm->adj == SVGDRAWADJ_CENTER) {
                 glob_xorg = (GrSizeX() - rvb_width * zoom) / 2;
                 glob_yorg = (GrSizeY() - rvb_height * zoom) / 2;
-            } else if (adj == SVGDRAWADJ_RIGHT) {
+            } else if (sdm->adj == SVGDRAWADJ_RIGHT) {
                 glob_xorg = (GrSizeX() - rvb_width * zoom);
                 glob_yorg = (GrSizeY() - rvb_height * zoom);
             }
@@ -510,22 +518,27 @@ int DrawSVGtree(MsvgElement *root, int smode, double zoom, GrColor bg)
             
     glob_vb_min_x = root->psvgattr->vb_min_x * zoom;
     glob_vb_min_y = root->psvgattr->vb_min_y * zoom;
-    
-    glob_bg = bg;
+
+    glob_xorg += sdm->xdespl;
+    glob_yorg += sdm->ydespl;
+
+    glob_bg = sdm->bg;
     if (root->psvgattr->vp_fill != NO_COLOR) {
         cfill = GrAllocColor2(root->psvgattr->vp_fill);
         GrClearContext(cfill);
         glob_bg = cfill;
-    } else if (bg != NO_COLOR) {
-        GrClearContext(bg);
+    } else if (sdm->bg != NO_COLOR) {
+        GrClearContext(sdm->bg);
     }
 
+    //printf("=== %g %g   %d %d\n", glob_scale_x, glob_scale_y, glob_xorg, glob_yorg);
     MsvgSerCookedTree(root, sufn2);
+    //printf("==> %d %d   %d %d\n", minx, maxx, miny, maxy);
 
     return 1;
 }
 
-int DrawSVGtreeUsingDB(MsvgElement *root, int smode, double zoom, GrColor bg)
+int GrDrawSVGtreeUsingDB(MsvgElement *root, GrSVGDrawMode *sdm)
 {
     GrContext *grc, grcaux;
     int ret;
@@ -535,7 +548,7 @@ int DrawSVGtreeUsingDB(MsvgElement *root, int smode, double zoom, GrColor bg)
 
     GrSaveContext(&grcaux);
     GrSetContext(grc);
-    ret = DrawSVGtree(root, smode, zoom, bg);
+    ret = GrDrawSVGtree(root, sdm);
     GrSetContext(&grcaux);
     GrBitBlt(&grcaux, 0, 0, grc, 0, 0, grc->gc_xmax, grc->gc_ymax, GrWRITE);
     GrDestroyContext(grc);

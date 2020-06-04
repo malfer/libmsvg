@@ -77,7 +77,7 @@ static void startElement(void *userData, const char *name, const char **attr)
                 mudptr->active_element = mudptr->root;
                 mudptr->svg_depth = mudptr->depth;
             }
-        }  else {
+        } else {
             eid = MsvgFindElementId(name);
             //      printf("element %d %d\n",mudptr->active_element->eid, eid);
             if (!MsvgIsSupSonElement(mudptr->active_element->eid, eid)) {
@@ -95,7 +95,7 @@ static void startElement(void *userData, const char *name, const char **attr)
             }
         }
     }
-    
+
     mudptr->depth += 1;
 }
 
@@ -108,6 +108,8 @@ static void endElement(void *userData, const char *name)
     
     mudptr->depth -= 1;
     
+    if (!mudptr->svg_found) return;
+
     if (mudptr->skip_depth) { 
         if (mudptr->skip_depth == mudptr->depth)
             mudptr->skip_depth = 0;
@@ -119,7 +121,7 @@ static void endElement(void *userData, const char *name)
 
     mudptr->active_element = mudptr->active_element->father;
     
-    if (mudptr->svg_found && (mudptr->depth == mudptr->svg_depth))
+    if (mudptr->depth == mudptr->svg_depth)
         mudptr->process_finished = 1;
 }
 

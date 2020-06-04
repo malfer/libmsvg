@@ -306,6 +306,11 @@ static void cookTextGenAttr(MsvgElement *el, char *key, char *value)
     else if (strcmp(key, "y") == 0) el->ptextattr->y = atof(value);
 }
 
+static void cookVContentGenAttr(MsvgElement *el, char *key, char *value)
+{
+    return;
+}
+
 static void checkSvgCookedAttr(MsvgElement *el)
 {
     if (el->psvgattr->vb_width == 0) el->psvgattr->vb_width = el->psvgattr->width;
@@ -314,11 +319,6 @@ static void checkSvgCookedAttr(MsvgElement *el)
     if (el->psvgattr->height == 0) el->psvgattr->height = el->psvgattr->vb_height;
 }
    
-static void cookVContentGenAttr(MsvgElement *el, char *key, char *value)
-{
-    return;
-}
-
 static void checkRectCookedAttr(MsvgElement *el)
 {
     if (el->prectattr->rx == NODEFINED_VALUE &&

@@ -1,0 +1,19 @@
+libmsvg test programs:
+
+tread file.svg [id] -> read the svg file, print the raw tree and counts and
+                        write "msvgt1.svg", if a "id" is provided find the element
+                        in the raw tree, convert to cooked and find again
+
+tdel -> build a raw tree, delete, prune and insert elements and attributes
+
+tcook file.svg [utc] -> read the svg file, convert to cooked and serialize,
+                        if "utc" (literal) is provided MsvgTransformCookedElement
+                        is called for each serialized element
+
+trbuild -> build a raw tree, write "msvgt2a.svg", duplicate the tree and
+           write "msvgt2b.svg"
+
+tcbuild -> build a cooked tree, convert to raw tree, print and write "msvgt3.svg"
+
+
+                        
