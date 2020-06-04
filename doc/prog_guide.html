@@ -6,7 +6,7 @@
 </head>
 
 <body>
-<h1>libmsvg v0.19</h1>
+<h1>libmsvg v0.20</h1>
 <h2>Programmer's guide</h2>
 <p>Last update: May 31, 2020</p>
 
@@ -39,6 +39,7 @@ Appendix A</a>.</p>
 <li><a href="#writing">Writing SVG files</a>
 <li><a href="#appendixa">Appendix A, the libmsvg SVG subset</a>
 <li><a href="#appendixb">Appendix B, parameters values</a>
+<li><a href="#appendixc">Appendix C, quirks</a>
 
 </dir>
 
@@ -669,7 +670,7 @@ previous raw parameters, it is good idea to delete them in advance.</p>
 <hr>
 <h2><a name="appendixa">Appendix A, the libmsvg SVG subset</a></h2>
 <p>This table lists the SVG elements and attributes that are intended to be
-supported when libmsvg reaches version 0.20.</p>
+supported by libmsvg.</p>
 <p>Each row lists an element, the supported attributes and the
 possible child elements.</p>
 <p>Note that attributes listed only affects to COOKED trees, RAW trees
@@ -1186,6 +1187,22 @@ RAW parameters can have any value.</p>
         the variable sp->closed indicated if it is a closed subpath or not.</p>
     </td>
   </tr>
+</table>
+
+<hr>
+<h2><a name="appendixc">Appendix C, quirks</a></h2>
+<h3>Style property</h3>
+<p>Not in the Tiny 1.2 specs, but there are lot of svg images that instead
+of using individual style attributes group them in a unique style property
+using this format:</p>
+<pre>style="attribute:value;attribute:value;..."</pre>
+<p>If libmsvg finds such a construct it replaces it with individual raw
+attributes.</p>
+
+<h3>Elliptical arcs</h3>
+<p>The SVG 1.1 specs defines 'a', 'A' commands in paths as elliptical arcs, it
+isn't in the Tiny 1.2 specs. If libmsvg find that it replaces it by a
+line.</p>
 
 </body>
 </html>
