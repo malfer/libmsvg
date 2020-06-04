@@ -18,3 +18,4 @@ clean:
 	rm -f gsvg
 	rm -f rsvg
 	rm -f rsvg2
+	rm -f tgsvg.svg

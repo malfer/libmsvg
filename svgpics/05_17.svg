@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.2" baseProfile="tiny"
+     width="10cm" height="3cm" viewBox="0 0 100 30">
+
+  <desc>'use' with a 'transform' attribute</desc>
+
+  <defs>
+    <rect xml:id="MyRect" x="0" y="0" width="60" height="10"/>
+  </defs>
+
+  <rect x=".1" y=".1" width="99.8" height="29.8"
+        fill="none" stroke="blue" stroke-width=".2"/>
+  <use xlink:href="#MyRect" transform="translate(20,2.5) rotate(10)"/>
+</svg>
