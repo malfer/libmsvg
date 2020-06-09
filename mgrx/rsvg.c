@@ -24,7 +24,7 @@
 #include <msvg.h>
 #include "rendmgrx.h"
 
-#define TEST_FILE "test.svg"
+#define TEST_FILE "../svgpics/test.svg"
 
 static void TestFunc(void)
 {

@@ -148,7 +148,7 @@ void MsvgPrintPctx(FILE *f, MsvgPaintCtx *pctx)
     fprintf(f, "  font-family    %s\n", printivalue(pctx->font_family));
     fprintf(f, "  font-style     %s\n", printivalue(pctx->font_style));
     fprintf(f, "  font-weight    %s\n", printivalue(pctx->font_weight));
-    fprintf(f, "  font-size      %s\n", printivalue(pctx->font_size));
+    fprintf(f, "  font-size      %s\n", printdvalue(pctx->font_size));
 }
 
 static void printSvgCookedAttr(FILE *f, MsvgElement *el)

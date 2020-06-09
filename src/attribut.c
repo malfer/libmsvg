@@ -28,6 +28,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "msvg.h"
+#include "util.h"
 
 static int addRawAttribute(MsvgElement *el, const char *key, const char *value)
 {
@@ -75,7 +76,8 @@ int MsvgAddRawAttribute(MsvgElement *el, const char *key, const char *value)
     while (token1) {
         token2 = strtok(NULL,";");
         if (token2) {
-            if (!addRawAttribute(el, token1, token2)) {
+            if (!addRawAttribute(el, MsvgI_rmspaces(token1),
+                                 MsvgI_rmspaces(token2))) {
                 free(sdup);
                 return 0;
             }

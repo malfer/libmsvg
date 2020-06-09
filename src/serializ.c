@@ -95,8 +95,8 @@ static void process_generic_pctx(MsvgPaintCtx *des, MsvgPaintCtx *fath,
         des->font_weight = son->font_weight;
     }
 
-    if (son->font_size == INHERIT_IVALUE ||
-        son->font_size == NODEFINED_IVALUE) {
+    if (son->font_size == INHERIT_VALUE ||
+        son->font_size == NODEFINED_VALUE) {
         des->font_size = fath->font_size;
     } else {
         des->font_size = son->font_size;
@@ -133,18 +133,18 @@ static void process_drawel_pctx(MsvgPaintCtx *des, MsvgPaintCtx *fath,
         des->stroke_opacity = 1.0;  // solid
     }
 
-    if (des->font_family == INHERIT_VALUE ||
-        des->font_family == NODEFINED_VALUE) {
+    if (des->font_family == INHERIT_IVALUE ||
+        des->font_family == NODEFINED_IVALUE) {
         des->font_family = FONTFAMILY_SANS;
     }
 
-    if (des->font_style == INHERIT_VALUE ||
-        des->font_style == NODEFINED_VALUE) {
+    if (des->font_style == INHERIT_IVALUE ||
+        des->font_style == NODEFINED_IVALUE) {
         des->font_style = FONTSTYLE_NORMAL;
     }
 
-    if (des->font_weight == INHERIT_VALUE ||
-        des->font_weight == NODEFINED_VALUE) {
+    if (des->font_weight == INHERIT_IVALUE ||
+        des->font_weight == NODEFINED_IVALUE) {
         des->font_weight = FONTWEIGHT_NORMAL;
     }
 

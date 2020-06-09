@@ -30,7 +30,7 @@
 
 #include <stdio.h>
 
-#define LIBMSVG_VERSION_API 0x0020
+#define LIBMSVG_VERSION_API 0x0021
 
 /* define id's for supported elements */
 
@@ -168,7 +168,7 @@ typedef struct _MsvgPaintCtx {
     int font_family;       /* font-family attribute */
     int font_style;        /* font-style attribute */
     int font_weight;       /* font-weight attribute */
-    int font_size;         /* font-size attribute */
+    double font_size;      /* font-size attribute */
 } MsvgPaintCtx;
 
 /* cooked specific attributes for each element */

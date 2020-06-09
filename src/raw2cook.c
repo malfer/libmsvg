@@ -67,10 +67,29 @@ static rgbcolor colortorgb(char *color)
     else return NO_COLOR;
 }
 
+static double lengthof(char *value)
+{
+    double v;
+
+    if (strcmp(value, "inherit") == 0) return INHERIT_VALUE;
+    v = atof(value);
+    if (strstr(value, "pt") != NULL) v *= 1.25;
+    else if (strstr(value, "pc") != NULL) v *= 15;
+    else if (strstr(value, "mm") != NULL) v *= 3.54;
+    else if (strstr(value, "cm") != NULL) v *= 35.4;
+    else if (strstr(value, "in") != NULL) v *= 90; // so assuming 90 px/inch
+    return v;
+}
+
 static double opacitytof(char *value)
 {
+    double op;
+
     if (strcmp(value, "inherit") == 0) return INHERIT_VALUE;
-    return atof(value);
+    op = atof(value);
+    if (op < 0) return 0;
+    if (op > 1) return 1;
+    return op;
 }
 
 static double widthtof(char *value)
@@ -173,10 +192,10 @@ static int fontweight(char *value)
     else return NODEFINED_IVALUE;
 }
 
-static int fontsize(char *value)
+static double fontsize(char *value)
 {
-    if (strcmp(value, "inherit") == 0) return INHERIT_IVALUE;
-    return atoi(value);
+    return lengthof(value);
+    // other values TODO
 }
 
 static int cookPCtxAttr(MsvgElement *el, char *key, char *value)
@@ -202,9 +221,9 @@ static void cookSvgGenAttr(MsvgElement *el, char *key, char *value)
     double daux[4];
     
     if (strcmp(key, "width") == 0) {
-        el->psvgattr->width = atof(value);
+        el->psvgattr->width = lengthof(value);
     } else if (strcmp(key, "height") == 0) {
-        el->psvgattr->height = atof(value);
+        el->psvgattr->height = lengthof(value);
     } else if (strcmp(key, "viewBox") == 0) {
         MsvgI_read_numbers(value, daux, 4);
         el->psvgattr->vb_min_x = daux[0];
@@ -313,10 +332,16 @@ static void cookVContentGenAttr(MsvgElement *el, char *key, char *value)
 
 static void checkSvgCookedAttr(MsvgElement *el)
 {
-    if (el->psvgattr->vb_width == 0) el->psvgattr->vb_width = el->psvgattr->width;
-    if (el->psvgattr->vb_height == 0) el->psvgattr->vb_height = el->psvgattr->height;
-    if (el->psvgattr->width == 0) el->psvgattr->width = el->psvgattr->vb_width;
-    if (el->psvgattr->height == 0) el->psvgattr->height = el->psvgattr->vb_height;
+    if (el->psvgattr->vb_width <= 0) el->psvgattr->vb_width = el->psvgattr->width;
+    if (el->psvgattr->vb_height <= 0) el->psvgattr->vb_height = el->psvgattr->height;
+    if (el->psvgattr->width <= 0) el->psvgattr->width = el->psvgattr->vb_width;
+    if (el->psvgattr->height <= 0) el->psvgattr->height = el->psvgattr->vb_height;
+
+    // defaults if no declared dimensions
+    if (el->psvgattr->vb_width <= 0)
+        el->psvgattr->vb_width = el->psvgattr->width = 600;
+    if (el->psvgattr->vb_height <= 0)
+        el->psvgattr->vb_height = el->psvgattr->height = 300;
 }
    
 static void checkRectCookedAttr(MsvgElement *el)

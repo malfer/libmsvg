@@ -69,10 +69,8 @@ static void addDoubleRawAttr(MsvgElement *el, char *key, double value)
     MsvgAddRawAttribute(el, key, s);
 }
 
-static void addTextTawAttr(MsvgElement *el, char *key, int value)
+static void addTextRawAttr(MsvgElement *el, char *key, int value)
 {
-    char s[41];
-
     if (value == NODEFINED_IVALUE) return;
 
     if (value == INHERIT_VALUE) MsvgAddRawAttribute(el, key, "inherit");
@@ -98,9 +96,6 @@ static void addTextTawAttr(MsvgElement *el, char *key, int value)
         else if (value == FONTWEIGHT_700) MsvgAddRawAttribute(el, key, "bold");
         else if (value == FONTWEIGHT_800) MsvgAddRawAttribute(el, key, "800");
         else if (value == FONTWEIGHT_900) MsvgAddRawAttribute(el, key, "900");
-    } else if (strcmp(key,"font-size") == 0) {
-        sprintf(s, "%d", value);
-        MsvgAddRawAttribute(el, key, s);
     }
 }
 
@@ -121,10 +116,10 @@ static void torawPCtxAttr(MsvgElement *el)
                 tm->a, tm->b, tm->c, tm->d, tm->e, tm->f);
         MsvgAddRawAttribute(el, "transform", s);
     }
-    addTextTawAttr(el, "font-family", el->pctx.font_family);
-    addTextTawAttr(el, "font-style", el->pctx.font_style);
-    addTextTawAttr(el, "font-weight", el->pctx.font_weight);
-    addTextTawAttr(el, "font-size", el->pctx.font_size);
+    addTextRawAttr(el, "font-family", el->pctx.font_family);
+    addTextRawAttr(el, "font-style", el->pctx.font_style);
+    addTextRawAttr(el, "font-weight", el->pctx.font_weight);
+    addSpcDblRawAttr(el, "font-size", el->pctx.font_size);
 }
 
 static void toRawSvgCookedAttr(MsvgElement *el)

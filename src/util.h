@@ -30,3 +30,6 @@ int MsvgI_count_numbers(char *s);
 
 /* read up to maxnumbers from string into df */
 int MsvgI_read_numbers(char *s, double *df, int maxnumbers);
+
+/*remove spaces before and after, note: s is modifies */
+char * MsvgI_rmspaces(char *s);

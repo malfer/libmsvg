@@ -26,6 +26,7 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
 //#include <locale.h>
 #include <ctype.h>
 #include "util.h"
@@ -85,3 +86,20 @@ int MsvgI_read_numbers(char *s, double *df, int maxnumbers)
     return n;
 }
 
+char * MsvgI_rmspaces(char *s)
+{
+    char *p;
+    int len;
+
+    if (s == NULL) return NULL;
+
+    p = s;
+    
+    while (isspace(*p)) p++;
+
+    len = strlen(p);
+    while (len > 0 && isspace(p[len-1])) len--;
+    p[len] = '\0';
+
+    return p;
+}

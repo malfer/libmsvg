@@ -60,9 +60,9 @@ static MsvgElement *MsvgNewGenericElement(enum EID eid, MsvgElement *father)
     element->pctx.stroke_width = NODEFINED_VALUE;
     element->pctx.stroke_opacity = NODEFINED_VALUE;
     TMSetIdentity(&(element->pctx.tmatrix));
-    element->pctx.font_family = NODEFINED_VALUE;
-    element->pctx.font_style = NODEFINED_VALUE;
-    element->pctx.font_weight = NODEFINED_VALUE;
+    element->pctx.font_family = NODEFINED_IVALUE;
+    element->pctx.font_style = NODEFINED_IVALUE;
+    element->pctx.font_weight = NODEFINED_IVALUE;
     element->pctx.font_size = NODEFINED_VALUE;
 
     return element;
