@@ -6,9 +6,9 @@
 </head>
 
 <body>
-<h1>libmsvg v0.20</h1>
+<h1>libmsvg v0.21</h1>
 <h2>Programmer's guide</h2>
-<p>Last update: May 31, 2020</p>
+<p>Last update: Jun 9, 2020</p>
 
 <hr>
 <h2>Abstract</h2>
@@ -38,7 +38,7 @@ Appendix A</a>.</p>
 <li><a href="#serialize">Serialize a COOKED MsvgElement tree</a>
 <li><a href="#writing">Writing SVG files</a>
 <li><a href="#appendixa">Appendix A, the libmsvg SVG subset</a>
-<li><a href="#appendixb">Appendix B, parameters values</a>
+<li><a href="#appendixb">Appendix B, raw to cooked parameter conversion</a>
 <li><a href="#appendixc">Appendix C, quirks</a>
 
 </dir>
@@ -250,7 +250,7 @@ typedef struct _MsvgPaintCtx {
     int font_family;       /* font-family attribute */
     int font_style;        /* font-style attribute */
     int font_weight;       /* font-weight attribute */
-    int font_size;         /* font-size attribute */
+    double font_size;      /* font-size attribute */
 } MsvgPaintCtx;
 </pre>
 
@@ -700,8 +700,8 @@ can have any attribute.</p>
       <p>xmlns:xlink=&quot;http://www.w3.org/1999/xlink&quot; (fixed value)</p>
       <p>---  ---</p>
       <p>viewbox=&quot;min-x min-y width height&quot;</p>
-      <p>width=&quot;width&quot; (need to record units)</p>
-      <p>height=&quot;height&quot; (need to record units)</p>
+      <p>width=&quot;length&quot;</p>
+      <p>height=&quot;length&quot;</p>
       <p>preserveaspectratio=&quot;valor&quot; (TO DO)</p>
       <p>viewport-fill=&quot;color&quot;</p>
       <p>viewport-fill-opacity=&quot;n&quot;</p>
@@ -973,7 +973,7 @@ can have any attribute.</p>
 </table>
 
 <hr>
-<h2><a name="appendixb">Appendix B, parameters values</a></h2>
+<h2><a name="appendixb">Appendix B, raw to cooked parameter conversion</a></h2>
 <p>This table list the possible values that some parameters can have 
 (obvious parameters are not listed).</p>
 <p>Note that these are the values that are expected when converting to a COOKED tree,
@@ -991,6 +991,29 @@ RAW parameters can have any value.</p>
     <th width=30%>
       <p>Notes</p>
     </th>
+  </tr>
+  <tr valign=top>
+    <td width=20%>
+      <p>svg.width</p>
+      <p>svg.height</p>
+    </td>
+    <td width=40%>
+      <p>number => same value</p>
+      <p>numberpt => number * 1.25</p>
+      <p>numberpc => number * 15</p>
+      <p>numbermm => number * 3.54</p>
+      <p>numbercm => number * 35.4</p>
+      <p>numberin => number * 90</p>
+    </td>
+    <td width=40%>
+      <p>We assume 90 px per inch</p>
+      <p>If width not defined or &lt;=0 width = viewbox.width<br>
+      If height not defined or &lt;=0 height = viewbox.height<br>
+      If viewbox.width not defined or &lt;=0 viewbox.width = width<br>
+      If viewbox.height not defined or &lt;=0 viewbox.height = height<br>
+      If width continues undefined width = viewbox.width = 600;<br>
+      If height continues undefined height = viewbox.height = 300;</p>
+    </td>
   </tr>
   <tr valign=top>
     <td width=20%>
@@ -1096,7 +1119,7 @@ RAW parameters can have any value.</p>
       <p>value contents "cursive" => FONTFAMILY_CURSIVE</p>
       <p>value contents "fantasy" => FONTFAMILY_FANTASY</p>
       <p>value contents "monospace" => FONTFAMILY_MONOSPACE</p>
-      <p>other values => (TO DO or NOT)</p>
+      <p>other values => (TO DO or NOT TO DO)</p>
     </td>
     <td width=40%>
       <p>If after the inheritance process font-family is not defined it will
@@ -1150,9 +1173,17 @@ RAW parameters can have any value.</p>
       <p>font-size</p>
     </td>
     <td width=40%>
-      <p>NO DEFINED => NODEFINED_IVALUE</p>
-      <p>inherit => INHERIT_IVALUE</p>
-      <p>number > 0 => same value</p>
+      <p>NO DEFINED => NODEFINED_VALUE</p>
+      <p>inherit => INHERIT_VALUE</p>
+      <p>number => same value</p>
+      <p>numberpt => number * 1.25</p>
+      <p>numberpc => number * 15</p>
+      <p>numbermm => number * 3.54</p>
+      <p>numbercm => number * 35.4</p>
+      <p>numberin => number * 90</p>
+      <p>[ xx-small | x-small | small | medium | large | x-large | xx-large ]
+       => (TODO)</p>
+       <p>[ larger | smaller ] => (TODO)</p>
     </td>
     <td width=40%>
       <p>If after the inheritance process font-size is not defined it will
