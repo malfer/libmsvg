@@ -170,7 +170,7 @@ is easier to be manipulated and/or rasterized by a program.</p>
 
 <h3>Content</h3>
 <p>In addition to attributes an element can have content, content
-is stored in a MsvgContent variable, and it is shared by RAW and SHARED trees.
+is stored in a MsvgContent variable, and it is shared by RAW and COOKED trees.
 In this version of the library only EID_TEXT element contents are stored in the
 tree.</p>
 
@@ -255,7 +255,7 @@ typedef struct _MsvgPaintCtx {
 </pre>
 
 <p>it is important to note that all attributes in the MsvgPaintCtx can
-be inherited from his father element. This can be do explicitly with the value
+be inherited from his father element. This can be doing explicitly with the value
 INHERIT_COLOR (for colors) INHERIT_VALUE (for doubles) or INHERIT_IVALUE
 (for ints), that correspond to the raw keyword value "inherit", or implicitly
 when the value is NODEFINED_COLOR (for colors) NODEFINED_VALUE (for doubles)
