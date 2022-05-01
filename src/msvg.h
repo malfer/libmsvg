@@ -2,7 +2,8 @@
  * 
  * libmsvg, a minimal library to read and write svg files
  *
- * Copyright (C) 2010,2020 Mariano Alvarez Fernandez (malfer at telefonica.net)
+ * Copyright (C) 2010,2020-2022 Mariano Alvarez Fernandez
+ * (malfer at telefonica.net)
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -368,11 +369,11 @@ int MsvgCooked2RawTree(MsvgElement *root);
 
 /* functions in serializ.c */
 
-typedef void (*MsvgSerUserFn)(MsvgElement *el, MsvgPaintCtx *pctx);
+typedef void (*MsvgSerUserFn)(MsvgElement *el, MsvgPaintCtx *pctx, void *udata);
 
 #define MAX_NESTED_USE_ELEMENT 5
 
-int MsvgSerCookedTree(MsvgElement *root, MsvgSerUserFn sufn);
+int MsvgSerCookedTree(MsvgElement *root, MsvgSerUserFn sufn, void *udata);
 
 /* functions in tcookel.c */
 
@@ -426,5 +427,10 @@ MsvgTableId * MsvgBuildTableIdCookedTree(MsvgElement *el);
 MsvgTableId * MsvgBuildTableIdRawTree(MsvgElement *el);
 void MsvgDestroyTableId(MsvgTableId *tid);
 MsvgElement *MsvgFindIdTableId(MsvgTableId *tid, char *id);
+
+/* functions in cokdims.c */
+
+int MsvgGetCookedDims(MsvgElement *root, double *minx, double *maxx,
+                      double *miny, double *maxy);
 
 #endif  /* whole file */

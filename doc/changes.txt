@@ -1,0 +1,129 @@
+2022-05-01
+    In MsvgPathEltoPolyEl limit the number of points generated for a bezier curve
+    to MAX_BEZPOINTS
+    Added an user-data parameter to MsvgSerCookedTree
+    Added MsvgGetCookedDims, makes a rough estimation of the svg dimensions in a
+    cooked tree
+2022-04-22 
+    corrections to the prog guide
+2020-06-10 
+    updated docs to v0.21
+2020-06-09 
+    Solving bugs
+2020-06-04 
+    updated docs to v0.20
+2020-06-04 
+    move svg examples to svgpics subfdir
+2020-06-04 
+    Solving bugs some tests improvements
+2020-05-31 
+    Upadted docs to v0.19
+2020-05-31 
+    Completed the EID_TEXT integration Added the inheritable text atributtes to
+    MsvgPaintCtx Solving bugs
+2020-05-30 
+    Agregate TEXT contens in a unique string New virtual element EID_V_CONTENT,
+    but no used by now Trasnlate &,<,> writing contents
+2020-05-28 
+    Changed license to the Expat license
+2020-05-28 
+    bug corrected
+2020-05-27 
+    updated docs v0.17
+2020-05-27 
+    solving bugs
+2020-05-27 
+    Completed the EID_PATH integration Not a tiny 1.2 spec but process the "style"
+    parameter the MGRX example programs now can process EID_PATH and roumded EID_RECT
+2020-05-22 
+    Revert "Revert "v0.16""
+2020-05-22 
+    Revert "v0.16"
+2020-05-22 
+    updated programmer's guide to v0.16
+2020-05-21 
+    added MsvgCooked2RawTree function first work to integrate EID_PATH
+2020-05-19 
+    The serialize process has the ID_USE elements in account Functions to find
+    elements Updated the programmer's guide to v0.15
+2020-05-16 
+    improvements to the mgrx rasterize code
+2020-05-10 
+    Continue integration of EID_TEXT, EID_DEFS, EID_USE Update programmer's guide
+2020-05-10 
+    Inital support of EID_TEXT, EID_DEFS and EID_USE elements Added fcontent
+    variable to the MsvgElement structure, a limkend list of MsvgContent structs,
+    by now only the EID_TEXT element can have contents For EID_ELLIPSE changed
+    rx, ry cooked parameters to rx_x, rx_y, ry_x, ry_y the two points that defines
+    the two ellipse axis, now apply a trasnformation is easier and te user program
+    has all the information necesary to render The MGRX render demo now can handle
+    transformation matrix
+2020-05-02 
+    updated programmer's guide to v0.13
+2020-05-01 
+    Better MGRX renderize and take advantage of MsvgTransformCookedElement
+2020-05-01 
+    transformation matrix supported as a cooked parameter the serialize process
+    calculates the current transformation matrix added MsvgTransformCookedElement
+    funtion to help rasterize
+2020-04-28 
+    updated programmer's guide to v0.12 added MsvgDelAllTreeRawAttributes funtion
+2020-04-28 
+    New mgrx/rsvg2.c test program
+2020-04-25 
+    updated programe's guide to v0.11
+2020-04-25 
+    Added MsvgSerCookedTree Lot of changes to inherit and initialize cooked
+    parameters
+2020-04-23 
+    Added MsvgDupElement
+2020-04-22 
+    upfated prog_guide
+2020-04-22 
+    changed denomination generic attributes to raw attributes cooked attributes
+    are now generic and specific
+2019-04-21 
+    MsvgDeleteElement now works ok, no memory leaks New functions MsvgDelAttribute
+    and MsvgDelAllAttributes New tdel demo program to test delete attributes and
+    elements
+2019-04-19 
+    added members for inheritance
+2019-04-10 
+    first use of stroke_width in mgrx demos stroke_width bug corrected in library
+2019-04-09 
+    Added lines & polylines to the mgrx demo
+2011-01-22 
+    cook polyline and polygon specific attributes points
+2011-01-15 
+    Structure the mgrx test programs
+2010-12-25 
+    Added circles to the mgrx demo
+2010-12-12 
+    Added a mgrx dirty test program
+2010-12-12 
+    Corrected some bugs in MsvgRaw2CookedTree
+2010-12-11 
+    Finished the v0.02 prog guide
+2010-12-08 
+    Updated readme
+2010-12-08 
+    Renamed prog guide
+2010-12-08 
+    Added manielem.c
+2010-12-08 
+    More work in the prog guide
+2010-12-07 
+    Working in the prog guide
+2010-11-20 
+    Added the MsvgRaw2CookedTree function
+2010-11-13 
+    Use double instead float for storing numbers Begin with the conversion from
+    raw to cooked tree
+2010-11-03 
+    Deleted old user's guide version
+2010-11-03 
+    Programmer's guide update
+2010-10-29 
+    Begin with the svg tree type infrastructure
+2010-10-10 
+    first commit

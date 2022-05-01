@@ -2,7 +2,8 @@
  * 
  * libmsvg, a minimal library to read and write svg files
  * 
- * Copyright (C) 2010, 2020 Mariano Alvarez Fernandez (malfer at telefonica.net)
+ * Copyright (C) 2010, 2020-2022 Mariano Alvarez Fernandez
+ * (malfer at telefonica.net)
  *
  * This is a test file of the libmsvg library.
  * libmsvg test files are in the Public Domain, this apply only to test
@@ -15,13 +16,18 @@
 #include <string.h>
 #include "msvg.h"
 
-static int usetranscooked = 0;
+typedef struct {
+    int usetranscooked;
+} UserData;
 
-static void sufn(MsvgElement *el, MsvgPaintCtx *pctx)
+static void sufn(MsvgElement *el, MsvgPaintCtx *pctx, void *udata)
 {
     MsvgElement *newel;
+    UserData *ud;
 
-    if (usetranscooked) {
+    ud = (UserData *)udata;
+    
+    if (ud->usetranscooked) {
         newel = MsvgTransformCookedElement(el, pctx);
         if (newel == NULL) return;
     } else {
@@ -33,7 +39,7 @@ static void sufn(MsvgElement *el, MsvgPaintCtx *pctx)
     printf("  --------- effective MsvgPaintCtx\n");
     MsvgPrintPctx(stdout, pctx);
 
-    if (usetranscooked)
+    if (ud->usetranscooked)
         free(newel);
 }
 
@@ -41,13 +47,14 @@ int main(int argc, char **argv)
 {
     MsvgElement *root;
     int error;
-    
+    UserData ud = {0};
+
     if (argc <2) {
         printf("Usage: tcook file [utc]\n");
         return 0;
     }
     
-    if (argc >= 3 && strcmp(argv[2], "utc") == 0) usetranscooked = 1;
+    if (argc >= 3 && strcmp(argv[2], "utc") == 0) ud.usetranscooked = 1;
     
     root = MsvgReadSvgFile(argv[1], &error);
 
@@ -67,7 +74,7 @@ int main(int argc, char **argv)
     MsvgPrintRawElementTree(stdout, root, 0);
 
     printf("===== Serialize cooked tree\n");
-    MsvgSerCookedTree(root, sufn);
+    MsvgSerCookedTree(root, sufn, &ud);
 
     MsvgDeleteElement(root);
 

@@ -23,6 +23,7 @@ LIBOBJS=tables.o \
         tcookel.o \
         path2ply.o \
         find.o \
+        cokdims.o \
         util.o
 
 LIB=libmsvg.a

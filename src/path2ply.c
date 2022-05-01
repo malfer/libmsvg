@@ -38,6 +38,7 @@ typedef struct {
 } ExpPointArray;
 
 #define POINTSEP 8
+#define MAX_BEZPOINTS 1000
 
 static ExpPointArray * NewExpPointArray(int maxpoints)
 {
@@ -81,7 +82,7 @@ static void AddPointToExpPointArray(ExpPointArray *pa, double x, double y)
     if (pa->npoints >= pa->maxpoints) {
         if (pa->failed_realloc) return;
         ExpandExpPointArray(pa);
-        AddPointToExpPointArray(pa, x, y);
+        if (pa->failed_realloc) return;
     }
 
     pa->points[pa->npoints*2] = x;
@@ -114,6 +115,7 @@ static void GenQBezier(MsvgSubPath *sp, int pos, ExpPointArray *pa)
     numpts = (fabs(xorg - xpc) + fabs(yorg - ypc) +
               fabs(xpc - xend) + fabs(ypc - yend)) / POINTSEP;
     if (numpts < 3) numpts = 3;
+    if (numpts > MAX_BEZPOINTS) numpts = MAX_BEZPOINTS;
 
     // calcula los coeficientes polinomiales
     bx = -2 * xorg + 2 * xpc;
@@ -153,6 +155,7 @@ static void GenCBezier(MsvgSubPath *sp, int pos, ExpPointArray *pa)
               fabs(xpc1 - xpc2) + fabs(ypc1 - ypc2) +
               fabs(xpc2 - xend) + fabs(ypc2 - yend)) / POINTSEP;
     if (numpts < 3) numpts = 3;
+    if (numpts > MAX_BEZPOINTS) numpts = MAX_BEZPOINTS;
 
     // calcula los coeficientes polinomiales
     cx = 3 * (xpc1 - xorg);

@@ -2,7 +2,8 @@
  * 
  * libmsvg, a minimal library to read and write svg files
  *
- * Copyright (C) 2010, 2020 Mariano Alvarez Fernandez (malfer at telefonica.net)
+ * Copyright (C) 2010, 2020-2022 Mariano Alvarez Fernandez
+ * (malfer at telefonica.net)
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -34,6 +35,7 @@ typedef struct {
     MsvgSerUserFn sufn;
     MsvgTableId *tid;
     int nested_use;
+    void *udata;
 } SerData;
 
 static void process_generic_pctx(MsvgPaintCtx *des, MsvgPaintCtx *fath,
@@ -220,7 +222,7 @@ static void process_container(MsvgElement *el, SerData *sd,
             case EID_PATH :
             case EID_TEXT :
                 process_drawel_pctx(&sonpctx, &mypctx, &(pel->pctx));
-                sd->sufn(pel, &sonpctx);
+                sd->sufn(pel, &sonpctx, sd->udata);
                 break;
             default :
                 break;
@@ -230,7 +232,7 @@ static void process_container(MsvgElement *el, SerData *sd,
     }
 }
 
-int MsvgSerCookedTree(MsvgElement *root, MsvgSerUserFn sufn)
+int MsvgSerCookedTree(MsvgElement *root, MsvgSerUserFn sufn, void *udata)
 {
     SerData sd;
 
@@ -241,6 +243,7 @@ int MsvgSerCookedTree(MsvgElement *root, MsvgSerUserFn sufn)
     sd.sufn = sufn;
     sd.tid = MsvgBuildTableIdCookedTree(root);
     sd.nested_use = 0;
+    sd.udata = udata;
 
     process_container(root, &sd, NULL, 0);
 
