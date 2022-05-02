@@ -52,8 +52,9 @@ void GrDestroyPath(GrPath *gp);
 
 GrExpPointArray * GrNewExpPointArray(int maxpoints);
 void GrExpandExpPointArray(GrExpPointArray *pa);
-void GrAddPointToExpPointArray(GrExpPointArray *pa, int x, int y);
+void GrAddPointToExpPointArray(GrExpPointArray *pa, int x, int y, int notequal);
 void GrDestroyExpPointArray(GrExpPointArray *pa);
 
 int GrReducePoints(int numpts, int points[][2]);
 GrExpPointArray * GrPathToExpPointArray(GrPath *gp);
+GrExpPointArray * GrPathToExpPointArray2(GrPath *gp);

@@ -37,6 +37,8 @@ static int DrawSvgFile(char *fname, int rotang, GrSVGDrawMode *sdm)
     int error = 0;
     double cx, cy;
     TMatrix trot, taux;
+    double gminx, gmaxx, gminy, gmaxy;
+    static int print_dims = 1;
     
     root = MsvgReadSvgFile(fname, &error);
     if (root == NULL) return error;
@@ -47,6 +49,11 @@ static int DrawSvgFile(char *fname, int rotang, GrSVGDrawMode *sdm)
     }*/
 
     if (!MsvgRaw2CookedTree(root)) return -5;
+
+    if (print_dims && MsvgGetCookedDims(root, &gminx, &gmaxx, &gminy, &gmaxy)) {
+        printf("Cooked dims ==> %g %g   %g %g\n", gminx, gminy, gmaxx, gmaxy);
+        print_dims = 0;
+    }
 
     if (rotang != 0) {
         cx = root->psvgattr->vb_width / 2 + root->psvgattr->vb_min_x;

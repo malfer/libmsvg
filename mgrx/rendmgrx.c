@@ -26,38 +26,26 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <limits.h>
 
 #include <mgrx.h>
 #include <msvg.h>
 #include "rendmgrx.h"
 #include "pathmgrx.h"
 
-/*
- * typedef struct _DrawSettings {
- *  GrColor cfill;
- *  GrColor cstroke;
- * } DrawSettings;
- */
-
 static double glob_vb_min_x;
 static double glob_vb_min_y;
 static double glob_scale_x;
 static double glob_scale_y;
 static double glob_thick1 = 1;
-static int glob_xorg;
-static int glob_yorg;
+static double glob_xorg;
+static double glob_yorg;
 static GrColor glob_bg;
-
-//static int minx=0, miny=0, maxx=0, maxy=0;
 
 static void get_icoord(int *x, int *y, double dx, double dy)
 {
     *x = (dx - glob_vb_min_x) / glob_scale_x + 0.5 + glob_xorg;
     *y = (dy - glob_vb_min_y) / glob_scale_y + 0.5 + glob_yorg;
-    //if (*x < minx) minx = *x;
-    //if (*x > maxx) maxx = *x;
-    //if (*y < miny) miny = *x;
-    //if (*y > maxy) maxy = *x;
 }
 
 static void DrawRectElement(MsvgElement *el, MsvgPaintCtx *pctx)
@@ -256,7 +244,6 @@ static void DrawPolygonElement(MsvgElement *el, MsvgPaintCtx *pctx)
     int istroke_width;
     int i, npoints, (*points)[2];
     
-    //  printf("%d puntos\n", el->ppolygonattr->npoints);
     npoints = el->ppolygonattr->npoints;
     points = calloc(npoints, sizeof(int[2]));
     if (points == NULL) return;
@@ -266,10 +253,6 @@ static void DrawPolygonElement(MsvgElement *el, MsvgPaintCtx *pctx)
                    el->ppolygonattr->points[i*2],
                    el->ppolygonattr->points[i*2+1]);
     }
-    //for (i=0;i<npoints;i++) printf("%d,%d ",points[i][0],points[i][1]);
-    //printf("\n");
-    //for (i=0;i<npoints;i++) printf("%g,%g ",el->ppolygonattr->points[i*2],el->ppolygonattr->points[i*2+1]);
-    //printf("\n");
     
     if (pctx->fill != NO_COLOR) {
         cfill = GrAllocColor2(pctx->fill);
@@ -327,11 +310,8 @@ static void DrawPathElement(MsvgElement *el, MsvgPaintCtx *pctx)
                 GrAddPointToPath(gp, sp->spp[i].cmd, x, y);
             }
             gp->closed = sp->closed;
-            pa = GrPathToExpPointArray(gp);
+            pa = GrPathToExpPointArray2(gp);
             if (pa) {
-                //printf("npoints before %d\n", pa->npoints);
-                pa->npoints = GrReducePoints(pa->npoints, pa->points);
-                //printf("npoints after %d\n", pa->npoints);
                 if (pctx->fill != NO_COLOR) {
                     GrFilledPolygon(pa->npoints, pa->points, rcfill);
                 }
@@ -360,33 +340,7 @@ static void DrawPathElement(MsvgElement *el, MsvgPaintCtx *pctx)
     }
 }
 
-/*static void sufn(MsvgElement *el, MsvgPaintCtx *pctx)
-{
-    switch (el->eid) {
-        case EID_RECT :
-            DrawRectElement(el, pctx);
-            break;
-        case EID_CIRCLE :
-            DrawCircleElement(el, pctx);
-            break;
-        case EID_ELLIPSE :
-            DrawEllipseElement(el, pctx);
-            break;
-        case EID_LINE :
-            DrawLineElement(el, pctx);
-            break;
-        case EID_POLYLINE :
-            DrawPolylineElement(el, pctx);
-            break;
-        case EID_POLYGON :
-            DrawPolygonElement(el, pctx);
-            break;
-        default :
-            break;
-    }
-}*/
-
-static void sufn2(MsvgElement *el, MsvgPaintCtx *pctx)
+static void sufn(MsvgElement *el, MsvgPaintCtx *pctx, void *udata)
 {
     MsvgElement *newel;
     //MsvgElement *newel2;
@@ -422,7 +376,7 @@ static void sufn2(MsvgElement *el, MsvgPaintCtx *pctx)
             DrawPathElement(newel, &(newel->pctx));
             /*nsp = MsvgCountSubPaths(newel->ppathattr->sp);
             for (i=0; i<nsp; i++) {
-                newel2 = MsvgPathEltoPolyEl(newel, i);
+                newel2 = MsvgPathEltoPolyEl(newel, i, 4);
                 if (newel2) {
                     if (newel2->eid == EID_POLYGON)
                         DrawPolygonElement(newel2, &(newel2->pctx));
@@ -437,8 +391,6 @@ static void sufn2(MsvgElement *el, MsvgPaintCtx *pctx)
     }
 
     MsvgDeleteElement(newel);
-    //GrEvent ev;
-    //GrEventWaitKeyOrClick(&ev);
 }
 
 int GrDrawSVGtree(MsvgElement *root, GrSVGDrawMode *sdm)
@@ -515,13 +467,23 @@ int GrDrawSVGtree(MsvgElement *root, GrSVGDrawMode *sdm)
         default:
             return 0;
     }
-            
-    glob_vb_min_x = root->psvgattr->vb_min_x * zoom;
-    glob_vb_min_y = root->psvgattr->vb_min_y * zoom;
+
+    glob_vb_min_x = root->psvgattr->vb_min_x;
+    glob_vb_min_y = root->psvgattr->vb_min_y;
 
     glob_xorg += sdm->xdespl;
     glob_yorg += sdm->ydespl;
 
+    // check if possible integer overflow (it happens if zoom is a big value)
+    if (((rvb_width/glob_scale_x)+glob_xorg) > (INT_MAX/2) ||
+        ((rvb_height/glob_scale_y)+glob_yorg) > (INT_MAX/2) ||
+        glob_xorg < (INT_MIN/2) || glob_yorg < (INT_MIN/2)) {
+        printf("Possible overflow %g %g   %g %g\n", glob_xorg, glob_yorg,
+               (rvb_width/glob_scale_x)+glob_xorg,
+               (rvb_height/glob_scale_y)+glob_yorg);
+        return 0;
+    }
+    
     glob_bg = sdm->bg;
     if (root->psvgattr->vp_fill != NO_COLOR) {
         cfill = GrAllocColor2(root->psvgattr->vp_fill);
@@ -531,9 +493,7 @@ int GrDrawSVGtree(MsvgElement *root, GrSVGDrawMode *sdm)
         GrClearContext(sdm->bg);
     }
 
-    //printf("=== %g %g   %d %d\n", glob_scale_x, glob_scale_y, glob_xorg, glob_yorg);
-    MsvgSerCookedTree(root, sufn2);
-    //printf("==> %d %d   %d %d\n", minx, maxx, miny, maxy);
+    if (!MsvgSerCookedTree(root, sufn, NULL)) return 0;
 
     return 1;
 }

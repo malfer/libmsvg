@@ -1,17 +1,27 @@
+#
+# libmsvg+mgrx tests Makefile. Uses GNU Make.
+#
+# it expects both libmsvg and mgrx libs installed in advance
+#
 .PHONY : clean
+
+#LIBS=../src/libmsvg.a -lmgrxX -lX11 -lm
+LIBS=-lmsvg -lmgrxX -lX11 -lm
+#CFLAGS+= -I../src -Wall -D__XWIN__
+CFLAGS+= -Wall -D__XWIN__
 
 all: gsvg rsvg rsvg2
 
 gsvg: gsvg.c rendmgrx.o pathmgrx.o rendmgrx.h pathmgrx.h
-	gcc -Wall -o gsvg gsvg.c rendmgrx.o pathmgrx.o -lmsvg -lmgrxX -lX11 -lm
+	gcc $(CFLAGS) -o gsvg gsvg.c rendmgrx.o pathmgrx.o $(LIBS)
 rsvg: rsvg.c rendmgrx.o pathmgrx.o rendmgrx.h pathmgrx.h
-	gcc -Wall -o rsvg rsvg.c rendmgrx.o pathmgrx.o -lmsvg -lmgrxX -lX11 -lm
+	gcc $(CFLAGS) -o rsvg rsvg.c rendmgrx.o pathmgrx.o $(LIBS)
 rsvg2: rsvg2.c rendmgrx.o pathmgrx.o rendmgrx.h pathmgrx.h
-	gcc -Wall -o rsvg2 rsvg2.c rendmgrx.o pathmgrx.o -lmsvg -lmgrxX -lX11 -lm
+	gcc $(CFLAGS) -o rsvg2 rsvg2.c rendmgrx.o pathmgrx.o $(LIBS)
 rendmgrx.o: rendmgrx.c rendmgrx.h pathmgrx.h
-	gcc -Wall -c rendmgrx.c
+	gcc $(CFLAGS) -c rendmgrx.c
 pathmgrx.o: pathmgrx.c pathmgrx.h
-	gcc -Wall -c pathmgrx.c
+	gcc $(CFLAGS) -c pathmgrx.c
 
 clean:
 	rm -f *.o

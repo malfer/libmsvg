@@ -35,8 +35,8 @@ typedef struct {
     int mode;
     int adj;
     double zoom;
-    int xdespl;
-    int ydespl;
+    double xdespl;
+    double ydespl;
     GrColor bg;
 } GrSVGDrawMode;
 

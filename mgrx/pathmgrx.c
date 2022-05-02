@@ -5,7 +5,8 @@
  *
  * In the future this will be added to MGRX, this is why the LGPL is aplied
  *
- * Copyright (C) 2010, 2020 Mariano Alvarez Fernandez (malfer at telefonica.net)
+ * Copyright (C) 2010, 2020-2022 Mariano Alvarez Fernandez
+ * (malfer at telefonica.net)
  *
  * This source is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -31,6 +32,7 @@
 #include "pathmgrx.h"
 
 #define POINTSEP 8
+#define MAX_BEZPOINTS 1000
 
 GrPath * GrNewPath(int maxpoints)
 {
@@ -75,7 +77,7 @@ void GrAddPointToPath(GrPath *gp, char cmd, int x, int y)
     if (gp->npoints >= gp->maxpoints) {
         if (gp->failed_realloc) return;
         GrExpandPath(gp);
-        GrAddPointToPath(gp, cmd, x, y);
+        if (gp->failed_realloc) return;
     }
 
     gp->pp[gp->npoints].cmd = cmd;
@@ -129,12 +131,17 @@ void GrExpandExpPointArray(GrExpPointArray *pa)
     pa->points = newpoints;
 }
 
-void GrAddPointToExpPointArray(GrExpPointArray *pa, int x, int y)
+void GrAddPointToExpPointArray(GrExpPointArray *pa, int x, int y, int notequal)
 {
+    if (notequal && pa->npoints > 0) {
+        if (x == pa->points[pa->npoints-1][0] &&
+            y == pa->points[pa->npoints-1][1]) return;
+    }
+        
     if (pa->npoints >= pa->maxpoints) {
         if (pa->failed_realloc) return;
         GrExpandExpPointArray(pa);
-        GrAddPointToExpPointArray(pa, x, y);
+        if (pa->failed_realloc) return;
     }
 
     pa->points[pa->npoints][0] = x;
@@ -198,6 +205,7 @@ static void GrGenQBezier(GrPath *gp, int pos, GrExpPointArray *pa)
     numpts = (abs(xorg - xpc) + abs(yorg - ypc) +
               abs(xpc - xend) + abs(ypc - yend)) / POINTSEP;
     if (numpts < 3) numpts = 3;
+    if (numpts > MAX_BEZPOINTS) numpts = MAX_BEZPOINTS;
 
     // calcula los coeficientes polinomiales
     bx = -2 * xorg + 2 * xpc;
@@ -211,9 +219,9 @@ static void GrGenQBezier(GrPath *gp, int pos, GrExpPointArray *pa)
         tSquared = t * t;
         x = ((ax * tSquared) + (bx * t) + xorg) + 0.5;
         y = ((ay * tSquared) + (by * t) + yorg) + 0.5;
-        GrAddPointToExpPointArray(pa, x, y);
+        GrAddPointToExpPointArray(pa, x, y, 1);
     }
-    GrAddPointToExpPointArray(pa, xend, yend);
+    GrAddPointToExpPointArray(pa, xend, yend, 1);
 }
 
 static void GrGenCBezier(GrPath *gp, int pos, GrExpPointArray *pa)
@@ -236,6 +244,7 @@ static void GrGenCBezier(GrPath *gp, int pos, GrExpPointArray *pa)
               abs(xpc1 - xpc2) + abs(ypc1 - ypc2) +
               abs(xpc2 - xend) + abs(ypc2 - yend)) / POINTSEP;
     if (numpts < 3) numpts = 3;
+    if (numpts > MAX_BEZPOINTS) numpts = MAX_BEZPOINTS;
 
     // calcula los coeficientes polinomiales
     cx = 3 * (xpc1 - xorg);
@@ -252,9 +261,9 @@ static void GrGenCBezier(GrPath *gp, int pos, GrExpPointArray *pa)
         tCubed = tSquared * t;
         x = ((ax * tCubed) + (bx * tSquared) + (cx * t) + xorg) + 0.5;
         y = ((ay * tCubed) + (by * tSquared) + (cy * t) + yorg) + 0.5;
-        GrAddPointToExpPointArray(pa, x, y);
+        GrAddPointToExpPointArray(pa, x, y, 1);
     }
-    GrAddPointToExpPointArray(pa, xend, yend);
+    GrAddPointToExpPointArray(pa, xend, yend, 1);
 }
 
 GrExpPointArray * GrPathToExpPointArray(GrPath *gp)
@@ -267,10 +276,10 @@ GrExpPointArray * GrPathToExpPointArray(GrPath *gp)
     pa = GrNewExpPointArray(gp->npoints*2);
     if (pa == NULL) return NULL;
 
-    GrAddPointToExpPointArray(pa, gp->pp[0].x, gp->pp[0].y);
+    GrAddPointToExpPointArray(pa, gp->pp[0].x, gp->pp[0].y, 0);
     for (i=1; i<gp->npoints; i++) {
         if (gp->pp[i].cmd == 'L') {
-            GrAddPointToExpPointArray(pa, gp->pp[i].x, gp->pp[i].y);
+            GrAddPointToExpPointArray(pa, gp->pp[i].x, gp->pp[i].y, 1);
         } else if (gp->pp[i].cmd == 'Q') {
             GrGenQBezier(gp, i, pa);
         } else if (gp->pp[i].cmd == 'C') {
@@ -280,5 +289,78 @@ GrExpPointArray * GrPathToExpPointArray(GrPath *gp)
 
     pa->closed = gp->closed;
 
+    return pa;
+}
+
+#define min(x,y)    (((x) < (y)) ?  (x) : (y))
+#define max(x,y)    (((x) > (y)) ?  (x) : (y))
+
+static int indrawarea(GrPathPoint *pp, int np)
+{
+    int i, minx, maxx, miny, maxy;
+
+    if (np < 2) return 0;
+
+    minx = min(pp[0].x, pp[1].x);
+    miny = min(pp[0].y, pp[1].y);
+    maxx = max(pp[0].x, pp[1].x);
+    maxy = max(pp[0].y, pp[1].y);
+
+    for (i=2; i < np; i++) {
+        minx = min(pp[i].x, minx);
+        miny = min(pp[i].y, miny);
+        maxx = max(pp[i].x, maxx);
+        maxy = max(pp[i].y, maxy);
+    }
+
+    if (minx > GrHighX() || maxx < GrLowX() || miny > GrHighY() || maxy < GrLowY()) {
+        return 0;
+    }
+
+    return 1;
+}
+
+GrExpPointArray * GrPathToExpPointArray2(GrPath *gp)
+{
+    // This version doesn't calculate Bezier points it they are out of the
+    // mgrx current drawing cliparea, so it is faster
+    GrExpPointArray *pa;
+    int i;
+    //static int maxpoints = 0;
+
+    if (gp->npoints < 2) return NULL;
+
+    pa = GrNewExpPointArray(gp->npoints*2);
+    if (pa == NULL) return NULL;
+
+    GrAddPointToExpPointArray(pa, gp->pp[0].x, gp->pp[0].y, 0);
+    for (i=1; i<gp->npoints; i++) {
+        if (gp->pp[i].cmd == 'L') {
+            GrAddPointToExpPointArray(pa, gp->pp[i].x, gp->pp[i].y, 1);
+        } else if (gp->pp[i].cmd == 'Q') {
+            if (indrawarea(&(gp->pp[i-1]), 3)) {
+                GrGenQBezier(gp, i, pa);
+            } else {
+                GrAddPointToExpPointArray(pa, gp->pp[i+1].x, gp->pp[i+1].y, 1);
+            }
+        } else if (gp->pp[i].cmd == 'C') {
+            if (indrawarea(&(gp->pp[i-1]), 4)) {
+                GrGenCBezier(gp, i, pa);
+                //if (gp->npoints == 40) printf("in %d %d  %d %d\n",
+                //    gp->pp[i-1].x, gp->pp[i-1].y, gp->pp[i+2].x, gp->pp[i+2].y);
+            } else {
+                GrAddPointToExpPointArray(pa, gp->pp[i+2].x, gp->pp[i+2].y, 1);
+                //if (gp->npoints == 40) printf("out %d %d  %d %d\n",
+                //    gp->pp[i-1].x, gp->pp[i-1].y, gp->pp[i+2].x, gp->pp[i+2].y);
+            }
+        }
+    }
+
+    pa->closed = gp->closed;
+
+    //if (pa->npoints > maxpoints) {
+    //    maxpoints = pa->npoints;
+    //    printf("GrPathToExpPointArray2: %d %d\n", gp->npoints, pa->npoints);
+    //}
     return pa;
 }

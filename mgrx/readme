@@ -9,11 +9,11 @@ To make the example programs you need both libmsvg and mgrx installed first.
 Them do that:
 
 Linux X11:
-gcc -c rendmgrx.c
-gcc -c pathmgrx.c
-gcc -o rsvg rsvg.c rendmgrx.o pathmgrx.o -lmsvg -lmgrxX -lX11 -lm
-gcc -o gsvg gsvg.c rendmgrx.o pathmgrx.o -lmsvg -lmgrxX -lX11 -lm
-gcc -o rsvg2 rsvg2.c rendmgrx.o pathmgrx.o -lmsvg -lmgrxX -lX11 -lm
+gcc -D__XWIN__ -c rendmgrx.c
+gcc -D__XWIN__ -c pathmgrx.c
+gcc -D__XWIN__ -o rsvg rsvg.c rendmgrx.o pathmgrx.o -lmsvg -lmgrxX -lX11 -lm
+gcc -D__XWIN__ -o gsvg gsvg.c rendmgrx.o pathmgrx.o -lmsvg -lmgrxX -lX11 -lm
+gcc -D__XWIN__ -o rsvg2 rsvg2.c rendmgrx.o pathmgrx.o -lmsvg -lmgrxX -lX11 -lm
 
 Linux console:
 gcc -c rendmgrx.c
@@ -41,13 +41,15 @@ There is a simple makefile for the X11 version, run it by:
 
 rsvg read test.svg and render it on screen.
 gsvg generates a MsvgElemnt tree programmatically and render it on screen.
-rsvg2 is a bit more elaborated, it must be run by:
+rsvg2 is a more elaborated svg visor that can zoomm and rotate, run it by:
     rsvg2 filename.svg [width height bpp]
+for example:
+    rsvg2 ../svgpics/gtiger.svg
 
 License
 -------
-rendmgrx.c, rendmgrx.h, pathmgrx.c and pathmgrx.h will be part of the
-MGRX library, and are under the LGPL license, see copying.txt
+rendmgrx.c, rendmgrx.h, pathmgrx.c and pathmgrx.h will be someday part of
+the MGRX library, and are under the LGPL license, see copying.txt
 
-rsvg.x, rsvg2.c and tsvg.c are libmsvg+MGRX tests programs, and are
+rsvg.c, gsvg.c and rsvg2.c are libmsvg+MGRX tests programs, they are
 in the public domain.

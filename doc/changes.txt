@@ -1,3 +1,10 @@
+2022-05-02
+    Changes to the MGRX tests:
+    - renderize paths by its own, using integer arithmetic
+    - do not calculate bezier curves if they are out of the clip area
+    - rsvg2 prints calculated image dimensions, so you can edit the svg file if
+    the reported dimensions are bad values
+    - rsvg2 checks for overflow when zooming
 2022-05-01
     In MsvgPathEltoPolyEl limit the number of points generated for a bezier curve
     to MAX_BEZPOINTS
