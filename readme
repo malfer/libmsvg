@@ -1,4 +1,4 @@
-Welcome to libmsvg version 0.21
+Welcome to libmsvg version 0.22
 
 libmsvg is a work in progress to make a minimal and generic library to read
 and write SVG files.
@@ -18,7 +18,7 @@ supported platforms:
 
   Linux using the gcc compiler and gmake
   DOS using the DJGPP compiler and gmake
-  Win32 using the Mingw compiler and mingw32-make
+  Win32 using the TDM-GCC compiler (a Mingw distribution) and mingw32-make
 
 Dependencies
 ============
@@ -27,13 +27,19 @@ libmsvg only depends of libexpat 1.2 (http://www.jclark.com/xml/expat.html),
 but we include our own copy of the expat library, so there are no depndencies
 at all.
 
+API lack of stability
+=====================
+
+libmsvg is a work in progress so be warned the API could change in every
+new version to accommodate new ideas and expand the supported SVG subset.
+
 libmsvg installation instructions
 =================================
 
 Requirements:
 -------------
 
-  The source files:  libmsvg0021.tar.gz or msvg0021.zip
+  The source files:  libmsvg0022.tar.gz or msvg0022.zip
   This document:     readme
 
 A. Unpacking the libmsvg archive
@@ -52,9 +58,9 @@ A. Unpacking the libmsvg archive
 
   3) unpack the libmsvg archive:
 
-         tar xzvf libmsvg0021.tar.gz
+         tar xzvf libmsvg0022.tar.gz
      or
-         unzip msvg0021.zip
+         unzip msvg0022.zip
 
      This will create the subdirectory 'libmsvg'.
 
@@ -116,8 +122,9 @@ License
   libmsvg is free software. You can redistribute it and/or modify it under
   the Expat license. See the 'copying.txt' file for details.
 
-  the 'mgrx' subdir is not part of libmsvg, some day it will be part of
-  the MGRX library under the LGPL license.
+  the 'mgrx' subdir is not part of libmsvg, it contains example programs
+  to render svg files using the MGRX graphics library and libmsvg of course,
+  some day they will be part of the MGRX library under the LGPL license.
 
 Enjoy, Mariano Alvarez
 

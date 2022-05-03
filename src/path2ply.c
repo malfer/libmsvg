@@ -2,7 +2,8 @@
  * 
  * libmsvg, a minimal library to read and write svg files
  *
- * Copyright (C) 2010, 2020 Mariano Alvarez Fernandez (malfer at telefonica.net)
+ * Copyright (C) 2010, 2020-2022 Mariano Alvarez Fernandez
+ * (malfer at telefonica.net)
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -97,7 +98,7 @@ static void DestroyExpPointArray(ExpPointArray *pa)
     free(pa);
 }
 
-static void GenQBezier(MsvgSubPath *sp, int pos, ExpPointArray *pa)
+static void GenQBezier(MsvgSubPath *sp, int pos, ExpPointArray *pa, double px_x_unit)
 {
     int numpts;
     double xorg, yorg, xpc, ypc, xend, yend;
@@ -113,7 +114,7 @@ static void GenQBezier(MsvgSubPath *sp, int pos, ExpPointArray *pa)
     yend = sp->spp[pos+1].y;
 
     numpts = (fabs(xorg - xpc) + fabs(yorg - ypc) +
-              fabs(xpc - xend) + fabs(ypc - yend)) / POINTSEP;
+              fabs(xpc - xend) + fabs(ypc - yend)) * px_x_unit / POINTSEP;
     if (numpts < 3) numpts = 3;
     if (numpts > MAX_BEZPOINTS) numpts = MAX_BEZPOINTS;
 
@@ -134,7 +135,7 @@ static void GenQBezier(MsvgSubPath *sp, int pos, ExpPointArray *pa)
     AddPointToExpPointArray(pa, xend, yend);
 }
 
-static void GenCBezier(MsvgSubPath *sp, int pos, ExpPointArray *pa)
+static void GenCBezier(MsvgSubPath *sp, int pos, ExpPointArray *pa, double px_x_unit)
 {
     int numpts;
     double xorg, yorg, xpc1, ypc1, xpc2, ypc2, xend, yend;
@@ -153,7 +154,7 @@ static void GenCBezier(MsvgSubPath *sp, int pos, ExpPointArray *pa)
 
     numpts = (fabs(xorg - xpc1) + fabs(yorg - ypc1) +
               fabs(xpc1 - xpc2) + fabs(ypc1 - ypc2) +
-              fabs(xpc2 - xend) + fabs(ypc2 - yend)) / POINTSEP;
+              fabs(xpc2 - xend) + fabs(ypc2 - yend)) * px_x_unit / POINTSEP;
     if (numpts < 3) numpts = 3;
     if (numpts > MAX_BEZPOINTS) numpts = MAX_BEZPOINTS;
 
@@ -177,7 +178,7 @@ static void GenCBezier(MsvgSubPath *sp, int pos, ExpPointArray *pa)
     AddPointToExpPointArray(pa, xend, yend);
 }
 
-static ExpPointArray * PathToExpPointArray(MsvgSubPath *sp)
+static ExpPointArray * PathToExpPointArray(MsvgSubPath *sp, double px_x_unit)
 {
     ExpPointArray *pa;
     int i;
@@ -192,16 +193,16 @@ static ExpPointArray * PathToExpPointArray(MsvgSubPath *sp)
         if (sp->spp[i].cmd == 'L') {
             AddPointToExpPointArray(pa, sp->spp[i].x, sp->spp[i].y);
         } else if (sp->spp[i].cmd == 'Q') {
-            GenQBezier(sp, i, pa);
+            GenQBezier(sp, i, pa, px_x_unit);
         } else if (sp->spp[i].cmd == 'C') {
-            GenCBezier(sp, i, pa);
+            GenCBezier(sp, i, pa, px_x_unit);
         }
     }
 
     return pa;
 }
 
-MsvgElement * MsvgPathEltoPolyEl(MsvgElement *el, int nsp)
+MsvgElement * MsvgPathEltoPolyEl(MsvgElement *el, int nsp, double px_x_unit)
 {
     MsvgElement *newel;
     MsvgSubPath *sp;
@@ -217,7 +218,7 @@ MsvgElement * MsvgPathEltoPolyEl(MsvgElement *el, int nsp)
     }
     if (sp == NULL) return NULL;
 
-    pa = PathToExpPointArray(sp);
+    pa = PathToExpPointArray(sp, px_x_unit);
     if (pa == NULL) return NULL;
 
     if (sp->closed) {

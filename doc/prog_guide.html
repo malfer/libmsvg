@@ -6,9 +6,9 @@
 </head>
 
 <body>
-<h1>libmsvg v0.21</h1>
+<h1>libmsvg v0.22</h1>
 <h2>Programmer's guide</h2>
-<p>Last update: Jun 9, 2020</p>
+<p>Last update: May 1, 2022</p>
 
 <hr>
 <h2>Abstract</h2>
@@ -361,12 +361,12 @@ stroke and fill attributes and the transformation matrix.</p>
 <pre>
     MsvgElement *son2;
     son2 = MsvgNewElement(EID_CIRCLE, son);
-    MsvgAddRawAttribute(son2, "id", "myrect");
+    MsvgAddRawAttribute(son2, "id", "mycircle");
     MsvgAddRawAttribute(son2, "cx", "100");
     MsvgAddRawAttribute(son2, "cy", "200");
     MsvgAddRawAttribute(son2, "r", "80");
     son2 = MsvgNewElement(EID_USE, son);
-    MsvgAddRawAttribute(son2, "xlink:href", "#myrect");
+    MsvgAddRawAttribute(son2, "xlink:href", "#mycircle");
     MsvgAddRawAttribute(son2, "x", "100");
 </pre>
 
@@ -409,12 +409,12 @@ pointer. This space will be freed if we delete the element.</p>
 
     MsvgElement *son2;
     son2 = MsvgNewElement(EID_CIRCLE, son);
-    son2->id = strdup(myrect);
+    son2->id = strdup("mycircle");
     son2->pcircleattr->cx = 100;
     son2->pcircleattr->cy = 200;
     son2->pcircleattr->r = 80;
     son2 = MsvgNewElement(EID_USE, son);
-    son2->puseattr->refel = strdup(myrect);
+    son2->puseattr->refel = strdup("mycircle");
     son2->puseattr->x = 100;
 </pre>
 
@@ -554,7 +554,7 @@ TMTransformCoord changes x, y coordinates using ctm<br>
 this function is the easier way to rasterize a MsvgElement tree.</p>
 
 <pre>
-int MsvgSerCookedTree(MsvgElement *root, MsvgSerUserFn sufn);
+int MsvgSerCookedTree(MsvgElement *root, MsvgSerUserFn sufn, void *udata);
 </pre>
 
 <p>this function will process the tree and call the supply user function
@@ -562,7 +562,7 @@ for every drawable element (not for container elements). The user function
 must be defined as:</p>
 
 <pre>
-typedef void (*MsvgSerUserFn)(MsvgElement *el, MsvgPaintCtx *pctx);
+typedef void (*MsvgSerUserFn)(MsvgElement *el, MsvgPaintCtx *pctx, void *udata);
 </pre>
 
 <p>where "el" is the pointer to the drawable element and pctx a pointer
@@ -573,6 +573,9 @@ this painting context instead the element one to do the drawing.</p>
 <p>The serialization process has into account the EID_USE elements, replacing them
 with the referenced element (that can be a subtree).</p>
 
+<p>When calling MsvgSerCookedTree a pointer to a user-data variable can be provided,
+that will be passed to the supply user function.</p>
+
 <p>Another function that libmsvg provides can be called by the user function:</p>
 
 <pre>
@@ -582,8 +585,8 @@ MsvgElement * MsvgTransformCookedElement(MsvgElement *el, MsvgPaintCtx *pctx,);
 <p>that process the element parameters using the current transformation matrix
 (pctx->tmatrix) and returns a new drawable element that can be of different type
 that the original one, by example if an EID_RECT has to be rotated an EID_POLYGON
-or a EID_PATH (if it has rounded corners) is returned. . The function adjust
-too the element paint context parameters and sets the transformation matrix to
+or a EID_PATH (if it has rounded corners) is returned. . The function also adjust
+the element paint context parameters and sets the transformation matrix to
 the identity matrix. Note that you have to delete the new element returned after
 using it.</p>
 
@@ -594,7 +597,7 @@ element.</p>
 <p>So using all the pieces the code to rasterize a SVG image will be like that:</p>
 
 <pre>
-static void userfn(MsvgElement *el, MsvgPaintCtx *pctx)
+static void userfn(MsvgElement *el, MsvgPaintCtx *pctx, void *udata)
 {
     MsvgElement *newel;
 
@@ -623,7 +626,10 @@ static void userfn(MsvgElement *el, MsvgPaintCtx *pctx)
         case EID_PATH :
             YourDrawPathElement(newel);
             break;
-        default :
+        case EID_TEXT :
+            YourDrawTextElement(newel);
+            break;
+       default :
             break;
     }
 
@@ -638,10 +644,41 @@ static void userfn(MsvgElement *el, MsvgPaintCtx *pctx)
 ...
 // set the graphics coordinates using the information in the EID_SVG element
 ...
-    MsvgSerCookedTree(root, userfn);
+    MsvgSerCookedTree(root, userfn, NULL);
 ...
 </pre>
 
+<p>Another interesting funtion included in libmsvg is:</p>
+
+<pre>
+MsvgElement * MsvgPathEltoPolyEl(MsvgElement *el, int nsp, double px_x_unit);
+</pre>
+
+<p>that transform a subpath from an EID_PATH element either in an EID_POLYLINE or
+an EID_POLYGON element (note that an EID_PATH element could have one or more
+subpaths). This way you can use a graphics library that not know how to handle
+Bezier curves to render the svg-tree. An example of coding:</p>
+
+<pre>
+        case EID_PATH :
+            nsp = MsvgCountSubPaths(newel->ppathattr->sp);
+            for (i=0; i&lt;nsp; i++) {
+                newel2 = MsvgPathEltoPolyEl(newel, i, 1);
+                if (newel2) {
+                    if (newel2->eid == EID_POLYGON)
+                        YourDrawPolygonElement(newel2);
+                    else if (newel2->eid == EID_POLYLINE)
+                        YourDrawPolylineElement(newel2);
+                    MsvgDeleteElement(newel2);
+                }
+            }
+            break;
+</pre>
+
+<p>the px_x_unit parameter indicates the number of pixels per unit of svg
+coordinates, it is important so that the function can calculate the number of
+points to interpolate for each bezier curve. Here we pass 1 for simplicity but
+in a real program it must be calculated to have smooth curves.</p>
 
 <hr>
 <h2><a name="writing">Writing SVG files</a></h2>
@@ -1232,8 +1269,7 @@ attributes.</p>
 
 <h3>Elliptical arcs</h3>
 <p>The SVG 1.1 specs defines 'a', 'A' commands in paths as elliptical arcs, it
-isn't in the Tiny 1.2 specs. If libmsvg find that it replaces it by a
-line.</p>
+isn't in the Tiny 1.2 specs. If libmsvg find some they will be replaced by lines.</p>
 
 </body>
 </html>
