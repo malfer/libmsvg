@@ -11,7 +11,7 @@ test/tdel
 test/tcook
 mgrx/rsvg
 mgrx/gsvg
-mgrx/rsvg2
+mgrx/showsvg
 # Ignore graphics files from test programs
 test/msvgt1.svg
 test/msvgt2a.svg

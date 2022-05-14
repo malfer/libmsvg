@@ -42,6 +42,7 @@ typedef struct {
     int pre_space;
     MsvgElement *root;
     MsvgElement *active_element;
+    FILE *report;
 } MyUserData;
 
 static void addAttributes(MsvgElement *ptr, const char **attr)
@@ -58,9 +59,12 @@ static void startElement(void *userData, const char *name, const char **attr)
     MyUserData *mudptr = userData;
     enum EID eid;
     MsvgElement *ptr;
-    
-    //printf("entra %s %d %d %d\n",name,mudptr->depth,mudptr->skip_depth,mudptr->svg_depth);
+
     if (mudptr->process_finished) return;
+
+    if (mudptr->report)
+        fprintf(mudptr->report, "start %s %d %d %d\n", name, mudptr->depth,
+                mudptr->skip_depth, mudptr->svg_depth);
     
     if (!mudptr->skip_depth) {
         if (!mudptr->svg_found) {
@@ -79,7 +83,7 @@ static void startElement(void *userData, const char *name, const char **attr)
             }
         } else {
             eid = MsvgFindElementId(name);
-            //      printf("element %d %d\n",mudptr->active_element->eid, eid);
+            //printf("element %d %d\n",mudptr->active_element->eid, eid);
             if (!MsvgIsSupSonElement(mudptr->active_element->eid, eid)) {
                 mudptr->skip_depth = mudptr->depth;
             } else {
@@ -91,7 +95,8 @@ static void startElement(void *userData, const char *name, const char **attr)
                 }
                 addAttributes(ptr, attr);
                 mudptr->active_element = ptr;
-                //        printf("new element %s\n",name);
+                if (mudptr->report)
+                    fprintf(mudptr->report, "new %s element added\n", name);
             }
         }
     }
@@ -103,10 +108,13 @@ static void endElement(void *userData, const char *name)
 {
     MyUserData *mudptr = userData;
     
-    //printf("sale %s %d %d %d\n",name,mudptr->depth,mudptr->skip_depth,mudptr->svg_depth);
     if (mudptr->process_finished) return;
-    
+
     mudptr->depth -= 1;
+    
+    if (mudptr->report)
+        fprintf(mudptr->report, "end %s %d %d %d\n", name, mudptr->depth,
+                mudptr->skip_depth, mudptr->svg_depth);
     
     if (!mudptr->svg_found) return;
 
@@ -175,45 +183,47 @@ static void data(void *userData, const char *s, int len)
     rlen += presp;
     saux[rlen] = '\0';
 
-    //printf("  (%d) %s\n", len, saux);
+    if (mudptr->report)
+        fprintf(mudptr->report, "data (%d) %s\n", len, saux);
 
     MsvgAddContent(mudptr->active_element, rlen, saux);
 
     free(saux);
 }
 
-MsvgElement *MsvgReadSvgFile(const char *fname, int *error)
+MsvgElement *MsvgReadSvgFile2(const char *fname, int *error, FILE *report)
 {
     #define BUFRSIZE 8192
     FILE *f;
     char buf[BUFRSIZE];
     int done;
     XML_Parser parser;
-    MyUserData mud = {1, 0, 0, 0, 0, 0, 1, 0, NULL, NULL};
+    MyUserData mud = {1, 0, 0, 0, 0, 0, 1, 0, NULL, NULL, NULL};
 
+    mud.report = report;
     *error = 0;
     // -1 error opening file
     // -2 memory error creating parser
     // -3 memory error building the tree
     // >0 expat error
-    
+
     f = fopen(fname, "rt");
     if (f == NULL) {
         *error = -1;
         return NULL;
     }
-    
+
     parser = XML_ParserCreate(NULL);
     if (parser == NULL) {
         fclose(f);
         *error = -2;
         return NULL;
     }
-    
+
     XML_SetUserData(parser, &mud);
     XML_SetElementHandler(parser, startElement, endElement);
     XML_SetCharacterDataHandler(parser, data);
-    
+
     do {
         size_t len = fread(buf, 1, sizeof(buf), f);
         done = len < sizeof(buf);
@@ -225,7 +235,7 @@ MsvgElement *MsvgReadSvgFile(const char *fname, int *error)
             return NULL;
         }
     } while (!done);
-    
+
     XML_ParserFree(parser);
     fclose(f);
 
@@ -236,4 +246,9 @@ MsvgElement *MsvgReadSvgFile(const char *fname, int *error)
     }
 
     return mud.root;
+}
+
+MsvgElement *MsvgReadSvgFile(const char *fname, int *error)
+{
+    return MsvgReadSvgFile2(fname, error, NULL);
 }

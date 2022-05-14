@@ -31,7 +31,7 @@
 
 #include <stdio.h>
 
-#define LIBMSVG_VERSION_API 0x0021
+#define LIBMSVG_VERSION_API 0x0022
 
 /* define id's for supported elements */
 
@@ -73,6 +73,7 @@ typedef int rgbcolor;
 #define NO_COLOR        -1
 #define INHERIT_COLOR   -2
 #define NODEFINED_COLOR -3
+#define URL_COLOR       -4
 
 #define BLACK_COLOR   0x000000
 #define SILVER_COLOR  0xc0c0c0
@@ -337,6 +338,7 @@ MsvgElement *MsvgDupElement(MsvgElement *el);
 /* functions in rdsvgf.c */
 
 MsvgElement *MsvgReadSvgFile(const char *fname, int *error);
+MsvgElement *MsvgReadSvgFile2(const char *fname, int *error, FILE *report);
 
 /* functions in wtsvgf.c */
 

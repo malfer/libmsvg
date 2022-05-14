@@ -2,7 +2,7 @@
  *
  * libmsvg, a minimal library to read and write svg files
  * 
- * Copyright (C) 2010, 2002 Mariano Alvarez Fernandez (malfer at telefonica.net)
+ * Copyright (C) 2010, 2020 Mariano Alvarez Fernandez (malfer at telefonica.net)
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -31,5 +31,5 @@ int MsvgI_count_numbers(char *s);
 /* read up to maxnumbers from string into df */
 int MsvgI_read_numbers(char *s, double *df, int maxnumbers);
 
-/*remove spaces before and after, note: s is modifies */
+/*remove spaces before and after, note: s is modified */
 char * MsvgI_rmspaces(char *s);

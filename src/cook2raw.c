@@ -40,6 +40,8 @@ static void addColorRawAttr(MsvgElement *el, char *key, rgbcolor color)
             MsvgAddRawAttribute(el, key, "none");
         else if (color == INHERIT_COLOR)
             MsvgAddRawAttribute(el, key, "inherit");
+        else if (color == URL_COLOR)
+            ; // TODO
         else {
             sprintf(s, "#%06x", color);
             MsvgAddRawAttribute(el, key, s);

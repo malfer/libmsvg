@@ -110,7 +110,7 @@ int MsvgGetCookedDims(MsvgElement *root, double *minx, double *maxx,
 {
     // make a rough estimation of the svg dimensions in a cooked tree
     int ret;
-    UserData ud = {1e9, -1e9, 1e9, 1e9};
+    UserData ud = {1e9, -1e9, 1e9, -1e9};
     
     ret = MsvgSerCookedTree(root, sufn, &ud);
     if (ret) {

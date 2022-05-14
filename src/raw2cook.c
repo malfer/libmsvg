@@ -63,6 +63,8 @@ static rgbcolor colortorgb(char *color)
             i = (r << 20) | (r << 16) | (g << 12) | (g << 8) | (b << 4) | b;
             return i;
         }
+    } else if (strncmp(color, "url(#", 5) == 0) {
+        return SILVER_COLOR; // TODO
     } // TODO: support rgb(r,g,b)
     else return NO_COLOR;
 }
