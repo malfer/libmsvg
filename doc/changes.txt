@@ -1,6 +1,18 @@
+2022-05-14
+    Changes to the MGRX tests:
+    - renamed rsvg2.c to showsvg.c
+2022-05-14
+    test/tread.c admit the parameter "-r" to show debug info in stdout when reading
+    a svg file
+2022-05-14
+    Solved bug in MsvgGetCookedDims
+    New rgbcolor define URL_COLOR for gradients (TODO) by now it fills with silver color
+    Second function version to read a svg file:
+      MsvgElement *MsvgReadSvgFile2(const char *fname, int *error, FILE *report);
+    it has a extra parameter, if not NULL it prints debug info of the rading process
 2022-05-03
     Updated docs to v0.22
-    Added px_x_unit parameter to MsvgPathEltoPolyEl(MsvgElement
+    Added px_x_unit parameter to MsvgPathEltoPolyEl
 2022-05-02
     Changes to the MGRX tests:
     - renderize paths by its own, using integer arithmetic

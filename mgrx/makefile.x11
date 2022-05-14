@@ -10,14 +10,14 @@ LIBS=-lmsvg -lmgrxX -lX11 -lm
 #CFLAGS+= -I../src -Wall -D__XWIN__
 CFLAGS+= -Wall -D__XWIN__
 
-all: gsvg rsvg rsvg2
+all: gsvg rsvg showsvg
 
 gsvg: gsvg.c rendmgrx.o pathmgrx.o rendmgrx.h pathmgrx.h
 	gcc $(CFLAGS) -o gsvg gsvg.c rendmgrx.o pathmgrx.o $(LIBS)
 rsvg: rsvg.c rendmgrx.o pathmgrx.o rendmgrx.h pathmgrx.h
 	gcc $(CFLAGS) -o rsvg rsvg.c rendmgrx.o pathmgrx.o $(LIBS)
-rsvg2: rsvg2.c rendmgrx.o pathmgrx.o rendmgrx.h pathmgrx.h
-	gcc $(CFLAGS) -o rsvg2 rsvg2.c rendmgrx.o pathmgrx.o $(LIBS)
+showsvg: showsvg.c rendmgrx.o pathmgrx.o rendmgrx.h pathmgrx.h
+	gcc $(CFLAGS) -o showsvg showsvg.c rendmgrx.o pathmgrx.o $(LIBS)
 rendmgrx.o: rendmgrx.c rendmgrx.h pathmgrx.h
 	gcc $(CFLAGS) -c rendmgrx.c
 pathmgrx.o: pathmgrx.c pathmgrx.h
@@ -27,5 +27,5 @@ clean:
 	rm -f *.o
 	rm -f gsvg
 	rm -f rsvg
-	rm -f rsvg2
+	rm -f showsvg
 	rm -f tgsvg.svg
