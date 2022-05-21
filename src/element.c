@@ -2,7 +2,8 @@
  * 
  * libmsvg, a minimal library to read and write svg files
  *
- * Copyright (C) 2010, 2020 Mariano Alvarez Fernandez (malfer at telefonica.net)
+ * Copyright (C) 2010, 2020-2022 Mariano Alvarez Fernandez
+ * (malfer at telefonica.net)
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -28,16 +29,25 @@
 #include <stdlib.h>
 #include "msvg.h"
 
-static MsvgElement *MsvgNewGenericElement(enum EID eid, MsvgElement *father)
+static MsvgElement *MsvgNewGenericElement(enum EID eid, MsvgElement *father, int addpctx)
 {
     MsvgElement *element;
     MsvgElement *ptr;
-    
+    MsvgPaintCtx *ppctx = NULL;
+
+    if (addpctx) {
+        ppctx = calloc(1, sizeof(MsvgPaintCtx));
+        if (ppctx == NULL) return NULL;
+    }
+
     element = calloc(1, sizeof(MsvgElement));
-    if (element == NULL) return NULL;
-    
+    if (element == NULL) {
+        if (ppctx) free(ppctx);
+        return NULL;
+    }
+
     element->eid = eid;
-    
+
     if (father) {
         element->father = father;
         if (father->fson == NULL) {
@@ -53,17 +63,20 @@ static MsvgElement *MsvgNewGenericElement(enum EID eid, MsvgElement *father)
 
     element->fcontent = NULL;
     element->id = NULL;
-    
-    element->pctx.fill = NODEFINED_COLOR;
-    element->pctx.fill_opacity = NODEFINED_VALUE;
-    element->pctx.stroke = NODEFINED_COLOR;
-    element->pctx.stroke_width = NODEFINED_VALUE;
-    element->pctx.stroke_opacity = NODEFINED_VALUE;
-    TMSetIdentity(&(element->pctx.tmatrix));
-    element->pctx.font_family = NODEFINED_IVALUE;
-    element->pctx.font_style = NODEFINED_IVALUE;
-    element->pctx.font_weight = NODEFINED_IVALUE;
-    element->pctx.font_size = NODEFINED_VALUE;
+    element->ppctx = ppctx;
+
+    if (addpctx) {
+        element->ppctx->fill = NODEFINED_COLOR;
+        element->ppctx->fill_opacity = NODEFINED_VALUE;
+        element->ppctx->stroke = NODEFINED_COLOR;
+        element->ppctx->stroke_width = NODEFINED_VALUE;
+        element->ppctx->stroke_opacity = NODEFINED_VALUE;
+        TMSetIdentity(&(element->ppctx->tmatrix));
+        element->ppctx->font_family = NODEFINED_IVALUE;
+        element->ppctx->font_style = NODEFINED_IVALUE;
+        element->ppctx->font_weight = NODEFINED_IVALUE;
+        element->ppctx->font_size = NODEFINED_VALUE;
+    }
 
     return element;
 }
@@ -71,16 +84,18 @@ static MsvgElement *MsvgNewGenericElement(enum EID eid, MsvgElement *father)
 static MsvgElement *MsvgNewSvgElement(MsvgElement *father)
 {
     MsvgElement *element;
-    
-    element = MsvgNewGenericElement(EID_SVG, father);
-    if (element == NULL) return NULL;
-    
-    element->psvgattr = calloc(1, sizeof(MsvgSvgAttributes));
-    if (element->psvgattr == NULL) {
-        free(element);
+    MsvgSvgAttributes *psvgattr;
+
+    psvgattr = calloc(1, sizeof(MsvgSvgAttributes));
+    if (psvgattr == NULL) return NULL;
+
+    element = MsvgNewGenericElement(EID_SVG, father, 1);
+    if (element == NULL) {
+        free(psvgattr);
         return NULL;
     }
 
+    element->psvgattr = psvgattr;
     element->psvgattr->width = 0;
     element->psvgattr->height = 0;
     element->psvgattr->vb_min_x = 0;
@@ -96,229 +111,309 @@ static MsvgElement *MsvgNewSvgElement(MsvgElement *father)
 static MsvgElement *MsvgNewDefsElement(MsvgElement *father)
 {
     MsvgElement *element;
-    
-    element = MsvgNewGenericElement(EID_DEFS, father);
-    if (element == NULL) return NULL;
-    
-    element->pdefsattr = calloc(1, sizeof(MsvgDefsAttributes));
-    if (element->pdefsattr == NULL) {
-        free(element);
+    MsvgDefsAttributes *pdefsattr;
+
+    pdefsattr = calloc(1, sizeof(MsvgDefsAttributes));
+    if (pdefsattr == NULL) return NULL;
+
+    element = MsvgNewGenericElement(EID_DEFS, father, 0);
+    if (element == NULL) {
+        free(pdefsattr);
         return NULL;
     }
-    
+
+    element->pdefsattr = pdefsattr;
     return element;
 }
 
 static MsvgElement *MsvgNewGElement(MsvgElement *father)
 {
     MsvgElement *element;
-    
-    element = MsvgNewGenericElement(EID_G, father);
-    if (element == NULL) return NULL;
-    
-    element->pgattr = calloc(1, sizeof(MsvgGAttributes));
-    if (element->pgattr == NULL) {
-        free(element);
+    MsvgGAttributes *pgattr;
+
+    pgattr = calloc(1, sizeof(MsvgGAttributes));
+    if (pgattr == NULL) return NULL;
+
+    element = MsvgNewGenericElement(EID_G, father, 1);
+    if (element == NULL) {
+        free(pgattr);
         return NULL;
     }
-    
+
+    element->pgattr = pgattr;
     return element;
 }
 
 static MsvgElement *MsvgNewUseElement(MsvgElement *father)
 {
     MsvgElement *element;
-    
-    element = MsvgNewGenericElement(EID_USE, father);
-    if (element == NULL) return NULL;
-    
-    element->puseattr = calloc(1, sizeof(MsvgUseAttributes));
-    if (element->puseattr == NULL) {
-        free(element);
+    MsvgUseAttributes *puseattr;
+
+    puseattr = calloc(1, sizeof(MsvgUseAttributes));
+    if (puseattr == NULL) return NULL;
+
+    element = MsvgNewGenericElement(EID_USE, father, 1);
+    if (element == NULL) {
+        free(puseattr);
         return NULL;
     }
-    
+
+    element->puseattr = puseattr;
     element->puseattr->refel = NULL;
     element->puseattr->x = 0;
     element->puseattr->y = 0;
-
     return element;
 }
 
 static MsvgElement *MsvgNewRectElement(MsvgElement *father)
 {
     MsvgElement *element;
-    
-    element = MsvgNewGenericElement(EID_RECT, father);
-    if (element == NULL) return NULL;
-    
-    element->prectattr = calloc(1, sizeof(MsvgRectAttributes));
-    if (element->prectattr == NULL) {
-        free(element);
+    MsvgRectAttributes *prectattr;
+
+    prectattr = calloc(1, sizeof(MsvgRectAttributes));
+    if (prectattr == NULL) return NULL;
+
+    element = MsvgNewGenericElement(EID_RECT, father, 1);
+    if (element == NULL) {
+        free(prectattr);
         return NULL;
     }
     
+    element->prectattr = prectattr;
     element->prectattr->x = 0;
     element->prectattr->y = 0;
     element->prectattr->width = 0;
     element->prectattr->height = 0;
     element->prectattr->rx = NODEFINED_VALUE;
     element->prectattr->ry = NODEFINED_VALUE;
-    
     return element;
 }
 
 static MsvgElement *MsvgNewCircleElement(MsvgElement *father)
 {
     MsvgElement *element;
-    
-    element = MsvgNewGenericElement(EID_CIRCLE, father);
-    if (element == NULL) return NULL;
-    
-    element->pcircleattr = calloc(1, sizeof(MsvgCircleAttributes));
-    if (element->pcircleattr == NULL) {
-        free(element);
+    MsvgCircleAttributes *pcircleattr;
+
+    pcircleattr = calloc(1, sizeof(MsvgCircleAttributes));
+    if (pcircleattr == NULL) return NULL;
+
+    element = MsvgNewGenericElement(EID_CIRCLE, father, 1);
+    if (element == NULL) {
+        free(pcircleattr);
         return NULL;
     }
-    
+
+    element->pcircleattr = pcircleattr;
     element->pcircleattr->cx = 0;
     element->pcircleattr->cy = 0;
     element->pcircleattr->r = 0;
-    
     return element;
 }
 
 static MsvgElement *MsvgNewEllipseElement(MsvgElement *father)
 {
     MsvgElement *element;
-    
-    element = MsvgNewGenericElement(EID_ELLIPSE, father);
-    if (element == NULL) return NULL;
-    
-    element->pellipseattr = calloc(1, sizeof(MsvgEllipseAttributes));
-    if (element->pellipseattr == NULL) {
-        free(element);
+    MsvgEllipseAttributes *pellipseattr;
+
+    pellipseattr = calloc(1, sizeof(MsvgEllipseAttributes));
+    if (pellipseattr == NULL) return NULL;
+
+    element = MsvgNewGenericElement(EID_ELLIPSE, father, 1);
+    if (element == NULL) {
+        free(pellipseattr);
         return NULL;
     }
-    
+
+    element->pellipseattr = pellipseattr;
     element->pellipseattr->cx = 0;
     element->pellipseattr->cy = 0;
     element->pellipseattr->rx_x = 0;
     element->pellipseattr->rx_y = 0;
     element->pellipseattr->ry_x = 0;
     element->pellipseattr->ry_y = 0;
-    
     return element;
 }
 
 static MsvgElement *MsvgNewLineElement(MsvgElement *father)
 {
     MsvgElement *element;
-    
-    element = MsvgNewGenericElement(EID_LINE, father);
-    if (element == NULL) return NULL;
-    
-    element->plineattr = calloc(1, sizeof(MsvgLineAttributes));
-    if (element->plineattr == NULL) {
-        free(element);
+    MsvgLineAttributes *plineattr;
+
+    plineattr = calloc(1, sizeof(MsvgLineAttributes));
+    if (plineattr == NULL) return NULL;
+
+    element = MsvgNewGenericElement(EID_LINE, father, 1);
+    if (element == NULL) {
+        free(plineattr);
         return NULL;
     }
-    
+
+    element->plineattr = plineattr;
     element->plineattr->x1 = 0;
     element->plineattr->y1 = 0;
     element->plineattr->x2 = 0;
     element->plineattr->y2 = 0;
-    
     return element;
 }
 
 static MsvgElement *MsvgNewPolylineElement(MsvgElement *father)
 {
     MsvgElement *element;
-    
-    element = MsvgNewGenericElement(EID_POLYLINE, father);
-    if (element == NULL) return NULL;
-    
-    element->ppolylineattr = calloc(1, sizeof(MsvgPolylineAttributes));
-    if (element->ppolylineattr == NULL) {
-        free(element);
+    MsvgPolylineAttributes *ppolylineattr;
+
+    ppolylineattr = calloc(1, sizeof(MsvgPolylineAttributes));
+    if (ppolylineattr == NULL) return NULL;
+
+    element = MsvgNewGenericElement(EID_POLYLINE, father, 1);
+    if (element == NULL) {
+        free(ppolylineattr);
         return NULL;
     }
-    
+
+    element->ppolylineattr = ppolylineattr;
     element->ppolylineattr->points = NULL;
     element->ppolylineattr->npoints = 0;
-    
     return element;
 }
 
 static MsvgElement *MsvgNewPolygonElement(MsvgElement *father)
 {
     MsvgElement *element;
-    
-    element = MsvgNewGenericElement(EID_POLYGON, father);
-    if (element == NULL) return NULL;
-    
-    element->ppolygonattr = calloc(1, sizeof(MsvgPolygonAttributes));
-    if (element->ppolygonattr == NULL) {
-        free(element);
+    MsvgPolygonAttributes *ppolygonattr;
+
+    ppolygonattr = calloc(1, sizeof(MsvgPolygonAttributes));
+    if (ppolygonattr == NULL) return NULL;
+
+    element = MsvgNewGenericElement(EID_POLYGON, father, 1);
+    if (element == NULL) {
+        free(ppolygonattr);
         return NULL;
     }
-    
+
+    element->ppolygonattr = ppolygonattr;
     element->ppolygonattr->points = NULL;
     element->ppolygonattr->npoints = 0;
-    
     return element;
 }
 
 static MsvgElement *MsvgNewPathElement(MsvgElement *father)
 {
     MsvgElement *element;
-    
-    element = MsvgNewGenericElement(EID_PATH, father);
-    if (element == NULL) return NULL;
-    
-    element->ppathattr = calloc(1, sizeof(MsvgPathAttributes));
-    if (element->ppathattr == NULL) {
-        free(element);
+    MsvgPathAttributes *ppathattr;
+
+    ppathattr = calloc(1, sizeof(MsvgPathAttributes));
+    if (ppathattr == NULL) return NULL;
+
+    element = MsvgNewGenericElement(EID_PATH, father, 1);
+    if (element == NULL) {
+        free(ppathattr);
         return NULL;
     }
-    
+
+    element->ppathattr = ppathattr;
     return element;
 }
 
 static MsvgElement *MsvgNewTextElement(MsvgElement *father)
 {
     MsvgElement *element;
-    
-    element = MsvgNewGenericElement(EID_TEXT, father);
-    if (element == NULL) return NULL;
-    
-    element->ptextattr = calloc(1, sizeof(MsvgTextAttributes));
-    if (element->ptextattr == NULL) {
-        free(element);
+    MsvgTextAttributes *ptextattr;
+
+    ptextattr = calloc(1, sizeof(MsvgTextAttributes));
+    if (ptextattr == NULL) return NULL;
+
+    element = MsvgNewGenericElement(EID_TEXT, father, 1);
+    if (element == NULL) {
+        free(ptextattr);
         return NULL;
     }
 
+    element->ptextattr = ptextattr;
     element->ptextattr->x = 0;
     element->ptextattr->y = 0;
-
     return element;
 }
 
 static MsvgElement *MsvgNewVContentElement(MsvgElement *father)
 {
     MsvgElement *element;
-    
-    element = MsvgNewGenericElement(EID_V_CONTENT, father);
+
+    element = MsvgNewGenericElement(EID_V_CONTENT, father, 0);
     if (element == NULL) return NULL;
-    
+
+    return element;
+}
+
+static MsvgElement *MsvgNewLinearGradientElement(MsvgElement *father)
+{
+    MsvgElement *element;
+    MsvgLinearGradientAttributes *plgradattr;
+
+    plgradattr = calloc(1, sizeof(MsvgLinearGradientAttributes));
+    if (plgradattr == NULL) return NULL;
+
+    element = MsvgNewGenericElement(EID_LINEARGRADIENT, father, 0);
+    if (element == NULL) {
+        free(plgradattr);
+        return NULL;
+    }
+
+    element->plgradattr = plgradattr;
+    element->plgradattr->gradunits = GRADUNIT_BBOX;
+    element->plgradattr->x1 = 0;
+    element->plgradattr->y1 = 0;
+    element->plgradattr->x2 = 1;
+    element->plgradattr->y2 = 0;
+    return element;
+}
+
+static MsvgElement *MsvgNewRadialGradientElement(MsvgElement *father)
+{
+    MsvgElement *element;
+    MsvgRadialGradientAttributes *prgradattr;
+
+    prgradattr = calloc(1, sizeof(MsvgRadialGradientAttributes));
+    if (prgradattr == NULL) return NULL;
+
+    element = MsvgNewGenericElement(EID_RADIALGRADIENT, father, 0);
+    if (element == NULL) {
+        free(prgradattr);
+        return NULL;
+    }
+
+    element->prgradattr = prgradattr;
+    element->prgradattr->gradunits = GRADUNIT_BBOX;
+    element->prgradattr->cx = 0.5;
+    element->prgradattr->cy = 0.5;
+    element->prgradattr->r = 0.5;
+    return element;
+}
+
+static MsvgElement *MsvgNewStopElement(MsvgElement *father)
+{
+    MsvgElement *element;
+    MsvgStopAttributes *pstopattr;
+
+    pstopattr = calloc(1, sizeof(MsvgLinearGradientAttributes));
+    if (pstopattr == NULL) return NULL;
+
+    element = MsvgNewGenericElement(EID_STOP, father, 0);
+    if (element == NULL) {
+        free(pstopattr);
+        return NULL;
+    }
+
+    element->pstopattr = pstopattr;
+    element->pstopattr->off = 0;
+    element->pstopattr->sopacity = 1;
+    element->pstopattr->scolor = 0; /* black */
     return element;
 }
 
 MsvgElement *MsvgNewElement(enum EID eid, MsvgElement *father)
 {
     MsvgElement *element;
-    
+
     switch (eid) {
         case EID_SVG :
             element = MsvgNewSvgElement(father);
@@ -356,13 +451,22 @@ MsvgElement *MsvgNewElement(enum EID eid, MsvgElement *father)
         case EID_TEXT :
             element = MsvgNewTextElement(father);
             break;
+        case EID_LINEARGRADIENT :
+            element = MsvgNewLinearGradientElement(father);
+            break;
+        case EID_RADIALGRADIENT :
+            element = MsvgNewRadialGradientElement(father);
+            break;
+        case EID_STOP :
+            element = MsvgNewStopElement(father);
+            break;
         case EID_V_CONTENT :
             element = MsvgNewVContentElement(father);
             break;
         default :
             return NULL;
     }
-    
+
     return element;
 }
 

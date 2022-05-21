@@ -2,7 +2,8 @@
  * 
  * libmsvg, a minimal library to read and write svg files
  *
- * Copyright (C) 2010, 2020 Mariano Alvarez Fernandez (malfer at telefonica.net)
+ * Copyright (C) 2010, 2020-2022 Mariano Alvarez Fernandez
+ * (malfer at telefonica.net)
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -39,12 +40,12 @@ static void setElPctx(MsvgElement *el, MsvgPaintCtx *cpctx)
 {
     TMatrix *t;
 
-    el->pctx = *cpctx;
-    if (el->pctx.stroke_width > 0) {
+    *(el->ppctx) = *cpctx;
+    if (el->ppctx->stroke_width > 0) {
         t = &(cpctx->tmatrix);
-        el->pctx.stroke_width *= sqrt(t->a*t->a + t->b*t->b);
+        el->ppctx->stroke_width *= sqrt(t->a*t->a + t->b*t->b);
     }
-    TMSetIdentity(&(el->pctx.tmatrix));
+    TMSetIdentity(&(el->ppctx->tmatrix));
 }
 
 static MsvgElement * transCookRect(MsvgElement *el, MsvgPaintCtx *cpctx)

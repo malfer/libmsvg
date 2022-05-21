@@ -26,7 +26,7 @@ int main(int argc, char **argv)
     char *sid = NULL;
 
     if (argc < 2) {
-        printf("Usage: tread file [-r] [id]\n");
+        printf("Usage: tread file.svg [-r] [id]\n");
         return 0;
     }
 

@@ -135,20 +135,20 @@ static char * printivalue(int value)
     return s;
 }
 
-void MsvgPrintPctx(FILE *f, MsvgPaintCtx *pctx)
+void MsvgPrintPctx(FILE *f, MsvgPaintCtx *ppctx)
 {
-    fprintf(f, "  fill           %s\n", printcolor(pctx->fill));
-    fprintf(f, "  fill_opacity   %s\n", printdvalue(pctx->fill_opacity));
-    fprintf(f, "  stroke         %s\n", printcolor(pctx->stroke));
-    fprintf(f, "  stroke_width   %s\n", printdvalue(pctx->stroke_width));
-    fprintf(f, "  stroke_opacity %s\n", printdvalue(pctx->stroke_opacity));
+    fprintf(f, "  fill           %s\n", printcolor(ppctx->fill));
+    fprintf(f, "  fill_opacity   %s\n", printdvalue(ppctx->fill_opacity));
+    fprintf(f, "  stroke         %s\n", printcolor(ppctx->stroke));
+    fprintf(f, "  stroke_width   %s\n", printdvalue(ppctx->stroke_width));
+    fprintf(f, "  stroke_opacity %s\n", printdvalue(ppctx->stroke_opacity));
     fprintf(f, "  tmatrix        (%g %g %g %g %g %g)\n",
-            pctx->tmatrix.a, pctx->tmatrix.b, pctx->tmatrix.c,
-            pctx->tmatrix.d, pctx->tmatrix.e, pctx->tmatrix.f);
-    fprintf(f, "  font-family    %s\n", printivalue(pctx->font_family));
-    fprintf(f, "  font-style     %s\n", printivalue(pctx->font_style));
-    fprintf(f, "  font-weight    %s\n", printivalue(pctx->font_weight));
-    fprintf(f, "  font-size      %s\n", printdvalue(pctx->font_size));
+            ppctx->tmatrix.a, ppctx->tmatrix.b, ppctx->tmatrix.c,
+            ppctx->tmatrix.d, ppctx->tmatrix.e, ppctx->tmatrix.f);
+    fprintf(f, "  font-family    %s\n", printivalue(ppctx->font_family));
+    fprintf(f, "  font-style     %s\n", printivalue(ppctx->font_style));
+    fprintf(f, "  font-weight    %s\n", printivalue(ppctx->font_weight));
+    fprintf(f, "  font-size      %s\n", printdvalue(ppctx->font_size));
 }
 
 static void printSvgCookedAttr(FILE *f, MsvgElement *el)
@@ -262,6 +262,38 @@ static void printTextCookedAttr(FILE *f, MsvgElement *el)
     fprintf(f, "  y              %g\n", el->ptextattr->y);
 }
 
+static void printLinearGradientCookedAttr(FILE *f, MsvgElement *el)
+{
+    if (el->plgradattr->gradunits == GRADUNIT_USER)
+        fprintf(f, "  gradientUnits  %s\n", "GRADUNIT_USER");
+    else
+        fprintf(f, "  gradientUnits  %s\n", "GRADUNIT_BBOX");
+
+    fprintf(f, "  x1             %g\n", el->plgradattr->x1);
+    fprintf(f, "  y1             %g\n", el->plgradattr->y1);
+    fprintf(f, "  x2             %g\n", el->plgradattr->x2);
+    fprintf(f, "  y2             %g\n", el->plgradattr->y2);
+}
+
+static void printRadialGradientCookedAttr(FILE *f, MsvgElement *el)
+{
+    if (el->prgradattr->gradunits == GRADUNIT_USER)
+        fprintf(f, "  gradientUnits  %s\n", "GRADUNIT_USER");
+    else
+        fprintf(f, "  gradientUnits  %s\n", "GRADUNIT_BBOX");
+
+    fprintf(f, "  cx             %g\n", el->prgradattr->cx);
+    fprintf(f, "  cy             %g\n", el->prgradattr->cy);
+    fprintf(f, "  r              %g\n", el->prgradattr->r);
+}
+
+static void printStopCookedAttr(FILE *f, MsvgElement *el)
+{
+    fprintf(f, "  offset         %g\n", el->pstopattr->off);
+    fprintf(f, "  stop-opacity   %s\n", printdvalue(el->pstopattr->sopacity));
+    fprintf(f, "  stop-color     %s\n", printcolor(el->pstopattr->scolor));
+}
+
 static void printVContentCookedAttr(FILE *f, MsvgElement *el)
 {
     return;
@@ -312,6 +344,15 @@ void MsvgPrintCookedElement(FILE *f, MsvgElement *el)
         case EID_TEXT :
             printTextCookedAttr(f, el);
             break;
+        case EID_LINEARGRADIENT :
+            printLinearGradientCookedAttr(f, el);
+            break;
+        case EID_RADIALGRADIENT :
+            printRadialGradientCookedAttr(f, el);
+            break;
+        case EID_STOP :
+            printStopCookedAttr(f, el);
+            break;
         case EID_V_CONTENT :
             printVContentCookedAttr(f, el);
             break;
@@ -319,6 +360,8 @@ void MsvgPrintCookedElement(FILE *f, MsvgElement *el)
             break;
     }
 
-    fprintf(f, "  --------- element MsvgPaintCtx\n");
-    MsvgPrintPctx(f, &el->pctx);
+    if (el->ppctx) {
+        fprintf(f, "  --------- element MsvgPaintCtx\n");
+        MsvgPrintPctx(f, el->ppctx);
+    }
 }

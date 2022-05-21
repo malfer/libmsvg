@@ -5,7 +5,8 @@
  *
  * In the future this will be added to MGRX, this is why the LGPL is aplied
  *
- * Copyright (C) 2010, 2020 Mariano Alvarez Fernandez (malfer at telefonica.net)
+ * Copyright (C) 2010, 2020-2022 Mariano Alvarez Fernandez
+ * (malfer at telefonica.net)
  *
  * This is a test file of the libmsvg+MGRX libraries.
  * libmsvg+MGRX test files are in the Public Domain, this apply only to test
@@ -50,37 +51,37 @@ static MsvgElement *CreateTree(void)
     son->prectattr->height = 300;
     son->prectattr->rx = 10;
     son->prectattr->ry = 10;
-    son->pctx.fill = 0x0000FF;
-    son->pctx.stroke = 0xFF0000;
+    son->ppctx->fill = 0x0000FF;
+    son->ppctx->stroke = 0xFF0000;
 
     son = MsvgNewElement(EID_CIRCLE, root);
     son->pcircleattr->cx = 100;
     son->pcircleattr->cy = 100;
     son->pcircleattr->r = 80;
-    son->pctx.fill = 0x888888;
-    son->pctx.stroke = 0x00FF00;
-    son->pctx.stroke_width = 5;
+    son->ppctx->fill = 0x888888;
+    son->ppctx->stroke = 0x00FF00;
+    son->ppctx->stroke_width = 5;
 
     son = MsvgNewElement(EID_USE, root);
     son->puseattr->x = 400;
     son->puseattr->y = 200;
     son->puseattr->refel = strdup("MyRect");
-    son->pctx.fill = 0xFFFF00;
+    son->ppctx->fill = 0xFFFF00;
     
     son = MsvgNewElement(EID_USE, root);
     son->puseattr->x = 450;
     son->puseattr->y = 300;
     son->puseattr->refel = strdup("MyRect");
-    son->pctx.fill = 0x008888;
-    son->pctx.stroke = 0x00FFFF;
-    TMSetRotation(&(son->pctx.tmatrix), 30, 500, 325);
+    son->ppctx->fill = 0x008888;
+    son->ppctx->stroke = 0x00FFFF;
+    TMSetRotation(&(son->ppctx->tmatrix), 30, 500, 325);
     
     son = MsvgNewElement(EID_USE, root);
     son->puseattr->x = 500;
     son->puseattr->y = 400;
     son->puseattr->refel = strdup("MyRect");
-    son->pctx.fill = 0x888800;
-    son->pctx.stroke = 0xFFFFFF;
+    son->ppctx->fill = 0x888800;
+    son->ppctx->stroke = 0xFFFFFF;
     
     return root;
 }

@@ -1,3 +1,11 @@
+2022-05-21
+    API change: in the MsvgElement changed the MsvgPaintCtx member to a pointer,
+    because not all elements need one, only EID_SVG, EID_G, EID_USE, EID_RECT,
+    EID_CIRCLE, EID_ELLIPSE, EID_LINE, EID_POLYLINE, EID_POLYGON, EID_PATH and
+    EID_TEXT
+    Added new supported elements: EID_LINEARGRADIENT, EID_RADIALGRADIENT (can
+    be only sons of an EID_DEF element) and EID_STOP (can only be son of a
+    gradient element), TODO: reference gradients for fill and stroke
 2022-05-14
     Changes to the MGRX tests:
     - renamed rsvg2.c to showsvg.c

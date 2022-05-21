@@ -2,7 +2,8 @@
  * 
  * libmsvg, a minimal library to read and write svg files
  * 
- * Copyright (C) 2010, 2020 Mariano Alvarez Fernandez (malfer at telefonica.net)
+ * Copyright (C) 2010, 2020-2022 Mariano Alvarez Fernandez
+ * (malfer at telefonica.net)
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -96,6 +97,15 @@ static void MsvgFreeElement(MsvgElement *el)
         case EID_TEXT :
             free(el->ptextattr);
             break;
+        case EID_LINEARGRADIENT :
+            free(el->plgradattr);
+            break;
+        case EID_RADIALGRADIENT :
+            free(el->prgradattr);
+            break;
+        case EID_STOP :
+            free(el->pstopattr);
+            break;
         case EID_V_CONTENT :
             break;
         default :
@@ -103,6 +113,7 @@ static void MsvgFreeElement(MsvgElement *el)
     }
 
     if (el->id) free(el->id);
+    if (el->ppctx) free(el->ppctx);
     free(el);
 }
 

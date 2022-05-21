@@ -66,8 +66,8 @@ static int DrawSvgFile(char *fname, int rotang, GrSVGDrawMode *sdm)
         cx = root->psvgattr->vb_width / 2 + root->psvgattr->vb_min_x;
         cy = root->psvgattr->vb_height / 2 + root->psvgattr->vb_min_y;
         TMSetRotation(&trot, rotang, cx, cy);
-        taux = root->pctx.tmatrix;
-        TMMpy(&(root->pctx.tmatrix), &taux, &trot);
+        taux = root->ppctx->tmatrix;
+        TMMpy(&(root->ppctx->tmatrix), &taux, &trot);
     }
 
     //GrDrawSVGtree(root, sdm);

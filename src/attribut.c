@@ -2,7 +2,8 @@
  * 
  * libmsvg, a minimal library to read and write svg files
  *
- * Copyright (C) 2010, 2020 Mariano Alvarez Fernandez (malfer at telefonica.net)
+ * Copyright (C) 2010, 2020-2022 Mariano Alvarez Fernandez
+ * (malfer at telefonica.net)
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -171,7 +172,7 @@ int MsvgCopyCookedAttributes(MsvgElement *desel, MsvgElement *srcel)
 
     if (desel->id) free(desel->id);
     if (srcel->id) desel->id = strdup(srcel->id);
-    desel->pctx = srcel->pctx;
+    if (srcel->ppctx && desel->ppctx) *(desel->ppctx) = *(srcel->ppctx);
 
     switch (srcel->eid) {
         case EID_SVG :
@@ -233,6 +234,15 @@ int MsvgCopyCookedAttributes(MsvgElement *desel, MsvgElement *srcel)
             break;
         case EID_TEXT :
             *(desel->ptextattr) = *(srcel->ptextattr);
+            break;
+        case EID_LINEARGRADIENT :
+            *(desel->plgradattr) = *(srcel->plgradattr);
+            break;
+        case EID_RADIALGRADIENT :
+            *(desel->prgradattr) = *(srcel->prgradattr);
+            break;
+        case EID_STOP :
+            *(desel->pstopattr) = *(srcel->pstopattr);
             break;
         default :
             break;

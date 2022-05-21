@@ -176,10 +176,10 @@ static void process_use(MsvgElement *el, SerData *sd, MsvgPaintCtx *fath)
 
     sd->nested_use += 1;
 
-    ghostg->pctx = el->pctx;
+    *(ghostg->ppctx) = *(el->ppctx);
 
     TMSetTranslation(&uset, el->puseattr->x, el->puseattr->y);
-    TMMpy(&(ghostg->pctx.tmatrix), &(el->pctx.tmatrix), &uset);
+    TMMpy(&(ghostg->ppctx->tmatrix), &(el->ppctx->tmatrix), &uset);
 
     ghostg->fson = refel;
     process_container(ghostg, sd, fath, 1);
@@ -196,9 +196,9 @@ static void process_container(MsvgElement *el, SerData *sd,
     MsvgElement *pel;
 
     if (fath)
-        process_generic_pctx(&mypctx, fath, &(el->pctx));
+        process_generic_pctx(&mypctx, fath, el->ppctx);
     else
-        mypctx = el->pctx;
+        mypctx = *(el->ppctx);
     
     pel = el->fson;
     while (pel) {
@@ -221,7 +221,7 @@ static void process_container(MsvgElement *el, SerData *sd,
             case EID_POLYGON :
             case EID_PATH :
             case EID_TEXT :
-                process_drawel_pctx(&sonpctx, &mypctx, &(pel->pctx));
+                process_drawel_pctx(&sonpctx, &mypctx, pel->ppctx);
                 sd->sufn(pel, &sonpctx, sd->udata);
                 break;
             default :

@@ -2,7 +2,8 @@
  * 
  * libmsvg, a minimal library to read and write svg files
  *
- * Copyright (C) 2010, 2020 Mariano Alvarez Fernandez (malfer at telefonica.net)
+ * Copyright (C) 2010, 2020-2022 Mariano Alvarez Fernandez
+ * (malfer at telefonica.net)
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -40,8 +41,9 @@ typedef struct {
 static MsvgIdElement supported_elements[] = {
     {EID_SVG, "svg", 0, 0, 11, {EID_DEFS, EID_G, EID_USE, EID_RECT, EID_CIRCLE,
         EID_ELLIPSE, EID_LINE, EID_POLYLINE, EID_POLYGON, EID_PATH, EID_TEXT} },
-    {EID_DEFS, "defs", 0, 0, 9, {EID_G, EID_RECT, EID_CIRCLE, EID_ELLIPSE, EID_LINE,
-        EID_POLYLINE, EID_POLYGON, EID_PATH, EID_TEXT} },
+    {EID_DEFS, "defs", 0, 0, 11, {EID_G, EID_RECT, EID_CIRCLE, EID_ELLIPSE, EID_LINE,
+        EID_POLYLINE, EID_POLYGON, EID_PATH, EID_TEXT, EID_LINEARGRADIENT,
+        EID_RADIALGRADIENT} },
     {EID_G, "g", 0, 0, 11, {EID_DEFS, EID_G, EID_USE, EID_RECT, EID_CIRCLE,
         EID_ELLIPSE, EID_LINE, EID_POLYLINE, EID_POLYGON, EID_PATH, EID_TEXT} },
     {EID_USE, "use", 0, 0, 0},
@@ -52,7 +54,10 @@ static MsvgIdElement supported_elements[] = {
     {EID_POLYLINE, "polyline", 0, 0, 0},
     {EID_POLYGON, "polygon", 0, 0, 0},
     {EID_PATH, "path", 0, 0, 0},
-    {EID_TEXT, "text", 1, 0, 1, {EID_V_CONTENT}},
+    {EID_TEXT, "text", 1, 0, 1, {EID_V_CONTENT} },
+    {EID_LINEARGRADIENT, "linearGradient", 0, 0, 1, {EID_STOP} },
+    {EID_RADIALGRADIENT, "radialGradient", 0, 0, 1, {EID_STOP} },
+    {EID_STOP, "stop", 0, 0, 0},
     {EID_V_CONTENT, "v_content", 0, 1, 0}
 };
 

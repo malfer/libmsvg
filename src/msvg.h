@@ -31,7 +31,7 @@
 
 #include <stdio.h>
 
-#define LIBMSVG_VERSION_API 0x0022
+#define LIBMSVG_VERSION_API 0x0030
 
 /* define id's for supported elements */
 
@@ -49,6 +49,9 @@ enum EID {
     EID_POLYGON,
     EID_PATH,
     EID_TEXT,
+    EID_LINEARGRADIENT,
+    EID_RADIALGRADIENT,
+    EID_STOP,
     EID_V_CONTENT, // defined but not used by now
     EID_LAST = EID_V_CONTENT
 };
@@ -126,6 +129,11 @@ typedef int rgbcolor;
 #define FONTWEIGHT_800      800
 #define FONTWEIGHT_900      900
 
+/* define values for gradient units */
+
+#define GRADUNIT_BBOX       0
+#define GRADUNIT_USER       1
+
 /* element pointer */
 
 typedef struct _MsvgElement *MsvgElementPtr;
@@ -159,6 +167,8 @@ typedef struct {
 } TMatrix;
 
 /* paint context: cooked heritable attributes for all elements */
+
+typedef struct _MsvgPaintCtx *MsvgPaintCtxPtr;
 
 typedef struct _MsvgPaintCtx {
     rgbcolor fill;         /* fill color attribute */
@@ -243,30 +253,51 @@ typedef struct _MsvgPolygonAttributes {
 } MsvgPolygonAttributes;
 
 typedef struct {
-    double x;  // absolute x
-    double y;  // absolute y
-    char cmd;  // one of 'M', 'L', 'C', 'Q', ' '
+    double x;       /* absolute x */
+    double y;       /* absolute y */
+    char cmd;       /* one of 'M', 'L', 'C', 'Q', ' ' */
 } MsvgSubPathPoint;
 
 typedef struct _MsvgSubPath *MsvgSubPathPtr;
 
 typedef struct _MsvgSubPath {
-    int maxpoints;           // max capacity (realloc if necesary)
-    int npoints;             // actual number of points
-    int closed;              // 1 = yes, 0 = no
-    int failed_realloc;      // 1 = yes, 0 = no
-    MsvgSubPathPoint *spp;   // SsubPath points
-    MsvgSubPathPtr next;     // next SubPath (can be NULL)
+    int maxpoints;           /* max capacity (realloc if necesary) */
+    int npoints;             /* actual number of points */
+    int closed;              /* 1 = yes, 0 = no */
+    int failed_realloc;      /* 1 = yes, 0 = no */
+    MsvgSubPathPoint *spp;   /* SsubPath points */
+    MsvgSubPathPtr next;     /* next SubPath (can be NULL) */
 } MsvgSubPath;
 
 typedef struct _MsvgPathAttributes {
-    MsvgSubPath *sp;   /* path-data normalized */
+    MsvgSubPath *sp;    /* path-data normalized */
 } MsvgPathAttributes;
 
 typedef struct _MsvgTextAttributes {
-    double x;          /* x attibute */
-    double y;          /* y attibute */
+    double x;           /* x attibute */
+    double y;           /* y attibute */
 } MsvgTextAttributes;
+
+typedef struct _MsvgLinearGradientAttributes {
+    int gradunits;      /* Gradient units */
+    double x1;          /* grad vector x1 coordinate */
+    double y1;          /* grad vector y1 coordinate */
+    double x2;          /* grad vector x2 coordinate */
+    double y2;          /* grad vector y2 coordinate */
+} MsvgLinearGradientAttributes;
+
+typedef struct _MsvgRadialGradientAttributes {
+    int gradunits;      /* Gradient units */
+    double cx;          /* x center coordinate */
+    double cy;          /* y center coordinate */
+    double r;           /* radius */
+} MsvgRadialGradientAttributes;
+
+typedef struct _MsvgStopAttributes {
+    double off;         /* offset [0..1] */
+    double sopacity;    /* stop opacity attribute */
+    rgbcolor scolor;    /* stop color attribute */
+} MsvgStopAttributes;
 
 /* element structure */
 
@@ -282,7 +313,7 @@ typedef struct _MsvgElement {
 
     /* cooked generic attributes */
     char *id;                   /* id attribute */
-    MsvgPaintCtx pctx;          /* painting context */
+    MsvgPaintCtxPtr ppctx;      /* pointer to painting context */
 
     /* cooked specific attributes */
     union {
@@ -298,6 +329,9 @@ typedef struct _MsvgElement {
         MsvgPolygonAttributes *ppolygonattr;
         MsvgPathAttributes *ppathattr;
         MsvgTextAttributes *ptextattr;
+        MsvgLinearGradientAttributes *plgradattr;
+        MsvgRadialGradientAttributes *prgradattr;
+        MsvgStopAttributes *pstopattr;
     };
 } MsvgElement;
 

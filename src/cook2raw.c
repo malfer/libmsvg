@@ -2,7 +2,8 @@
  * 
  * libmsvg, a minimal library to read and write svg files
  *
- * Copyright (C) 2010, 2020 Mariano Alvarez Fernandez (malfer at telefonica.net)
+ * Copyright (C) 2010, 2020-2022 Mariano Alvarez Fernandez
+ * (malfer at telefonica.net)
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -107,21 +108,24 @@ static void torawPCtxAttr(MsvgElement *el)
     TMatrix *tm;
 
     if (el->id) MsvgAddRawAttribute(el, "id", el->id);
-    addColorRawAttr(el, "fill", el->pctx.fill);
-    addSpcDblRawAttr(el, "fill-opacity", el->pctx.fill_opacity);
-    addColorRawAttr(el, "stroke", el->pctx.stroke);
-    addSpcDblRawAttr(el, "stroke-width", el->pctx.stroke_width);
-    addSpcDblRawAttr(el, "stroke-opacity", el->pctx.stroke_opacity);
-    tm = &(el->pctx.tmatrix);
+
+    if (el->ppctx == NULL) return;
+
+    addColorRawAttr(el, "fill", el->ppctx->fill);
+    addSpcDblRawAttr(el, "fill-opacity", el->ppctx->fill_opacity);
+    addColorRawAttr(el, "stroke", el->ppctx->stroke);
+    addSpcDblRawAttr(el, "stroke-width", el->ppctx->stroke_width);
+    addSpcDblRawAttr(el, "stroke-opacity", el->ppctx->stroke_opacity);
+    tm = &(el->ppctx->tmatrix);
     if (!TMIsIdentity(tm)) {
         sprintf(s, "matrix(%g %g %g %g %g %g)",
                 tm->a, tm->b, tm->c, tm->d, tm->e, tm->f);
         MsvgAddRawAttribute(el, "transform", s);
     }
-    addTextRawAttr(el, "font-family", el->pctx.font_family);
-    addTextRawAttr(el, "font-style", el->pctx.font_style);
-    addTextRawAttr(el, "font-weight", el->pctx.font_weight);
-    addSpcDblRawAttr(el, "font-size", el->pctx.font_size);
+    addTextRawAttr(el, "font-family", el->ppctx->font_family);
+    addTextRawAttr(el, "font-style", el->ppctx->font_style);
+    addTextRawAttr(el, "font-weight", el->ppctx->font_weight);
+    addSpcDblRawAttr(el, "font-size", el->ppctx->font_size);
 }
 
 static void toRawSvgCookedAttr(MsvgElement *el)
@@ -276,6 +280,38 @@ static void toRawTextCookedAttr(MsvgElement *el)
     addDoubleRawAttr(el, "y", el->ptextattr->y);
 }
 
+static void toRawLinearGradientCookedAttr(MsvgElement *el)
+{
+    if (el->plgradattr->gradunits == GRADUNIT_USER)
+        MsvgAddRawAttribute(el, "gradientUnits", "userSpaceOnUse");
+    else
+        MsvgAddRawAttribute(el, "gradientUnits", "objectBoundingBox");
+
+    addDoubleRawAttr(el, "x1", el->plgradattr->x1);
+    addDoubleRawAttr(el, "y1", el->plgradattr->y1);
+    addDoubleRawAttr(el, "x2", el->plgradattr->x2);
+    addDoubleRawAttr(el, "y2", el->plgradattr->y2);
+}
+
+static void toRawRadialGradientCookedAttr(MsvgElement *el)
+{
+    if (el->prgradattr->gradunits == GRADUNIT_USER)
+        MsvgAddRawAttribute(el, "gradientUnits", "userSpaceOnUse");
+    else
+        MsvgAddRawAttribute(el, "gradientUnits", "objectBoundingBox");
+
+    addDoubleRawAttr(el, "cx", el->prgradattr->cx);
+    addDoubleRawAttr(el, "cy", el->prgradattr->cy);
+    addDoubleRawAttr(el, "r", el->prgradattr->r);
+}
+
+static void toRawStopCookedAttr(MsvgElement *el)
+{
+    addDoubleRawAttr(el, "offset", el->pstopattr->off);
+    addSpcDblRawAttr(el, "stop-opacity", el->pstopattr->sopacity);
+    addColorRawAttr(el, "stop-color", el->pstopattr->scolor);
+}
+
 static void toRawElement(MsvgElement *el)
 {
     torawPCtxAttr(el);
@@ -316,6 +352,15 @@ static void toRawElement(MsvgElement *el)
             break;
         case EID_TEXT :
             toRawTextCookedAttr(el);
+            break;
+        case EID_LINEARGRADIENT :
+            toRawLinearGradientCookedAttr(el);
+            break;
+        case EID_RADIALGRADIENT :
+            toRawRadialGradientCookedAttr(el);
+            break;
+        case EID_STOP :
+            toRawStopCookedAttr(el);
             break;
         default :
             break;

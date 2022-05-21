@@ -230,7 +230,7 @@ MsvgElement * MsvgPathEltoPolyEl(MsvgElement *el, int nsp, double px_x_unit)
         newel->ppolygonattr->npoints = pa->npoints;
         newel->ppolygonattr->points = pa->points;
         free(pa); // we don't free pa->points !!!!
-        newel->pctx = el->pctx;
+        *(newel->ppctx) = *(el->ppctx);
     } else {
         newel = MsvgNewElement(EID_POLYLINE, NULL);
         if (newel == NULL) {
@@ -240,7 +240,7 @@ MsvgElement * MsvgPathEltoPolyEl(MsvgElement *el, int nsp, double px_x_unit)
         newel->ppolylineattr->npoints = pa->npoints;
         newel->ppolylineattr->points = pa->points;
         free(pa); // we don't free pa->points !!!!
-        newel->pctx = el->pctx;
+        *(newel->ppctx) = *(el->ppctx);
     }
 
     return newel;

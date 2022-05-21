@@ -5,7 +5,8 @@
  *
  * In the future this will be added to MGRX, this is why the LGPL is aplied
  *
- * Copyright (C) 2010, 2020 Mariano Alvarez Fernandez (malfer at telefonica.net)
+ * Copyright (C) 2010, 2020-2022 Mariano Alvarez Fernandez
+ * (malfer at telefonica.net)
  *
  * This source is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -355,25 +356,25 @@ static void sufn(MsvgElement *el, MsvgPaintCtx *pctx, void *udata)
 
     switch (newel->eid) {
         case EID_RECT :
-            DrawRectElement(newel, &(newel->pctx));
+            DrawRectElement(newel, newel->ppctx);
             break;
         case EID_CIRCLE :
-            DrawCircleElement(newel, &(newel->pctx));
+            DrawCircleElement(newel, newel->ppctx);
             break;
         case EID_ELLIPSE :
-            DrawEllipseElement(newel, &(newel->pctx));
+            DrawEllipseElement(newel, newel->ppctx);
             break;
         case EID_LINE :
-            DrawLineElement(newel, &(newel->pctx));
+            DrawLineElement(newel, newel->ppctx);
             break;
         case EID_POLYLINE :
-            DrawPolylineElement(newel, &(newel->pctx));
+            DrawPolylineElement(newel, newel->ppctx);
             break;
         case EID_POLYGON :
-            DrawPolygonElement(newel, &(newel->pctx));
+            DrawPolygonElement(newel, newel->ppctx);
             break;
         case EID_PATH :
-            DrawPathElement(newel, &(newel->pctx));
+            DrawPathElement(newel, newel->ppctx);
             /*nsp = MsvgCountSubPaths(newel->ppathattr->sp);
             for (i=0; i<nsp; i++) {
                 newel2 = MsvgPathEltoPolyEl(newel, i, 4);
