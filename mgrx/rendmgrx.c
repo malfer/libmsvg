@@ -351,7 +351,7 @@ static void sufn(MsvgElement *el, MsvgPaintCtx *pctx, void *udata)
     //MsvgPrintCookedElement(stdout, el);
     newel = MsvgTransformCookedElement(el, pctx);
     if (newel == NULL) return;
-    //printf("after ");
+    //printf("after\n");
     //MsvgPrintCookedElement(stdout, newel);
 
     switch (newel->eid) {
@@ -400,9 +400,9 @@ int GrDrawSVGtree(MsvgElement *root, GrSVGDrawMode *sdm)
     double ratiow, ratioh, rvb_width, rvb_height;
     double old_width, old_height, zoom;
 
-    if (root == NULL) return 0;
-    if (root->eid != EID_SVG) return 0;
-    if (root->psvgattr->tree_type != COOKED_SVGTREE) return 0;
+    if (root == NULL) return -1;
+    if (root->eid != EID_SVG) return -2;
+    if (root->psvgattr->tree_type != COOKED_SVGTREE) return -3;
 
     rvb_width = root->psvgattr->vb_width;
     rvb_height = root->psvgattr->vb_height;
@@ -466,7 +466,7 @@ int GrDrawSVGtree(MsvgElement *root, GrSVGDrawMode *sdm)
             }
             break;
         default:
-            return 0;
+            return -4;
     }
 
     glob_vb_min_x = root->psvgattr->vb_min_x;
@@ -482,9 +482,9 @@ int GrDrawSVGtree(MsvgElement *root, GrSVGDrawMode *sdm)
         printf("Possible overflow %g %g   %g %g\n", glob_xorg, glob_yorg,
                (rvb_width/glob_scale_x)+glob_xorg,
                (rvb_height/glob_scale_y)+glob_yorg);
-        return 0;
+        return -5;
     }
-    
+
     glob_bg = sdm->bg;
     if (root->psvgattr->vp_fill != NO_COLOR) {
         cfill = GrAllocColor2(root->psvgattr->vp_fill);
@@ -494,9 +494,9 @@ int GrDrawSVGtree(MsvgElement *root, GrSVGDrawMode *sdm)
         GrClearContext(sdm->bg);
     }
 
-    if (!MsvgSerCookedTree(root, sufn, NULL)) return 0;
+    if (!MsvgSerCookedTree(root, sufn, NULL)) return -6;
 
-    return 1;
+    return 0;
 }
 
 int GrDrawSVGtreeUsingDB(MsvgElement *root, GrSVGDrawMode *sdm)

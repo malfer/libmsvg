@@ -1,8 +1,10 @@
 libmsvg test programs:
 
-tread file.svg [id] -> read the svg file, print the raw tree and counts and
-                        write "msvgt1.svg", if a "id" is provided find the element
-                        in the raw tree, convert to cooked and find again
+tread file.svg [-r] [id] -> read the svg file, print the raw tree and counts
+                            and write "msvgt1.svg",
+                            if "-r" show debug info when reading the svg file,
+                            if a "id" is provided find the element in the raw
+                            tree, convert to cooked and find again
 
 tdel -> build a raw tree, delete, prune and insert elements and attributes
 

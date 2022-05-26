@@ -5,7 +5,8 @@
  *
  * In the future this will be added to MGRX, this is why the LGPL is aplied
  *
- * Copyright (C) 2010, 2020 Mariano Alvarez Fernandez (malfer at telefonica.net)
+ * Copyright (C) 2010, 2020-2022 Mariano Alvarez Fernandez
+ * (malfer at telefonica.net)
  *
  * This is a test file of the libmsvg+MGRX libraries.
  * libmsvg+MGRX test files are in the Public Domain, this apply only to test
@@ -32,6 +33,25 @@ static int gbpp = 24;
 
 static int DrawSvgFile(char *fname, int rotang, GrSVGDrawMode *sdm)
 {
+    // returns:
+    // 0=no error
+    //
+    // if MsvgReadSvgFile fail
+    // >0 expat error
+    // -1 error opening file
+    // -2 memory error creating parser
+    // -3 memory error building the tree
+    //
+    // -5 MsvgRaw2CookedTree fail
+    //
+    // if GrDrawSVGtreeUsingDB fail
+    // -6 (-1-5) root==NULL
+    // -7 (-2-5) root->eid != EID_SVG
+    // -8 (-3-5) tree_type != COOKED_SVGTREE
+    // -9 (-4-5) sdm->mode unknow
+    // -10 (-5-5) Possible overflow
+    // -11 (-6-5) serializing error
+
     MsvgElement *root;
     //char s[81];
     int error = 0;
@@ -71,8 +91,9 @@ static int DrawSvgFile(char *fname, int rotang, GrSVGDrawMode *sdm)
     }
 
     //GrDrawSVGtree(root, sdm);
-    GrDrawSVGtreeUsingDB(root, sdm);
+    error = GrDrawSVGtreeUsingDB(root, sdm);
     MsvgDeleteElement(root);
+    if (error) return error - 5;
 
     return 0;
 }
@@ -107,6 +128,7 @@ int main(int argc,char **argv)
         char s[121];
         GrEvent ev;
         GrContext *ctx = NULL;
+        int mouseoldx = 0, mouseoldy = 0;
 
         GrSetMode(GR_width_height_bpp_graphics, gwidth, gheight, gbpp);
         GrClearScreen(GrWhite());
@@ -133,8 +155,13 @@ int main(int argc,char **argv)
 
             error = DrawSvgFile(fname, rotang, &sdm);
             if (error) {
-                printf("Error %d reading %s\n", error, fname);
-                break;
+                if (error == -10) { // Possible overflow
+                    ;
+                } else {
+                    printf("Error %d drawing %s\n", error, fname);
+                    exitloop = 1;
+                    break;
+                }
             }
             GrEventWait(&ev);
             if (((ev.type == GREV_KEY) && (ev.p1 == GrKey_Escape)) ||
@@ -181,7 +208,27 @@ int main(int argc,char **argv)
                     rotang = 0;
                 }
             }
-            if (ev.type == GREV_WSZCHG) {
+            else if (ev.type == GREV_MOUSE) {
+                 if (ev.p1 == GRMOUSE_B4_RELEASED) {
+                    sdm.zoom = sdm.zoom * 2;
+                    sdm.xdespl *= 2;
+                    sdm.ydespl *= 2; }
+                else if (ev.p1 == GRMOUSE_B5_RELEASED) {
+                    sdm.zoom = sdm.zoom / 2;
+                    sdm.xdespl /= 2;
+                    sdm.ydespl /= 2; }
+                else if (ev.p1 == GRMOUSE_LB_PRESSED) {
+                    mouseoldx = ev.p2;
+                    mouseoldy = ev.p3; }
+                else if (ev.p1 == GRMOUSE_LB_RELEASED) {
+                    sdm.xdespl += ev.p2 - mouseoldx;
+                    sdm.ydespl += ev.p3 - mouseoldy; }
+                else if (ev.p1 == GRMOUSE_RB_PRESSED) {
+                    mouseoldx = ev.p2; }
+                else if (ev.p1 == GRMOUSE_RB_RELEASED) {
+                    rotang += ev.p2 - mouseoldx; }
+            }
+            else if (ev.type == GREV_WSZCHG) {
                 gwidth = ev.p3;
                 gheight = ev.p4;
                 break;

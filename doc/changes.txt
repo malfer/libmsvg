@@ -1,3 +1,6 @@
+2022-05-26
+    Changes to the MGRX tests:
+    added mouse interaction to showsvg.c
 2022-05-21
     API change: in the MsvgElement changed the MsvgPaintCtx member to a pointer,
     because not all elements need one, only EID_SVG, EID_G, EID_USE, EID_RECT,
