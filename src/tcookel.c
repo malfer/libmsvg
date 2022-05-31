@@ -32,23 +32,23 @@
 #include "msvg.h"
 #include "util.h"
 
-static MsvgElement * transCookEllipse(MsvgElement *el, MsvgPaintCtx *cpctx);
-static MsvgElement * transCookPolygon(MsvgElement *el, MsvgPaintCtx *cpctx);
-static MsvgElement * transCookPath(MsvgElement *el, MsvgPaintCtx *cpctx);
+static MsvgElement *transCookEllipse(MsvgElement *el, MsvgPaintCtx *cpctx);
+static MsvgElement *transCookPolygon(MsvgElement *el, MsvgPaintCtx *cpctx);
+static MsvgElement *transCookPath(MsvgElement *el, MsvgPaintCtx *cpctx);
 
 static void setElPctx(MsvgElement *el, MsvgPaintCtx *cpctx)
 {
     TMatrix *t;
 
-    *(el->ppctx) = *cpctx;
-    if (el->ppctx->stroke_width > 0) {
+    MsvgCopyPaintCtx(el->pctx, cpctx);
+    if (el->pctx->stroke_width > 0) {
         t = &(cpctx->tmatrix);
-        el->ppctx->stroke_width *= sqrt(t->a*t->a + t->b*t->b);
+        el->pctx->stroke_width *= sqrt(t->a*t->a + t->b*t->b);
     }
-    TMSetIdentity(&(el->ppctx->tmatrix));
+    TMSetIdentity(&(el->pctx->tmatrix));
 }
 
-static MsvgElement * transCookRect(MsvgElement *el, MsvgPaintCtx *cpctx)
+static MsvgElement *transCookRect(MsvgElement *el, MsvgPaintCtx *cpctx)
 {
     MsvgElement *newel, *auxel;
     MsvgSubPath *sp;
@@ -159,7 +159,7 @@ static MsvgElement * transCookRect(MsvgElement *el, MsvgPaintCtx *cpctx)
     }
 }
 
-static MsvgElement * transCookCircle(MsvgElement *el, MsvgPaintCtx *cpctx)
+static MsvgElement *transCookCircle(MsvgElement *el, MsvgPaintCtx *cpctx)
 {
     MsvgElement *newel, *auxel;
 
@@ -190,7 +190,7 @@ static MsvgElement * transCookCircle(MsvgElement *el, MsvgPaintCtx *cpctx)
     return newel;
 }
 
-static MsvgElement * transCookEllipse(MsvgElement *el, MsvgPaintCtx *cpctx)
+static MsvgElement *transCookEllipse(MsvgElement *el, MsvgPaintCtx *cpctx)
 {
     MsvgElement *newel;
     
@@ -212,7 +212,7 @@ static MsvgElement * transCookEllipse(MsvgElement *el, MsvgPaintCtx *cpctx)
     return newel;
 }
 
-static MsvgElement * transCookLine(MsvgElement *el, MsvgPaintCtx *cpctx)
+static MsvgElement *transCookLine(MsvgElement *el, MsvgPaintCtx *cpctx)
 {
     MsvgElement *newel;
 
@@ -232,7 +232,7 @@ static MsvgElement * transCookLine(MsvgElement *el, MsvgPaintCtx *cpctx)
     return newel;
 }
 
-static MsvgElement * transCookPolyline(MsvgElement *el, MsvgPaintCtx *cpctx)
+static MsvgElement *transCookPolyline(MsvgElement *el, MsvgPaintCtx *cpctx)
 {
     MsvgElement *newel;
     int i;
@@ -262,7 +262,7 @@ static MsvgElement * transCookPolyline(MsvgElement *el, MsvgPaintCtx *cpctx)
     return newel;
 }
 
-static MsvgElement * transCookPolygon(MsvgElement *el, MsvgPaintCtx *cpctx)
+static MsvgElement *transCookPolygon(MsvgElement *el, MsvgPaintCtx *cpctx)
 {
     MsvgElement *newel;
     int i;
@@ -292,7 +292,7 @@ static MsvgElement * transCookPolygon(MsvgElement *el, MsvgPaintCtx *cpctx)
     return newel;
 }
 
-static MsvgElement * transCookPath(MsvgElement *el, MsvgPaintCtx *cpctx)
+static MsvgElement *transCookPath(MsvgElement *el, MsvgPaintCtx *cpctx)
 {
     MsvgElement *newel;
     MsvgSubPath *sp;
@@ -321,7 +321,7 @@ static MsvgElement * transCookPath(MsvgElement *el, MsvgPaintCtx *cpctx)
     return newel;
 }
 
-static MsvgElement * transCookText(MsvgElement *el, MsvgPaintCtx *cpctx)
+static MsvgElement *transCookText(MsvgElement *el, MsvgPaintCtx *cpctx)
 {
     MsvgElement *newel;
 
@@ -338,7 +338,7 @@ static MsvgElement * transCookText(MsvgElement *el, MsvgPaintCtx *cpctx)
     return newel;
 }
 
-MsvgElement * MsvgTransformCookedElement(MsvgElement *el, MsvgPaintCtx *pctx)
+MsvgElement *MsvgTransformCookedElement(MsvgElement *el, MsvgPaintCtx *pctx)
 {
     switch (el->eid) {
         case EID_RECT :

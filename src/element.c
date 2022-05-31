@@ -33,16 +33,16 @@ static MsvgElement *MsvgNewGenericElement(enum EID eid, MsvgElement *father, int
 {
     MsvgElement *element;
     MsvgElement *ptr;
-    MsvgPaintCtx *ppctx = NULL;
+    MsvgPaintCtx *pctx = NULL;
 
     if (addpctx) {
-        ppctx = calloc(1, sizeof(MsvgPaintCtx));
-        if (ppctx == NULL) return NULL;
+        pctx = MsvgNewPaintCtx(NULL);
+        if (pctx == NULL) return NULL;
     }
 
     element = calloc(1, sizeof(MsvgElement));
     if (element == NULL) {
-        if (ppctx) free(ppctx);
+        if (pctx) MsvgDestroyPaintCtx(pctx);
         return NULL;
     }
 
@@ -63,20 +63,7 @@ static MsvgElement *MsvgNewGenericElement(enum EID eid, MsvgElement *father, int
 
     element->fcontent = NULL;
     element->id = NULL;
-    element->ppctx = ppctx;
-
-    if (addpctx) {
-        element->ppctx->fill = NODEFINED_COLOR;
-        element->ppctx->fill_opacity = NODEFINED_VALUE;
-        element->ppctx->stroke = NODEFINED_COLOR;
-        element->ppctx->stroke_width = NODEFINED_VALUE;
-        element->ppctx->stroke_opacity = NODEFINED_VALUE;
-        TMSetIdentity(&(element->ppctx->tmatrix));
-        element->ppctx->font_family = NODEFINED_IVALUE;
-        element->ppctx->font_style = NODEFINED_IVALUE;
-        element->ppctx->font_weight = NODEFINED_IVALUE;
-        element->ppctx->font_size = NODEFINED_VALUE;
-    }
+    element->pctx = pctx;
 
     return element;
 }
@@ -404,7 +391,7 @@ static MsvgElement *MsvgNewStopElement(MsvgElement *father)
     }
 
     element->pstopattr = pstopattr;
-    element->pstopattr->off = 0;
+    element->pstopattr->offset = 0;
     element->pstopattr->sopacity = 1;
     element->pstopattr->scolor = 0; /* black */
     return element;

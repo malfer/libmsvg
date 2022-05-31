@@ -46,8 +46,8 @@ int main(int argc, char **argv)
     son->prectattr->y = 1;
     son->prectattr->width = 398;
     son->prectattr->height = 398;
-    son->ppctx->fill = 0XBBBBBB;
-    son->ppctx->stroke = 0XFF0000;
+    son->pctx->fill = 0XBBBBBB;
+    son->pctx->stroke = 0XFF0000;
 
     son = MsvgNewElement(EID_POLYGON, root);
     MsvgAllocPointsToPolygonElement(son, 6);
@@ -56,12 +56,12 @@ int main(int argc, char **argv)
         son->ppolygonattr->points[i*2] = penta[i*2];
         son->ppolygonattr->points[i*2+1] = penta[i*2+1];
     }
-    son->ppctx->fill = 0X0000FF;
-    son->ppctx->stroke = 0X00FF00;
-    son->ppctx->stroke_width = 10;
+    son->pctx->fill = 0X0000FF;
+    son->pctx->stroke = 0X00FF00;
+    son->pctx->stroke_width = 10;
     TMSetScaling(&tm1, 0.5, 0.5);
     TMSetTranslation(&tm2, 40, 30);
-    TMMpy(&(son->ppctx->tmatrix), &tm2, &tm1);
+    TMMpy(&(son->pctx->tmatrix), &tm2, &tm1);
 
     son = MsvgNewElement(EID_POLYLINE, root);
     MsvgAllocPointsToPolylineElement(son, 6);
@@ -70,17 +70,17 @@ int main(int argc, char **argv)
         son->ppolylineattr->points[i*2] = penta[i*2];
         son->ppolylineattr->points[i*2+1] = penta[i*2+1];
     }
-    son->ppctx->fill = NO_COLOR;
-    son->ppctx->stroke = 0XFFFF00;
-    son->ppctx->stroke_width = 10;
+    son->pctx->fill = NO_COLOR;
+    son->pctx->stroke = 0XFFFF00;
+    son->pctx->stroke_width = 10;
     TMSetScaling(&tm1, 0.5, 0.5);
     TMSetTranslation(&tm2, 240, 30);
-    TMMpy(&(son->ppctx->tmatrix), &tm2, &tm1);
+    TMMpy(&(son->pctx->tmatrix), &tm2, &tm1);
     
     son = MsvgNewElement(EID_G, root);
-    son->ppctx->fill = NO_COLOR;
-    son->ppctx->stroke = 0xFF00FF;
-    TMSetTranslation(&(son->ppctx->tmatrix), 50, 50);
+    son->pctx->fill = NO_COLOR;
+    son->pctx->stroke = 0xFF00FF;
+    TMSetTranslation(&(son->pctx->tmatrix), 50, 50);
 
     son2 = MsvgNewElement(EID_PATH, son);
     son2->ppathattr->sp = MsvgNewSubPath(10);
@@ -91,7 +91,7 @@ int main(int argc, char **argv)
     MsvgAddPointToSubPath(son2->ppathattr->sp, ' ', 150, 280);
     MsvgAddPointToSubPath(son2->ppathattr->sp, ' ', 200, 300);
     son2->ppathattr->sp->closed = 1;
-    son2->ppctx->fill = 0x008080;
+    son2->pctx->fill = 0x008080;
 
     son2 = MsvgNewElement(EID_CIRCLE, son);
     son2->pcircleattr->cx = 100;
@@ -110,28 +110,28 @@ int main(int argc, char **argv)
     son2->pellipseattr->rx_y = 200;
     son2->pellipseattr->ry_x = 150;
     son2->pellipseattr->ry_y = 260;
-    son2->ppctx->stroke = 0X0000FF;
-    son2->ppctx->stroke_width = 3;
+    son2->pctx->stroke = 0X0000FF;
+    son2->pctx->stroke_width = 3;
 
     son2 = MsvgNewElement(EID_USE, son);
     son2->puseattr->refel = strdup("myrect");
     son2->puseattr->x = 0;
     son2->puseattr->y = 280;
-    son2->ppctx->fill = 0X880000;
+    son2->pctx->fill = 0X880000;
 
     son = MsvgNewElement(EID_LINE, root);
     son->plineattr->x1 = 20;
     son->plineattr->y1 = 390;
     son->plineattr->x2 = 380;
     son->plineattr->y2 = 390;
-    son->ppctx->stroke = 0X000088;
+    son->pctx->stroke = 0X000088;
 
     son = MsvgNewElement(EID_TEXT, root);
     son->ptextattr->x = 300;
     son->ptextattr->y = 370;
     MsvgAddContent(son, 7, "libmsvg");
-    son->ppctx->font_size = 20;
-    son->ppctx->stroke = 0XFF0000;
+    son->pctx->font_size = 20;
+    son->pctx->stroke = 0XFF0000;
 
     printf("===== Cooked to Raw =====\n");
     MsvgCooked2RawTree(root);

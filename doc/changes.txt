@@ -1,3 +1,16 @@
+2022-05-31
+    Added fill_iri and stroke_iri members to the MsvgPaintCtx struct
+    and populate them if fill or stroke are IRI_COLOR
+    Added functions to manage MsvgPaintCtx structs
+      MsvgPaintCtx *MsvgNewPaintCtx(const MsvgPaintCtx *src);
+      void MsvgCopyPaintCtx(MsvgPaintCtx *des, const MsvgPaintCtx *src);
+      void MsvgDestroyPaintCtx(MsvgPaintCtx *pctx);
+    Added function to find raw attributes
+      char *MsvgFindRawAttribute(const MsvgElement *el, const char *key);
+    Added function to normalize gradients to the Tiny specs
+      int MsvgNormalizeRawGradients(MsvgElement *el);
+    More use of the "const" keyword
+    Added option "-ng" to test/tcook.c to test the gradient normalization
 2022-05-26
     Changes to the MGRX tests:
     added mouse interaction to showsvg.c

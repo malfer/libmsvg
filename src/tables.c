@@ -72,7 +72,7 @@ enum EID MsvgFindElementId(const char *ename)
     return EID_NOTSUPPORTED;
 }
 
-char * MsvgFindElementName(enum EID eid)
+char *MsvgFindElementName(enum EID eid)
 {
     int i;
     

@@ -36,11 +36,13 @@ static void sufn(MsvgElement *el, MsvgPaintCtx *pctx, void *udata)
 
     printf("=========\n");
     MsvgPrintCookedElement(stdout, newel);
-    printf("  --------- effective MsvgPaintCtx\n");
-    MsvgPrintPctx(stdout, pctx);
+    if (!ud->usetranscooked) {
+        printf("  --------- effective MsvgPaintCtx\n");
+        MsvgPrintPctx(stdout, pctx);
+    }
 
     if (ud->usetranscooked)
-        free(newel);
+        MsvgDeleteElement(newel);
 }
 
 int main(int argc, char **argv)
@@ -48,21 +50,39 @@ int main(int argc, char **argv)
     MsvgElement *root;
     int error;
     UserData ud = {0};
+    int normalizegradients = 0;
 
-    if (argc <2) {
-        printf("Usage: tcook file [utc]\n");
+    if (argc > 0) {
+        argv++;
+        argc--;
+    }
+
+    while (argc > 0 && argv[0][0] == '-') {
+        if (strcmp(argv[0], "-utc") == 0)
+            ud.usetranscooked = 1;
+        else if (strcmp(argv[0], "-ng") == 0)
+            normalizegradients = 1;
+        argv++;
+        argc--;
+    }
+
+    if (argc < 1) {
+        printf("Usage: tcook [-utc] [-ng] file\n");
         return 0;
     }
-    
-    if (argc >= 3 && strcmp(argv[2], "utc") == 0) ud.usetranscooked = 1;
-    
-    root = MsvgReadSvgFile(argv[1], &error);
+
+    root = MsvgReadSvgFile(argv[0], &error);
 
     if (root == NULL) {
-        printf("Error %d reading %s\n", error, argv[1]);
+        printf("Error %d reading %s\n", error, argv[0]);
         return 0;
     }
-    
+
+    if (normalizegradients) {
+        printf("===== Normalize gradients to SVG Tiny 1.2\n");
+        MsvgNormalizeRawGradients(root);
+    }
+
     MsvgPrintRawElementTree(stdout, root, 0);
 
     printf("===== Converting to cooked tree\n");
@@ -74,6 +94,8 @@ int main(int argc, char **argv)
     MsvgPrintRawElementTree(stdout, root, 0);
 
     printf("===== Serialize cooked tree\n");
+    if (ud.usetranscooked)
+        printf("===== transforming elements\n");
     MsvgSerCookedTree(root, sufn, &ud);
 
     MsvgDeleteElement(root);

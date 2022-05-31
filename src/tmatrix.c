@@ -35,7 +35,7 @@ void TMSetIdentity(TMatrix *des)
     *des = identity_matrix;
 }
 
-int TMIsIdentity(TMatrix *t)
+int TMIsIdentity(const TMatrix *t)
 {
     if (t->a != identity_matrix.a) return 0;
     if (t->b != identity_matrix.b) return 0;
@@ -46,14 +46,14 @@ int TMIsIdentity(TMatrix *t)
     return 1;
 }
 
-int TMHaveRotation(TMatrix *t)
+int TMHaveRotation(const TMatrix *t)
 {
     if (t->b != 0) return 1;
     if (t->c != 0) return 1;
     return 0;
 }
 
-void TMSetFromArray(TMatrix *des, double *p)
+void TMSetFromArray(TMatrix *des, const double *p)
 {
     des->a = p[0];
     des->b = p[1];
@@ -63,7 +63,7 @@ void TMSetFromArray(TMatrix *des, double *p)
     des->f = p[5];
 }
 
-void TMMpy(TMatrix *des, TMatrix *op1, TMatrix *op2)
+void TMMpy(TMatrix *des, const TMatrix *op1, const TMatrix *op2)
 {
     des->a = op1->a * op2->a + op1->c * op2->b;
     des->b = op1->b * op2->a + op1->d * op2->b;
@@ -120,7 +120,7 @@ void TMSetRotation(TMatrix *des, double ang, double cx, double cy)
     TMMpy(des, &op3, &op1);
 }
 
-void TMTransformCoord(double *x, double *y, TMatrix *ctm)
+void TMTransformCoord(double *x, double *y, const TMatrix *ctm)
 {
     double xorg, yorg;
 

@@ -31,7 +31,7 @@
 
 #include <stdio.h>
 
-#define LIBMSVG_VERSION_API 0x0030
+#define LIBMSVG_VERSION_API 0x0080
 
 /* define id's for supported elements */
 
@@ -59,7 +59,7 @@ enum EID {
 /* functions in tables.c */
 
 enum EID MsvgFindElementId(const char *ename);
-char * MsvgFindElementName(enum EID eid);
+char *MsvgFindElementName(enum EID eid);
 int MsvgIsSupSonElement(enum EID fatherid, enum EID sonid);
 int MsvgElementCanHaveContent(enum EID eid);
 int MsvgIsVirtualElement(enum EID eid);
@@ -76,7 +76,7 @@ typedef int rgbcolor;
 #define NO_COLOR        -1
 #define INHERIT_COLOR   -2
 #define NODEFINED_COLOR -3
-#define URL_COLOR       -4
+#define IRI_COLOR       -4
 
 #define BLACK_COLOR   0x000000
 #define SILVER_COLOR  0xc0c0c0
@@ -166,14 +166,16 @@ typedef struct {
     double a, b, c, d, e, f;
 } TMatrix;
 
-/* paint context: cooked heritable attributes for all elements */
+/* paint context: cooked heritable attributes for some elements */
 
 typedef struct _MsvgPaintCtx *MsvgPaintCtxPtr;
 
 typedef struct _MsvgPaintCtx {
     rgbcolor fill;         /* fill color attribute */
+    char *fill_iri;        /* paint server if fill == IRI_COLOR */
     double fill_opacity;   /* fill-opacity attribute */
     rgbcolor stroke;       /* stroke color attribute */
+    char *stroke_iri;      /* paint server if stroke == IRI_COLOR */
     double stroke_width;   /* stroke-width attribute */
     double stroke_opacity; /* stroke-opacity attribute */
     TMatrix tmatrix;       /* transformation matrix */
@@ -294,7 +296,7 @@ typedef struct _MsvgRadialGradientAttributes {
 } MsvgRadialGradientAttributes;
 
 typedef struct _MsvgStopAttributes {
-    double off;         /* offset [0..1] */
+    double offset;      /* offset [0..1] */
     double sopacity;    /* stop opacity attribute */
     rgbcolor scolor;    /* stop color attribute */
 } MsvgStopAttributes;
@@ -313,7 +315,7 @@ typedef struct _MsvgElement {
 
     /* cooked generic attributes */
     char *id;                   /* id attribute */
-    MsvgPaintCtxPtr ppctx;      /* pointer to painting context */
+    MsvgPaintCtxPtr pctx;       /* pointer to painting context */
 
     /* cooked specific attributes */
     union {
@@ -344,13 +346,20 @@ int MsvgAllocPointsToPolygonElement(MsvgElement *el, int npoints);
 /* functions in attribut.c */
 
 int MsvgAddRawAttribute(MsvgElement *el, const char *key, const char *value);
+char *MsvgFindRawAttribute(const MsvgElement *el, const char *key);
 int MsvgDelRawAttribute(MsvgElement *el, const char *key);
 int MsvgDelAllRawAttributes(MsvgElement *el);
-int MsvgCopyRawAttributes(MsvgElement *desel, MsvgElement *srcel);
+int MsvgCopyRawAttributes(MsvgElement *desel, const MsvgElement *srcel);
 
 int MsvgDelAllTreeRawAttributes(MsvgElement *el);
 
-int MsvgCopyCookedAttributes(MsvgElement *desel, MsvgElement *srcel);
+int MsvgCopyCookedAttributes(MsvgElement *desel, const MsvgElement *srcel);
+
+/* functions in paintctx.c */
+
+MsvgPaintCtx *MsvgNewPaintCtx(const MsvgPaintCtx *src);
+void MsvgCopyPaintCtx(MsvgPaintCtx *des, const MsvgPaintCtx *src);
+void MsvgDestroyPaintCtx(MsvgPaintCtx *pctx);
 
 /* functions in content.c */
 
@@ -391,11 +400,11 @@ int MsvgRaw2CookedTree(MsvgElement *root);
 
 /* functions in scanpath.c */
 
-MsvgSubPath * MsvgScanPath(char *d);
-MsvgSubPath * MsvgNewSubPath(int maxpoints);
+MsvgSubPath *MsvgScanPath(char *d);
+MsvgSubPath *MsvgNewSubPath(int maxpoints);
 void MsvgExpandSubPath(MsvgSubPath *sp);
 void MsvgAddPointToSubPath(MsvgSubPath *sp, char cmd, double x, double y);
-MsvgSubPath * MsvgDupSubPath(MsvgSubPath *sp);
+MsvgSubPath *MsvgDupSubPath(MsvgSubPath *sp);
 int MsvgCountSubPaths(MsvgSubPath *sp);
 void MsvgDestroySubPath(MsvgSubPath *sp);
 
@@ -413,24 +422,24 @@ int MsvgSerCookedTree(MsvgElement *root, MsvgSerUserFn sufn, void *udata);
 
 /* functions in tcookel.c */
 
-MsvgElement * MsvgTransformCookedElement(MsvgElement *el, MsvgPaintCtx *pctx);
+MsvgElement *MsvgTransformCookedElement(MsvgElement *el, MsvgPaintCtx *pctx);
 
 /* functions in path2ply.c */
 
-MsvgElement * MsvgPathEltoPolyEl(MsvgElement *el, int nsp, double px_x_unit);
+MsvgElement *MsvgPathEltoPolyEl(MsvgElement *el, int nsp, double px_x_unit);
 
 /* functions in tmatrix.c */
 
 void TMSetIdentity(TMatrix *des);
-int TMIsIdentity(TMatrix *t);
-int TMHaveRotation(TMatrix *t);
-void TMSetFromArray(TMatrix *des, double *p);
-void TMMpy(TMatrix *des, TMatrix *op1, TMatrix *op2);
+int TMIsIdentity(const TMatrix *t);
+int TMHaveRotation(const TMatrix *t);
+void TMSetFromArray(TMatrix *des, const double *p);
+void TMMpy(TMatrix *des, const TMatrix *op1, const TMatrix *op2);
 void TMSetTranslation(TMatrix *des, double tx, double ty);
 void TMSetScaling(TMatrix *des, double sx, double sy);
 void TMSetRotationOrigin(TMatrix *des, double ang);
 void TMSetRotation(TMatrix *des, double ang, double cx, double cy);
-void TMTransformCoord(double *x, double *y, TMatrix *ctm);
+void TMTransformCoord(double *x, double *y, const TMatrix *ctm);
 
 /* MsvgTreeCounts structure */
 
@@ -448,25 +457,29 @@ typedef struct {
 } MsvgTableIdItem;
 
 typedef struct {
-    int nelem;                // nume elements in table
+    int nelem;                // num elements in table
     MsvgTableIdItem item[1];  // real size = nelem
 } MsvgTableId;
 
 /* functions in find.c */
 
 MsvgElement *MsvgFindFirstFather(MsvgElement *el);
-void MsvgCalcCountsCookedTree(MsvgElement *el, MsvgTreeCounts *tc);
-void MsvgCalcCountsRawTree(MsvgElement *el, MsvgTreeCounts *tc);
-MsvgElement * MsvgFindIdCookedTree(MsvgElement *el, char *id);
-MsvgElement * MsvgFindIdRawTree(MsvgElement *el, char *id);
-MsvgTableId * MsvgBuildTableIdCookedTree(MsvgElement *el);
-MsvgTableId * MsvgBuildTableIdRawTree(MsvgElement *el);
+void MsvgCalcCountsCookedTree(const MsvgElement *el, MsvgTreeCounts *tc);
+void MsvgCalcCountsRawTree(const MsvgElement *el, MsvgTreeCounts *tc);
+MsvgElement *MsvgFindIdCookedTree(MsvgElement *el, char *id);
+MsvgElement *MsvgFindIdRawTree(MsvgElement *el, char *id);
+MsvgTableId *MsvgBuildTableIdCookedTree(MsvgElement *el);
+MsvgTableId *MsvgBuildTableIdRawTree(MsvgElement *el);
 void MsvgDestroyTableId(MsvgTableId *tid);
-MsvgElement *MsvgFindIdTableId(MsvgTableId *tid, char *id);
+MsvgElement *MsvgFindIdTableId(const MsvgTableId *tid, char *id);
 
 /* functions in cokdims.c */
 
 int MsvgGetCookedDims(MsvgElement *root, double *minx, double *maxx,
                       double *miny, double *maxy);
+
+/* functions in gradnorm.c */
+
+int MsvgNormalizeRawGradients(MsvgElement *el);
 
 #endif  /* whole file */

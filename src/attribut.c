@@ -93,15 +93,27 @@ int MsvgAddRawAttribute(MsvgElement *el, const char *key, const char *value)
     return 1;
 }
 
+char *MsvgFindRawAttribute(const MsvgElement *el, const char *key)
+{
+    MsvgRawAttribute *nattr;
+
+    nattr = el->frattr;
+    while(nattr) {
+        if (strcmp(nattr->key, key) == 0) return nattr->value;
+        nattr = nattr->nrattr;
+    }
+
+    return NULL;
+}
+
 int MsvgDelRawAttribute(MsvgElement *el, const char *key)
 {
     MsvgRawAttribute **dptr;
     MsvgRawAttribute *nattr;
-    
-    
+
     dptr = &(el->frattr);
     while (*dptr) {
-        if (strcmp((*dptr)->key,key) == 0) {
+        if (strcmp((*dptr)->key, key) == 0) {
             if ((*dptr)->key) free((*dptr)->key);
             if ((*dptr)->value) free((*dptr)->value);
             nattr = (*dptr)->nrattr;
@@ -150,7 +162,7 @@ int MsvgDelAllTreeRawAttributes(MsvgElement *el)
     return deleted;
 }
 
-int MsvgCopyRawAttributes(MsvgElement *desel, MsvgElement *srcel)
+int MsvgCopyRawAttributes(MsvgElement *desel, const MsvgElement *srcel)
 {
     MsvgRawAttribute *cattr;
     int copied = 0;
@@ -164,7 +176,7 @@ int MsvgCopyRawAttributes(MsvgElement *desel, MsvgElement *srcel)
     return copied;
 }
 
-int MsvgCopyCookedAttributes(MsvgElement *desel, MsvgElement *srcel)
+int MsvgCopyCookedAttributes(MsvgElement *desel, const MsvgElement *srcel)
 {
     int i;
 
@@ -172,7 +184,7 @@ int MsvgCopyCookedAttributes(MsvgElement *desel, MsvgElement *srcel)
 
     if (desel->id) free(desel->id);
     if (srcel->id) desel->id = strdup(srcel->id);
-    if (srcel->ppctx && desel->ppctx) *(desel->ppctx) = *(srcel->ppctx);
+    if (srcel->pctx && desel->pctx) MsvgCopyPaintCtx(desel->pctx, srcel->pctx);
 
     switch (srcel->eid) {
         case EID_SVG :

@@ -38,13 +38,20 @@ typedef struct {
     void *udata;
 } SerData;
 
-static void process_generic_pctx(MsvgPaintCtx *des, MsvgPaintCtx *fath,
-                                 MsvgPaintCtx *son)
+static MsvgPaintCtx *process_pctx_inheritance(const MsvgPaintCtx *fath,
+                                              const MsvgPaintCtx *son)
 {
+    MsvgPaintCtx *des;
+
+    des = MsvgNewPaintCtx(NULL);
+    if (des == NULL) return NULL;
+
     if (son->fill == INHERIT_COLOR || son->fill == NODEFINED_COLOR) {
         des->fill = fath->fill;
+        if (fath->fill_iri) des->fill_iri = strdup(fath->fill_iri);
     } else {
         des->fill = son->fill;
+        if (son->fill_iri) des->fill_iri = strdup(son->fill_iri);
     }
 
     if (son->fill_opacity == INHERIT_VALUE ||
@@ -56,8 +63,10 @@ static void process_generic_pctx(MsvgPaintCtx *des, MsvgPaintCtx *fath,
 
     if (son->stroke == INHERIT_COLOR || son->stroke == NODEFINED_COLOR) {
         des->stroke = fath->stroke;
+        if (fath->stroke_iri) des->stroke_iri = strdup(fath->stroke_iri);
     } else {
         des->stroke = son->stroke;
+        if (son->stroke_iri) des->stroke_iri = strdup(son->stroke_iri);
     }
 
     if (son->stroke_width == INHERIT_VALUE ||
@@ -103,13 +112,12 @@ static void process_generic_pctx(MsvgPaintCtx *des, MsvgPaintCtx *fath,
     } else {
         des->font_size = son->font_size;
     }
+
+    return des;
 }
 
-static void process_drawel_pctx(MsvgPaintCtx *des, MsvgPaintCtx *fath,
-                                MsvgPaintCtx *son)
+static void process_pctx_defaults(MsvgPaintCtx *des)
 {
-    process_generic_pctx(des, fath, son);
-
     /* now take initial values if not defined */
     
     if (des->fill == INHERIT_COLOR || des->fill == NODEFINED_COLOR) {
@@ -176,10 +184,10 @@ static void process_use(MsvgElement *el, SerData *sd, MsvgPaintCtx *fath)
 
     sd->nested_use += 1;
 
-    *(ghostg->ppctx) = *(el->ppctx);
+    MsvgCopyPaintCtx(ghostg->pctx, el->pctx);
 
     TMSetTranslation(&uset, el->puseattr->x, el->puseattr->y);
-    TMMpy(&(ghostg->ppctx->tmatrix), &(el->ppctx->tmatrix), &uset);
+    TMMpy(&(ghostg->pctx->tmatrix), &(el->pctx->tmatrix), &uset);
 
     ghostg->fson = refel;
     process_container(ghostg, sd, fath, 1);
@@ -192,13 +200,15 @@ static void process_use(MsvgElement *el, SerData *sd, MsvgPaintCtx *fath)
 static void process_container(MsvgElement *el, SerData *sd,
                               MsvgPaintCtx *fath, int onlyfirstson)
 {
-    MsvgPaintCtx mypctx, sonpctx;
+    MsvgPaintCtx *mypctx = NULL, *sonpctx = NULL;
     MsvgElement *pel;
 
     if (fath)
-        process_generic_pctx(&mypctx, fath, el->ppctx);
+        mypctx = process_pctx_inheritance(fath, el->pctx);
     else
-        mypctx = *(el->ppctx);
+        mypctx = MsvgNewPaintCtx(el->pctx);
+
+    if (mypctx == NULL) return;
     
     pel = el->fson;
     while (pel) {
@@ -206,12 +216,12 @@ static void process_container(MsvgElement *el, SerData *sd,
             case EID_SVG :
                 break;
             case EID_G :
-                process_container(pel, sd, &mypctx, 0);
+                process_container(pel, sd, mypctx, 0);
                 break;
             case EID_DEFS :
                 break;
             case EID_USE :
-                process_use(pel, sd, &mypctx);
+                process_use(pel, sd, mypctx);
                 break;
             case EID_RECT :
             case EID_CIRCLE :
@@ -221,8 +231,12 @@ static void process_container(MsvgElement *el, SerData *sd,
             case EID_POLYGON :
             case EID_PATH :
             case EID_TEXT :
-                process_drawel_pctx(&sonpctx, &mypctx, pel->ppctx);
-                sd->sufn(pel, &sonpctx, sd->udata);
+                sonpctx = process_pctx_inheritance(mypctx, pel->pctx);
+                if (sonpctx) {
+                    process_pctx_defaults(sonpctx);
+                    sd->sufn(pel, sonpctx, sd->udata);
+                    MsvgDestroyPaintCtx(sonpctx);
+                }
                 break;
             default :
                 break;
@@ -230,6 +244,8 @@ static void process_container(MsvgElement *el, SerData *sd,
         if (onlyfirstson) pel = NULL;
         else pel = pel->nsibling;
     }
+
+    MsvgDestroyPaintCtx(mypctx);
 }
 
 int MsvgSerCookedTree(MsvgElement *root, MsvgSerUserFn sufn, void *udata)

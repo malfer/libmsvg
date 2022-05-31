@@ -178,7 +178,7 @@ static void GenCBezier(MsvgSubPath *sp, int pos, ExpPointArray *pa, double px_x_
     AddPointToExpPointArray(pa, xend, yend);
 }
 
-static ExpPointArray * PathToExpPointArray(MsvgSubPath *sp, double px_x_unit)
+static ExpPointArray *PathToExpPointArray(MsvgSubPath *sp, double px_x_unit)
 {
     ExpPointArray *pa;
     int i;
@@ -202,7 +202,7 @@ static ExpPointArray * PathToExpPointArray(MsvgSubPath *sp, double px_x_unit)
     return pa;
 }
 
-MsvgElement * MsvgPathEltoPolyEl(MsvgElement *el, int nsp, double px_x_unit)
+MsvgElement *MsvgPathEltoPolyEl(MsvgElement *el, int nsp, double px_x_unit)
 {
     MsvgElement *newel;
     MsvgSubPath *sp;
@@ -230,7 +230,7 @@ MsvgElement * MsvgPathEltoPolyEl(MsvgElement *el, int nsp, double px_x_unit)
         newel->ppolygonattr->npoints = pa->npoints;
         newel->ppolygonattr->points = pa->points;
         free(pa); // we don't free pa->points !!!!
-        *(newel->ppctx) = *(el->ppctx);
+        MsvgCopyPaintCtx(newel->pctx, el->pctx);
     } else {
         newel = MsvgNewElement(EID_POLYLINE, NULL);
         if (newel == NULL) {
@@ -240,7 +240,7 @@ MsvgElement * MsvgPathEltoPolyEl(MsvgElement *el, int nsp, double px_x_unit)
         newel->ppolylineattr->npoints = pa->npoints;
         newel->ppolylineattr->points = pa->points;
         free(pa); // we don't free pa->points !!!!
-        *(newel->ppctx) = *(el->ppctx);
+        MsvgCopyPaintCtx(newel->pctx, el->pctx);
     }
 
     return newel;

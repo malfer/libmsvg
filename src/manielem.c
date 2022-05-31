@@ -113,7 +113,7 @@ static void MsvgFreeElement(MsvgElement *el)
     }
 
     if (el->id) free(el->id);
-    if (el->ppctx) free(el->ppctx);
+    if (el->pctx) MsvgDestroyPaintCtx(el->pctx);
     free(el);
 }
 

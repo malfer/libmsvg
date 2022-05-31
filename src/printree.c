@@ -101,6 +101,8 @@ static char * printcolor(rgbcolor color)
         sprintf(s, "INHERIT_COLOR");
     else if (color == NODEFINED_COLOR)
         sprintf(s, "NODEFINED_COLOR");
+    else if (color == IRI_COLOR)
+        sprintf(s, "IRI_COLOR");
     else
         sprintf(s, "#%06x", color);
     
@@ -135,20 +137,24 @@ static char * printivalue(int value)
     return s;
 }
 
-void MsvgPrintPctx(FILE *f, MsvgPaintCtx *ppctx)
+void MsvgPrintPctx(FILE *f, MsvgPaintCtx *pctx)
 {
-    fprintf(f, "  fill           %s\n", printcolor(ppctx->fill));
-    fprintf(f, "  fill_opacity   %s\n", printdvalue(ppctx->fill_opacity));
-    fprintf(f, "  stroke         %s\n", printcolor(ppctx->stroke));
-    fprintf(f, "  stroke_width   %s\n", printdvalue(ppctx->stroke_width));
-    fprintf(f, "  stroke_opacity %s\n", printdvalue(ppctx->stroke_opacity));
+    fprintf(f, "  fill           %s\n", printcolor(pctx->fill));
+    if (pctx->fill_iri)
+        fprintf(f, "  fill_iri       %s\n", pctx->fill_iri);
+    fprintf(f, "  fill_opacity   %s\n", printdvalue(pctx->fill_opacity));
+    fprintf(f, "  stroke         %s\n", printcolor(pctx->stroke));
+    if (pctx->stroke_iri)
+        fprintf(f, "  stroke_iri     %s\n", pctx->stroke_iri);
+    fprintf(f, "  stroke_width   %s\n", printdvalue(pctx->stroke_width));
+    fprintf(f, "  stroke_opacity %s\n", printdvalue(pctx->stroke_opacity));
     fprintf(f, "  tmatrix        (%g %g %g %g %g %g)\n",
-            ppctx->tmatrix.a, ppctx->tmatrix.b, ppctx->tmatrix.c,
-            ppctx->tmatrix.d, ppctx->tmatrix.e, ppctx->tmatrix.f);
-    fprintf(f, "  font-family    %s\n", printivalue(ppctx->font_family));
-    fprintf(f, "  font-style     %s\n", printivalue(ppctx->font_style));
-    fprintf(f, "  font-weight    %s\n", printivalue(ppctx->font_weight));
-    fprintf(f, "  font-size      %s\n", printdvalue(ppctx->font_size));
+            pctx->tmatrix.a, pctx->tmatrix.b, pctx->tmatrix.c,
+            pctx->tmatrix.d, pctx->tmatrix.e, pctx->tmatrix.f);
+    fprintf(f, "  font-family    %s\n", printivalue(pctx->font_family));
+    fprintf(f, "  font-style     %s\n", printivalue(pctx->font_style));
+    fprintf(f, "  font-weight    %s\n", printivalue(pctx->font_weight));
+    fprintf(f, "  font-size      %s\n", printdvalue(pctx->font_size));
 }
 
 static void printSvgCookedAttr(FILE *f, MsvgElement *el)
@@ -289,7 +295,7 @@ static void printRadialGradientCookedAttr(FILE *f, MsvgElement *el)
 
 static void printStopCookedAttr(FILE *f, MsvgElement *el)
 {
-    fprintf(f, "  offset         %g\n", el->pstopattr->off);
+    fprintf(f, "  offset         %g\n", el->pstopattr->offset);
     fprintf(f, "  stop-opacity   %s\n", printdvalue(el->pstopattr->sopacity));
     fprintf(f, "  stop-color     %s\n", printcolor(el->pstopattr->scolor));
 }
@@ -360,8 +366,8 @@ void MsvgPrintCookedElement(FILE *f, MsvgElement *el)
             break;
     }
 
-    if (el->ppctx) {
+    if (el->pctx) {
         fprintf(f, "  --------- element MsvgPaintCtx\n");
-        MsvgPrintPctx(f, el->ppctx);
+        MsvgPrintPctx(f, el->pctx);
     }
 }

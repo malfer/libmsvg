@@ -356,25 +356,25 @@ static void sufn(MsvgElement *el, MsvgPaintCtx *pctx, void *udata)
 
     switch (newel->eid) {
         case EID_RECT :
-            DrawRectElement(newel, newel->ppctx);
+            DrawRectElement(newel, newel->pctx);
             break;
         case EID_CIRCLE :
-            DrawCircleElement(newel, newel->ppctx);
+            DrawCircleElement(newel, newel->pctx);
             break;
         case EID_ELLIPSE :
-            DrawEllipseElement(newel, newel->ppctx);
+            DrawEllipseElement(newel, newel->pctx);
             break;
         case EID_LINE :
-            DrawLineElement(newel, newel->ppctx);
+            DrawLineElement(newel, newel->pctx);
             break;
         case EID_POLYLINE :
-            DrawPolylineElement(newel, newel->ppctx);
+            DrawPolylineElement(newel, newel->pctx);
             break;
         case EID_POLYGON :
-            DrawPolygonElement(newel, newel->ppctx);
+            DrawPolygonElement(newel, newel->pctx);
             break;
         case EID_PATH :
-            DrawPathElement(newel, newel->ppctx);
+            DrawPathElement(newel, newel->pctx);
             /*nsp = MsvgCountSubPaths(newel->ppathattr->sp);
             for (i=0; i<nsp; i++) {
                 newel2 = MsvgPathEltoPolyEl(newel, i, 4);

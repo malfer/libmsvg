@@ -11,6 +11,7 @@ LIBOBJS=tables.o \
         element.o \
         manielem.o \
         attribut.o \
+        paintctx.o \
         content.o \
         raw2cook.o \
         scanpath.o \
@@ -24,6 +25,7 @@ LIBOBJS=tables.o \
         path2ply.o \
         find.o \
         cokdims.o \
+        gradnorm.o \
         util.o
 
 LIB=libmsvg.a

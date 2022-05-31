@@ -41,11 +41,26 @@ static void addColorRawAttr(MsvgElement *el, char *key, rgbcolor color)
             MsvgAddRawAttribute(el, key, "none");
         else if (color == INHERIT_COLOR)
             MsvgAddRawAttribute(el, key, "inherit");
-        else if (color == URL_COLOR)
-            ; // TODO
         else {
             sprintf(s, "#%06x", color);
             MsvgAddRawAttribute(el, key, s);
+        }
+    }
+}
+
+static void addColorExtRawAttr(MsvgElement *el, char *key, rgbcolor color, char *iri)
+{
+    char s[41];
+    
+    if (color != NODEFINED_COLOR) {
+        if (color == IRI_COLOR) {
+            if (iri != NULL) {
+                sprintf(s, "url(#%s", iri);
+                MsvgAddRawAttribute(el, key, s);
+            }
+        }
+        else {
+            addColorRawAttr(el, key, color);
         }
     }
 }
@@ -109,23 +124,23 @@ static void torawPCtxAttr(MsvgElement *el)
 
     if (el->id) MsvgAddRawAttribute(el, "id", el->id);
 
-    if (el->ppctx == NULL) return;
+    if (el->pctx == NULL) return;
 
-    addColorRawAttr(el, "fill", el->ppctx->fill);
-    addSpcDblRawAttr(el, "fill-opacity", el->ppctx->fill_opacity);
-    addColorRawAttr(el, "stroke", el->ppctx->stroke);
-    addSpcDblRawAttr(el, "stroke-width", el->ppctx->stroke_width);
-    addSpcDblRawAttr(el, "stroke-opacity", el->ppctx->stroke_opacity);
-    tm = &(el->ppctx->tmatrix);
+    addColorExtRawAttr(el, "fill", el->pctx->fill, el->pctx->fill_iri);
+    addSpcDblRawAttr(el, "fill-opacity", el->pctx->fill_opacity);
+    addColorExtRawAttr(el, "stroke", el->pctx->stroke, el->pctx->stroke_iri);
+    addSpcDblRawAttr(el, "stroke-width", el->pctx->stroke_width);
+    addSpcDblRawAttr(el, "stroke-opacity", el->pctx->stroke_opacity);
+    tm = &(el->pctx->tmatrix);
     if (!TMIsIdentity(tm)) {
         sprintf(s, "matrix(%g %g %g %g %g %g)",
                 tm->a, tm->b, tm->c, tm->d, tm->e, tm->f);
         MsvgAddRawAttribute(el, "transform", s);
     }
-    addTextRawAttr(el, "font-family", el->ppctx->font_family);
-    addTextRawAttr(el, "font-style", el->ppctx->font_style);
-    addTextRawAttr(el, "font-weight", el->ppctx->font_weight);
-    addSpcDblRawAttr(el, "font-size", el->ppctx->font_size);
+    addTextRawAttr(el, "font-family", el->pctx->font_family);
+    addTextRawAttr(el, "font-style", el->pctx->font_style);
+    addTextRawAttr(el, "font-weight", el->pctx->font_weight);
+    addSpcDblRawAttr(el, "font-size", el->pctx->font_size);
 }
 
 static void toRawSvgCookedAttr(MsvgElement *el)
@@ -307,7 +322,7 @@ static void toRawRadialGradientCookedAttr(MsvgElement *el)
 
 static void toRawStopCookedAttr(MsvgElement *el)
 {
-    addDoubleRawAttr(el, "offset", el->pstopattr->off);
+    addDoubleRawAttr(el, "offset", el->pstopattr->offset);
     addSpcDblRawAttr(el, "stop-opacity", el->pstopattr->sopacity);
     addColorRawAttr(el, "stop-color", el->pstopattr->scolor);
 }

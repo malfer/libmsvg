@@ -44,7 +44,7 @@ MsvgElement *MsvgFindFirstFather(MsvgElement *el)
     return ff;
 }
 
-static void addCountsCookedTree(MsvgElement *el, MsvgTreeCounts *tc)
+static void addCountsCookedTree(const MsvgElement *el, MsvgTreeCounts *tc)
 {
     if (el->eid > EID_SVG && el->eid <= EID_LAST) {
         tc->nelem[el->eid] += 1;
@@ -57,11 +57,11 @@ static void addCountsCookedTree(MsvgElement *el, MsvgTreeCounts *tc)
     if (el->nsibling) addCountsCookedTree(el->nsibling, tc);
 }
 
-void MsvgCalcCountsCookedTree(MsvgElement *el, MsvgTreeCounts *tc)
+void MsvgCalcCountsCookedTree(const MsvgElement *el, MsvgTreeCounts *tc)
 {
     int i;
 
-    for (i=0; i<EID_LAST; i++)
+    for (i=0; i<=EID_LAST; i++)
         tc->nelem[i] = 0;
     tc->totelem = 0;
     tc->totelwid = 0;
@@ -69,7 +69,7 @@ void MsvgCalcCountsCookedTree(MsvgElement *el, MsvgTreeCounts *tc)
     addCountsCookedTree(el, tc);
 }
 
-static char * findRawId(MsvgElement *el)
+static char *findRawId(const MsvgElement *el)
 {
     MsvgRawAttribute *pattr;
     
@@ -83,7 +83,7 @@ static char * findRawId(MsvgElement *el)
     return NULL;
 }
 
-static void addCountsRawTree(MsvgElement *el, MsvgTreeCounts *tc)
+static void addCountsRawTree(const MsvgElement *el, MsvgTreeCounts *tc)
 {
     if (el->eid > EID_SVG && el->eid <= EID_LAST) {
         tc->nelem[el->eid] += 1;
@@ -96,11 +96,11 @@ static void addCountsRawTree(MsvgElement *el, MsvgTreeCounts *tc)
     if (el->nsibling) addCountsRawTree(el->nsibling, tc);
 }
 
-void MsvgCalcCountsRawTree(MsvgElement *el, MsvgTreeCounts *tc)
+void MsvgCalcCountsRawTree(const MsvgElement *el, MsvgTreeCounts *tc)
 {
     int i;
 
-    for (i=0; i<EID_LAST; i++)
+    for (i=0; i<=EID_LAST; i++)
         tc->nelem[i] = 0;
     tc->totelem = 0;
     tc->totelwid = 0;
@@ -108,7 +108,7 @@ void MsvgCalcCountsRawTree(MsvgElement *el, MsvgTreeCounts *tc)
     addCountsRawTree(el, tc);
 }
 
-MsvgElement * MsvgFindIdCookedTree(MsvgElement *el, char *id)
+MsvgElement *MsvgFindIdCookedTree(MsvgElement *el, char *id)
 {
     MsvgElement *aux;
 
@@ -128,7 +128,7 @@ MsvgElement * MsvgFindIdCookedTree(MsvgElement *el, char *id)
     return NULL;
 }
 
-MsvgElement * MsvgFindIdRawTree(MsvgElement *el, char *id)
+MsvgElement *MsvgFindIdRawTree(MsvgElement *el, char *id)
 {
     MsvgElement *aux;
     char *rid;
@@ -177,7 +177,7 @@ static void addTableIdItemCooked(MsvgElement *el, MsvgTableId *tid, int maxelem)
     if (el->nsibling) addTableIdItemCooked(el->nsibling, tid, maxelem);
 }
 
-MsvgTableId * MsvgBuildTableIdCookedTree(MsvgElement *el)
+MsvgTableId *MsvgBuildTableIdCookedTree(MsvgElement *el)
 {
     MsvgTreeCounts tc;
     MsvgTableId *tid;
@@ -222,7 +222,7 @@ static void addTableIdItemRaw(MsvgElement *el, MsvgTableId *tid, int maxelem)
     if (el->nsibling) addTableIdItemRaw(el->nsibling, tid, maxelem);
 }
 
-MsvgTableId * MsvgBuildTableIdRawTree(MsvgElement *el)
+MsvgTableId *MsvgBuildTableIdRawTree(MsvgElement *el)
 {
     MsvgTreeCounts tc;
     MsvgTableId *tid;
@@ -252,7 +252,7 @@ void MsvgDestroyTableId(MsvgTableId *tid)
     free(tid);
 }
 
-MsvgElement *MsvgFindIdTableId(MsvgTableId *tid, char *id)
+MsvgElement *MsvgFindIdTableId(const MsvgTableId *tid, char *id)
 {
     MsvgTableIdItem key, *found;
 

@@ -32,7 +32,7 @@
 
 #define SCANBUFLEN 100
 
-static char * scanNumber(char *s, char *buf)
+static char *scanNumber(char *s, char *buf)
 {
     int bufpos = 0;
     int dpfound = 0;
@@ -71,7 +71,7 @@ static char * scanNumber(char *s, char *buf)
     return s;
 }
 
-static char * scanItem(char *d, char *buf, int *isnumber)
+static char *scanItem(char *d, char *buf, int *isnumber)
 {
     buf[0] = '\0';
     *isnumber = 0;
@@ -91,7 +91,7 @@ static char * scanItem(char *d, char *buf, int *isnumber)
     return d;
 }
 
-static char * scanSubPath(char *d, double xorg, double yorg, MsvgSubPath **psp)
+static char *scanSubPath(char *d, double xorg, double yorg, MsvgSubPath **psp)
 {
     MsvgSubPath *sp = NULL;
     char buf[SCANBUFLEN];
@@ -266,7 +266,7 @@ static char * scanSubPath(char *d, double xorg, double yorg, MsvgSubPath **psp)
     return d;
 }
 
-MsvgSubPath * MsvgScanPath(char *d)
+MsvgSubPath *MsvgScanPath(char *d)
 {
     MsvgSubPath *firstsp, **psp;
     double xorg, yorg;
@@ -287,7 +287,7 @@ MsvgSubPath * MsvgScanPath(char *d)
     return firstsp;
 }
 
-MsvgSubPath * MsvgNewSubPath(int maxpoints)
+MsvgSubPath *MsvgNewSubPath(int maxpoints)
 {
     MsvgSubPath *sp;
 
@@ -341,7 +341,7 @@ void MsvgAddPointToSubPath(MsvgSubPath *sp, char cmd, double x, double y)
     sp->npoints++;
 }
 
-MsvgSubPath * MsvgDupSubPath(MsvgSubPath *srcsp)
+MsvgSubPath *MsvgDupSubPath(MsvgSubPath *srcsp)
 {
     MsvgSubPath *dessp;
     int i;
