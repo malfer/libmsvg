@@ -6,9 +6,9 @@
 </head>
 
 <body>
-<h1>libmsvg v0.22</h1>
+<h1>libmsvg v0.50</h1>
 <h2>Programmer's guide</h2>
-<p>Last update: May 1, 2022</p>
+<p>Last update: June 1, 2022</p>
 
 <hr>
 <h2>Abstract</h2>
@@ -23,6 +23,10 @@ http://www.w3.org/Graphics/SVG/</a>).</p>
 specifically on a subset of the <a href="http://www.w3.org/TR/SVGTiny12/">
 SVG Tiny 1.2 specification</a>. The subset is described in <a href="#appendixa">
 Appendix A</a>.</p>
+
+<p>This document assumes a minimum knowledge of the SVG standard, if you do not
+know anything about the SVG format, read the above mentioned specification first.
+There are also a large number of introductory texts on the Internet.</p>
 
 <h2>Contents</h2>
 <dir>
@@ -139,21 +143,52 @@ platforms:</p>
 <p>The central structure of libmsvg is the MsvgElement tree. Every MsvgElement
 has an element type id (eid), a pointer to his father, pointers to his previous
 and next siblings and a pointer to his first son. The root element must be a
-EID_SVG. In this version of libmsvg only EID_SVG, EID_DEFS and EID_G can have
-child elements.
-The other supported elements are EID_RECT, EID_CIRCLE, EID_ELLIPSE, EID_LINE,
-EID_POLYLINE, EID_POLYGON, EID_PATH, EID_TEXT and EID_USE.</p>
+EID_SVG, but you can have subtrees starting with any element ID (even subtrees
+with only one element) for your program's needs.</p>
+
+<p>The other supported elements are EID_DEFS, EID_G, EID_RECT, EID_CIRCLE, EID_ELLIPSE,
+EID_LINE, EID_POLYLINE, EID_POLYGON, EID_PATH, EID_TEXT, EID_USE, EID_LINEARGRADIENT,
+EID_RADIALGRADIENT and EID_STOP.</p>
+
 <p>This graph represents an example of a MsvgElement tree:</p>
 <p><center>
 <img src="elementtree.png" alt="MsvgElement tree example">
 </center></p>
+
+<p>Not every element can have any child. For each element type id there is a list of
+elements that can be its children:
+<ul>
+    <li>EID_SVG is always a root element, the grand father. The elements it can
+    have as children are: EID_DEFS, EID_G, EID_RECT, EID_CIRCLE, EID_ELLIPSE,
+    EID_LINE, EID_POLYLINE, EID_POLYGON, EID_PATH, EID_TEXT and EID_USE.
+    <li>EID_G is used to group a subset of other elements. Possible children are:
+    EID_G, EID_RECT, EID_CIRCLE, EID_ELLIPSE, EID_LINE, EID_POLYLINE, EID_POLYGON,
+    EID_PATH, EID_TEXT and EID_USE.
+    <li>EID_RECT, EID_CIRCLE, EID_ELLIPSE, EID_LINE, EID_POLYLINE, EID_POLYGON,
+    EID_PATH and EID_TEXT define things to draw, they can not have children.
+    <li>EID_DEFS can contain elements that are not drawn immediately but can be
+    referenced elsewhere in the element tree, and also paint server definitions
+    such as gradients. Possible children are:
+    EID_G, EID_RECT, EID_CIRCLE, EID_ELLIPSE, EID_LINE, EID_POLYLINE, EID_POLYGON,
+    EID_PATH, EID_TEXT, EID_LINEARGRADIENT and EID_RADIALGRADIENT.
+    <li>EID_LINEARGRADIENT and EID_RADIALGRADIENT are gradient definitions, they
+    can have EID_STOP children only.
+    <li>EID_USE is used to reference some other drawable element and draw it
+    (possibly with a translation or other transformation), they can not have
+    children.
+    <li>EID_STOP is used to set gradient stop points only, they can not have
+    children.
+</ul>
+
+<h3>Element attributes</h3>
 <p>Every MsvgElement can have attributes, they can be of two types: raw or
 cooked. The type of MsvgElement attributes in a tree is determined by a variable in
-the root element: root->psvgattr->tree_type. If this variable is RAW_SVGTREE all
-attributes are raw. Raw attributes are simple key,value strings pairs. If the 
-variable is COOKED_SVGTREE the tree has cooked attributes too. Cooked attributes are
-typed variables and can be generic or specific, all elements have the generic ones,
-each element type id has his specific ones. </p>
+the root element (it must be a EID_SVG!!): root->psvgattr->tree_type. If this
+variable is RAW_SVGTREE all attributes are raw. Raw attributes are simple key,value
+strings pairs. If the variable is COOKED_SVGTREE the tree has cooked attributes too.
+Cooked attributes are typed variables and can be generic or specific, most element
+type ids (but not all) have the generic ones, most element type ids have his specific
+ones.</p>
 
 <h3>The RAW_SVGTREE tree type</h3>
 <p>After a SVG file is loaded to a MsvgElement tree by the MsvgReadSvgFile function
@@ -167,6 +202,9 @@ reordered and finally be written to a file using the MsvgWriteSvgFile function.<
 can convert a MsvgElement tree to the COOKED_SVGTREE type. Only the supported
 attributes are processed and converted to cooked attributes. In this state the tree
 is easier to be manipulated and/or rasterized by a program.</p>
+
+<p>Note that if we have a subtree whose parent is not an EID_SVG element, it is
+up to the programmer to know if it is a raw or cooked subtree.</p>
 
 <h3>Content</h3>
 <p>In addition to attributes an element can have content, content
@@ -193,7 +231,7 @@ typedef struct _MsvgElement {
 
     /* cooked generic attributes */
     char *id;                   /* id attribute */
-    MsvgPaintCtx pctx;          /* painting context */
+    MsvgPaintCtxPtr pctx;       /* pointer to painting context */
 
     /* cooked specific attributes */
     union {
@@ -209,6 +247,9 @@ typedef struct _MsvgElement {
         MsvgPolygonAttributes *ppolygonattr;
         MsvgPathAttributes *ppathattr;
         MsvgTextAttributes *ptextattr;
+        MsvgLinearGradientAttributes *plgradattr;
+        MsvgRadialGradientAttributes *prgradattr;
+        MsvgStopAttributes *pstopattr;
     };
 } MsvgElement;
 </pre>
@@ -233,8 +274,11 @@ typedef struct _MsvgConten {
 } MsvgContent;
 </pre>
 
-<p>Cooked generic attributes are the same for all elements, the "id" attribute
-(that can be NULL) and a MsvgPaintCtx structure:</p>
+<p>Cooked generic attributes are the "id" attribute (that can be NULL) and
+the MsvgPaintCtx structure (that can be NULL too), all element type ids can
+have the id attribute, only EID_SVG, EID_G, EID_RECT, EID_CIRCLE, EID_ELLIPSE,
+EID_LINE, EID_POLYLINE, EID_POLYGON, EID_PATH, EID_TEXT and EID_USE have
+a MsvgPaintCtx structure:</p>
 <pre>
 typedef struct {
     double a, b, c, d, e, f;
@@ -242,8 +286,10 @@ typedef struct {
 
 typedef struct _MsvgPaintCtx {
     rgbcolor fill;         /* fill color attribute */
+    char *fill_iri;        /* paint server if fill == IRI_COLOR */
     double fill_opacity;   /* fill-opacity attribute */
     rgbcolor stroke;       /* stroke color attribute */
+    char *stroke_iri;      /* paint server if stroke == IRI_COLOR */
     double stroke_width;   /* stroke-width attribute */
     double stroke_opacity; /* stroke-opacity attribute */
     TMatrix tmatrix;       /* transformation matrix */
@@ -264,6 +310,10 @@ and the father value is defined.</p>
 
 <p>fill and stroke colors can have the value NO_COLOR, that correspond
 to the raw keyword value "none" that means fill or stroke must not be done.</p>
+
+<p>fill and stroke colors can have the value IRI_COLOR, that correspond
+to the raw keyword value "url(#iri)" that means fill or stroke with the paint
+server referenced, the iri value is stored in fill_iri or stroke_iri.</p>
 
 <p>tmatrix is special, if undefined it defaults to the identity matrix. Before
 rasterizing any element it is neceary to calculate the Current Transformation
@@ -400,12 +450,12 @@ pointer. This space will be freed if we delete the element.</p>
     son->prectattr->y = 1;
     son->prectattr->width = 398;
     son->prectattr->height = 398;
-    son->pctx.fill = 0XFFFFFF;
-    son->pctx.stroke = 0XFF0000;
+    son->pctx->fill = 0XFFFFFF;
+    son->pctx->stroke = 0XFF0000;
     son = MsvgNewElement(EID_G, root);
-    son->pctx.fill = NO_COLOR;
-    son->pctx.stroke = 0X00FF00;
-    TMSetTranslation(&amp;(son->pctx.tmatrix), 50, 50);
+    son->pctx->fill = NO_COLOR;
+    son->pctx->stroke = 0X00FF00;
+    TMSetTranslation(&amp;(son->pctx->tmatrix), 50, 50);
 
     MsvgElement *son2;
     son2 = MsvgNewElement(EID_CIRCLE, son);
@@ -427,14 +477,14 @@ void MsvgPruneElement(MsvgElement *el);
 </pre>
 <p>The MsvgPruneElement function prune an element from his tree and them we
 can insert it in another tree or in another point of the same tree. Note that
-if the pruned element has child, it retains them after pruned.</p>
+if the pruned element has children, it retains them after pruned.</p>
 
 <pre>
 void MsvgDeleteElement(MsvgElement *el);
 </pre>
 <p>The MsvgDeleteElement does two things, prunes the element from his tree and
 deletes it, freeing the allocated memory used. Note that if the deleted
-element has child, they are deleted too.</p>
+element has children, they are deleted too.</p>
 
 <pre>
 int MsvgInsertSonElement(MsvgElement *el, MsvgElement *father);
@@ -452,8 +502,7 @@ three functions return 1 if all was ok, 0 otherwise.</p>
 MsvgElement *MsvgDupElement(MsvgElement *el);
 </pre>
 <p>The MsvgDupElement duplicates the element passed as parameter, if that
-element is a container (like  EID_SVG or EID_G) it duplicates all the element
-child too.</p>
+element have children it duplicates all the child elements too.</p>
 
 <hr>
 <h2><a name="finding">Finding elements in a MsvgElement tree</a></h2>
@@ -471,37 +520,37 @@ typedef struct {
     int totelwid;           // num elements with id != NULL
 } MsvgTreeCounts;
 
-void MsvgCalcCountsCookedTree(MsvgElement *el, MsvgTreeCounts *tc);
-void MsvgCalcCountsRawTree(MsvgElement *el, MsvgTreeCounts *tc);
+void MsvgCalcCountsCookedTree(const MsvgElement *el, MsvgTreeCounts *tc);
+void MsvgCalcCountsRawTree(const MsvgElement *el, MsvgTreeCounts *tc);
 </pre>
-<p>fill a MsvgTreeCounts structure counting elements for the tree
-pointed by el, note that there are a version for raw trees and another
+<p>both functions fill a MsvgTreeCounts structure counting elements for the
+tree pointed by el, note that there are a version for raw trees and another
 for cooked trees, this is necsary to populate the totelwid variable
 because in raw trees is necesary to check the raw attribute "id" and
 for cooked trees we can use the id cooked attribute. Note that the root
 EID_SVG element is not counted</p>
 
 <pre>
-MsvgElement * MsvgFindIdCookedTree(MsvgElement *el, char *id);
-MsvgElement * MsvgFindIdRawTree(MsvgElement *el, char *id);
+MsvgElement *MsvgFindIdCookedTree(MsvgElement *el, char *id);
+MsvgElement *MsvgFindIdRawTree(MsvgElement *el, char *id);
 </pre>
 <p>find for the element with the provided id in the tree pointed by el,
 again there is a version for raw trees and another for cooked trees. It
-returns NULL if not found</p>
+returns NULL if no element is found</p>
 
 <p>The above functions walk all the tree comparing ids to find the element
 every time they are called, if you have to find lot of elements it is better
 to construct first a MsvgTableId structure calling one of these functions (
 one for raw trees and one for cooked trees):</p>
 <pre>
-MsvgTableId * MsvgBuildTableIdCookedTree(MsvgElement *el);
-MsvgTableId * MsvgBuildTableIdRawTree(MsvgElement *el);
+MsvgTableId *MsvgBuildTableIdCookedTree(MsvgElement *el);
+MsvgTableId *MsvgBuildTableIdRawTree(MsvgElement *el);
 </pre>
 
 <p>After that you can use next function to find elements (it does an
 efficient binary search):</p>
 <pre>
-MsvgElement *MsvgFindIdTableId(MsvgTableId *tid, char *id);
+MsvgElement *MsvgFindIdTableId(const MsvgTableId *tid, char *id);
 </pre>
 
 <p>Note that if you add or delete elements in the tree you have to build
@@ -526,15 +575,15 @@ Here are the functions:</p>
 
 <pre>
 void TMSetIdentity(TMatrix *des);
-int TMIsIdentity(TMatrix *t);
-int TMHaveRotation(TMatrix *t);
-void TMSetFromArray(TMatrix *des, double *p);
-void TMMpy(TMatrix *des, TMatrix *op1, TMatrix *op2);
+int TMIsIdentity(const TMatrix *t);
+int TMHaveRotation(const TMatrix *t);
+void TMSetFromArray(TMatrix *des, const double *p);
+void TMMpy(TMatrix *des, const TMatrix *op1, const TMatrix *op2);
 void TMSetTranslation(TMatrix *des, double tx, double ty);
 void TMSetScaling(TMatrix *des, double sx, double sy);
 void TMSetRotationOrigin(TMatrix *des, double ang);
 void TMSetRotation(TMatrix *des, double ang, double cx, double cy);
-void TMTransformCoord(double *x, double *y, TMatrix *ctm);
+void TMTransformCoord(double *x, double *y, const TMatrix *ctm);
 </pre>
 
 <p>TMSetIdentity stores in des the identity matrix (1 0 0 1 0 0)<br>
@@ -579,10 +628,10 @@ that will be passed to the supply user function.</p>
 <p>Another function that libmsvg provides can be called by the user function:</p>
 
 <pre>
-MsvgElement * MsvgTransformCookedElement(MsvgElement *el, MsvgPaintCtx *pctx,);
+MsvgElement *MsvgTransformCookedElement(MsvgElement *el, MsvgPaintCtx *pctx,);
 </pre>
 
-<p>that process the element parameters using the current transformation matrix
+<p>that process the cooked element parameters using the current transformation matrix
 (pctx->tmatrix) and returns a new drawable element that can be of different type
 that the original one, by example if an EID_RECT has to be rotated an EID_POLYGON
 or a EID_PATH (if it has rounded corners) is returned. . The function also adjust
@@ -651,7 +700,7 @@ static void userfn(MsvgElement *el, MsvgPaintCtx *pctx, void *udata)
 <p>Another interesting funtion included in libmsvg is:</p>
 
 <pre>
-MsvgElement * MsvgPathEltoPolyEl(MsvgElement *el, int nsp, double px_x_unit);
+MsvgElement *MsvgPathEltoPolyEl(MsvgElement *el, int nsp, double px_x_unit);
 </pre>
 
 <p>that transform a subpath from an EID_PATH element either in an EID_POLYLINE or
@@ -768,23 +817,13 @@ can have any attribute.</p>
     </td>
     <td width=44%>
       <p>id=&quot;value&quot;</p>
-      <p>--- for inheritance ---</p>
-      <p>fill=&quot;color&quot;</p>
-      <p>fill-opacity=&quot;n&quot;</p>
-      <p>stroke=&quot;color&quot;</p>
-      <p>stroke-width=&quot;n&quot;</p>
-      <p>stroke-opacity=&quot;n&quot;</p>
-      <p>transform=&quot;transformation&quot;</p>
-      <p>font-family=&quot;value&quot;</p>
-      <p>font-style=&quot;value&quot;</p>
-      <p>font-weight=&quot;value&quot;</p>
-      <p>font-size=&quot;value&quot;</p>
     </td>
     <td width=31%>
       <p>-- possible child elements --
       <p>&lt;g&gt;, &lt;rect&gt;, &lt;circle&gt;, &lt;ellipse&gt;,
       &lt;line&gt;, &lt;polyline&gt;, &lt;polygon&gt;,
-      &lt;path&gt;, &lt;text&gt;</p>
+      &lt;path&gt;, &lt;text&gt;, &lt;linearGradient&gt;,
+      &lt;radialGradient&gt;</p>
     </td>
   </tr>
   <tr valign=top>
@@ -1007,6 +1046,52 @@ can have any attribute.</p>
       <p>The TEXT content will be stored in a MsvgContent variable.</p>
     </td>
   </tr>
+  <tr valign=top>
+    <td width=25%>
+      <p>&lt;linearGradient&gt;</p>
+    </td>
+    <td width=44%>
+      <p>id=&quot;value&quot;</p>
+      <p>gradientUnits=&quot;value&quot;</p>
+      <p>x1=&quot;n&quot;</p>
+      <p>y1=&quot;n&quot;</p>
+      <p>x2=&quot;n&quot;</p>
+      <p>y2=&quot;n&quot;</p>
+    </td>
+    <td width=31%>
+      <p>-- possible child elements --</p>
+      <p>&lt;stop&gt;</p>
+    </td>
+  </tr>
+  <tr valign=top>
+    <td width=25%>
+      <p>&lt;radialGradient&gt;</p>
+    </td>
+    <td width=44%>
+      <p>id=&quot;value&quot;</p>
+      <p>gradientUnits=&quot;value&quot;</p>
+      <p>cx=&quot;n&quot;</p>
+      <p>cy=&quot;n&quot;</p>
+      <p>r=&quot;n&quot;</p>
+    </td>
+    <td width=31%>
+      <p>-- possible child elements --</p>
+      <p>&lt;stop&gt;</p>
+    </td>
+  </tr>
+  <tr valign=top>
+    <td width=25%>
+      <p>&lt;stop&gt;</p>
+    </td>
+    <td width=44%>
+      <p>id=&quot;value&quot;</p>
+      <p>stop-color=&quot;color&quot;</p>
+      <p>stop-opacity=&quot;n&quot;</p>
+    </td>
+    <td width=31%>
+      <p><br></p>
+    </td>
+  </tr>
 </table>
 
 <hr>
@@ -1057,6 +1142,7 @@ RAW parameters can have any value.</p>
       <p>viewport-fill</p>
       <p>fill</p>
       <p>stroke</p>
+      <p>stop-color</p>
     </td>
     <td width=40%>
       <p>NO DEFINED => NODEFINED_COLOR</p>
@@ -1082,11 +1168,16 @@ RAW parameters can have any value.</p>
       <p>#rgb => 0xrrggbb</p>
       <p>#rrggbb => 0xrrggbb</p>
       <p>rgb(rrr, ggg, bbb) => 0xrrggbb (TO DO)</p>
+      <p>url(#iri) ==> IRI_COLOR (See notes)
     </td>
     <td width=40%>
       <p>If viewport-fill is not defined it will be NO_COLOR.</p>
       <p>If after the inheritance process fill is not defined it will be 0x000000.</p>
       <p>If after the inheritance process stroke is not defined it will be NO_COLOR.</p>
+      <p>If stop-color is not defined it will be 0x000000.</p>
+      <p>"url(#iri)" is a local reference to a paint server, normally a gradient, only
+      valid for fill and stroke, the iri itself is stored in fill_iri or stroke_iri
+      variables.</p>
     </td>
   </tr>
   <tr valign=top>
@@ -1094,6 +1185,7 @@ RAW parameters can have any value.</p>
       <p>viewport-fill-opacity</p>
       <p>fill-opacity</p>
       <p>stroke-opacity</p>
+      <p>stop-opacity</p>
     </td>
     <td width=40%>
       <p>NO DEFINED => NODEFINED_VALUE</p>
@@ -1104,6 +1196,7 @@ RAW parameters can have any value.</p>
       <p>If viewport-fill-opacity is not defined it will be 1.</p>
       <p>If after the inheritance process fill-opacity is not defined it will be 1.</p>
       <p>If after the inheritance process stroke-opacity is not defined it will be 1.</p>
+      <p>If stop-opacity is not defined it will be 1.</p>
     </td>
   </tr>
   <tr valign=top>
@@ -1255,6 +1348,33 @@ RAW parameters can have any value.</p>
         the variable sp->closed indicated if it is a closed subpath or not.</p>
     </td>
   </tr>
+
+  <tr valign=top>
+    <td width=20%>
+      <p>gradientUnits</p>
+    </td>
+    <td width=40%>
+      <p>NO DEFINED => GRADUNIT_BBOX</p>
+      <p>objectBoundingBox => GRADUNIT_BBOX</p>
+      <p>userSpaceOnUse => GRADUNIT_USER</p>
+    </td>
+    <td width=40%>
+      <p>Stored in the gradunits variable.</p>
+    </td>
+  </tr>
+
+  <tr valign=top>
+    <td width=20%>
+      <p>offset</p>
+    </td>
+    <td width=40%>
+      <p>number between 0.0 and 1.0 => same value</p>
+    </td>
+    <td width=40%>
+      <p>If offset is not defined it will be 0.</p>
+    </td>
+  </tr>
+
 </table>
 
 <hr>
@@ -1270,6 +1390,16 @@ attributes.</p>
 <h3>Elliptical arcs</h3>
 <p>The SVG 1.1 specs defines 'a', 'A' commands in paths as elliptical arcs, it
 isn't in the Tiny 1.2 specs. If libmsvg find some they will be replaced by lines.</p>
+
+<h3>Gradient normalization</h3>
+<p>The SVG 1.1 specs let gradients to refer other gradients and inherit the
+attributes not defined and even the stop elements. Not in the Tiny 1.2 specs
+but because it is heavilly used libmsvg has a function to normalize gradients
+to the Tiny 1.2 specs:</p>
+<pre>
+int MsvgNormalizeRawGradients(MsvgElement *el);
+</pre>
+<p>Call it after reading a svg file and before cooking the tree.</p>
 
 </body>
 </html>
