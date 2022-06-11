@@ -397,6 +397,78 @@ static MsvgElement *MsvgNewStopElement(MsvgElement *father)
     return element;
 }
 
+static MsvgElement *MsvgNewFontElement(MsvgElement *father)
+{
+    MsvgElement *element;
+    /*MsvgStopAttributes *pstopattr;
+
+    pstopattr = calloc(1, sizeof(MsvgLinearGradientAttributes));
+    if (pstopattr == NULL) return NULL;*/
+
+    element = MsvgNewGenericElement(EID_FONT, father, 0);
+    if (element == NULL) {
+        //free(pstopattr);
+        return NULL;
+    }
+
+    //element->pstopattr = pstopattr;
+    return element;
+}
+
+static MsvgElement *MsvgNewFontFaceElement(MsvgElement *father)
+{
+    MsvgElement *element;
+    /*MsvgStopAttributes *pstopattr;
+
+    pstopattr = calloc(1, sizeof(MsvgLinearGradientAttributes));
+    if (pstopattr == NULL) return NULL;*/
+
+    element = MsvgNewGenericElement(EID_FONTFACE, father, 0);
+    if (element == NULL) {
+        //free(pstopattr);
+        return NULL;
+    }
+
+    //element->pstopattr = pstopattr;
+    return element;
+}
+
+static MsvgElement *MsvgNewMissingGlyphElement(MsvgElement *father)
+{
+    MsvgElement *element;
+    /*MsvgStopAttributes *pstopattr;
+
+    pstopattr = calloc(1, sizeof(MsvgLinearGradientAttributes));
+    if (pstopattr == NULL) return NULL;*/
+
+    element = MsvgNewGenericElement(EID_MISSINGGLYPH, father, 0);
+    if (element == NULL) {
+        //free(pstopattr);
+        return NULL;
+    }
+
+    //element->pstopattr = pstopattr;
+    return element;
+}
+
+static MsvgElement *MsvgNewGlyphElement(MsvgElement *father)
+{
+    MsvgElement *element;
+    /*MsvgStopAttributes *pstopattr;
+
+    pstopattr = calloc(1, sizeof(MsvgLinearGradientAttributes));
+    if (pstopattr == NULL) return NULL;*/
+
+    element = MsvgNewGenericElement(EID_GLYPH, father, 0);
+    if (element == NULL) {
+        //free(pstopattr);
+        return NULL;
+    }
+
+    //element->pstopattr = pstopattr;
+    return element;
+}
+
 MsvgElement *MsvgNewElement(enum EID eid, MsvgElement *father)
 {
     MsvgElement *element;
@@ -446,6 +518,18 @@ MsvgElement *MsvgNewElement(enum EID eid, MsvgElement *father)
             break;
         case EID_STOP :
             element = MsvgNewStopElement(father);
+            break;
+        case EID_FONT :
+            element = MsvgNewFontElement(father);
+            break;
+        case EID_FONTFACE :
+            element = MsvgNewFontFaceElement(father);
+            break;
+        case EID_MISSINGGLYPH :
+            element = MsvgNewMissingGlyphElement(father);
+            break;
+        case EID_GLYPH :
+            element = MsvgNewGlyphElement(father);
             break;
         case EID_V_CONTENT :
             element = MsvgNewVContentElement(father);

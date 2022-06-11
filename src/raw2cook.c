@@ -183,6 +183,15 @@ static void gettmatrix(char *value, TMatrix *t)
     free(valaux);
 }
 
+static int textanchor(char *value)
+{
+    if (strcmp(value, "inherit") == 0) return INHERIT_IVALUE;
+    else if (strstr(value, "start") != NULL) return TEXTANCHOR_START;
+    else if (strstr(value, "middle") != NULL) return TEXTANCHOR_MIDDLE;
+    else if (strstr(value, "end") != NULL) return TEXTANCHOR_END;
+    else return NODEFINED_IVALUE;
+}
+
 static int fontfamily(char *value)
 {
     if (strcmp(value, "inherit") == 0) return INHERIT_IVALUE;
@@ -247,6 +256,7 @@ static int cookPCtxAttr(MsvgElement *el, char *key, char *value)
         else if (strcmp(key, "stroke-width") == 0) el->pctx->stroke_width = widthtof(value);
         else if (strcmp(key, "stroke-opacity") == 0) el->pctx->stroke_opacity = opacitytof(value);
         else if (strcmp(key, "transform") == 0) gettmatrix(value, &(el->pctx->tmatrix));
+        else if (strcmp(key, "text-anchor") == 0) el->pctx->text_anchor = textanchor(value);
         else if (strcmp(key, "font-family") == 0) el->pctx->font_family = fontfamily(value);
         else if (strcmp(key, "font-style") == 0) el->pctx->font_style = fontstyle(value);
         else if (strcmp(key, "font-weight") == 0) el->pctx->font_weight = fontweight(value);

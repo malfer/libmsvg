@@ -324,8 +324,10 @@ static MsvgElement *transCookPath(MsvgElement *el, MsvgPaintCtx *cpctx)
 static MsvgElement *transCookText(MsvgElement *el, MsvgPaintCtx *cpctx)
 {
     MsvgElement *newel;
+    //double zerox = 0, zeroy = 0, dummy = 0;
+    TMatrix *t;
 
-    newel = MsvgDupElement(el);
+    newel = MsvgDupElement(el, 0);
     if (newel == NULL) return NULL;
 
     setElPctx(newel, cpctx);
@@ -334,6 +336,12 @@ static MsvgElement *transCookText(MsvgElement *el, MsvgPaintCtx *cpctx)
     
     TMTransformCoord(&(newel->ptextattr->x), &(newel->ptextattr->y),
                      &(cpctx->tmatrix));
+
+    //TMTransformCoord(&zerox, &zeroy, &(cpctx->tmatrix));
+    //TMTransformCoord(&dummy, &(newel->pctx->font_size), &(cpctx->tmatrix));
+    //newel->pctx->font_size -= zeroy;
+    t = &(cpctx->tmatrix);
+    newel->pctx->font_size *= sqrt(t->c*t->c + t->d*t->d);
 
     return newel;
 }

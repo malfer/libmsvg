@@ -31,7 +31,7 @@
 
 #include <stdio.h>
 
-#define LIBMSVG_VERSION_API 0x0050
+#define LIBMSVG_VERSION_API 0x0051
 
 /* define id's for supported elements */
 
@@ -52,6 +52,10 @@ enum EID {
     EID_LINEARGRADIENT,
     EID_RADIALGRADIENT,
     EID_STOP,
+    EID_FONT,
+    EID_FONTFACE,
+    EID_MISSINGGLYPH,
+    EID_GLYPH,
     EID_V_CONTENT, // defined but not used by now
     EID_LAST = EID_V_CONTENT
 };
@@ -106,6 +110,10 @@ typedef int rgbcolor;
 #define NODEFINED_IVALUE    -2
 
 /* define values for text context attributes */
+
+#define TEXTANCHOR_START        1
+#define TEXTANCHOR_MIDDLE       2
+#define TEXTANCHOR_END          3
 
 #define FONTFAMILY_SERIF        1
 #define FONTFAMILY_SANS         2
@@ -179,6 +187,7 @@ typedef struct _MsvgPaintCtx {
     double stroke_width;   /* stroke-width attribute */
     double stroke_opacity; /* stroke-opacity attribute */
     TMatrix tmatrix;       /* transformation matrix */
+    int text_anchor;       /* text-anchor attribute */
     int font_family;       /* font-family attribute */
     int font_style;        /* font-style attribute */
     int font_weight;       /* font-weight attribute */
@@ -301,6 +310,26 @@ typedef struct _MsvgStopAttributes {
     rgbcolor scolor;    /* stop color attribute */
 } MsvgStopAttributes;
 
+typedef struct _MsvgFontAttributes {
+    double horiz_adv_x; /* default horizontal advance */
+} MsvgFontAttributes;
+
+typedef struct _MsvgFontFaceAttributes {
+    char *sfont_family;     /* font-family string attribute */
+    int font_family;        /* font-family attribute */
+    int font_style;         /* font-style attribute */
+    int font_weight;        /* font-weight attribute */
+    double units_per_em;    /* em square size */
+    double ascent;          /* ascent size */
+    double descent;         /* descent size */
+} MsvgFontFaceAttributes;
+
+typedef struct _MsvgGlyphAttributes {
+    long unicode;       /* unicode point */
+    double horiz_adv_x; /* default horizontal advance */
+    MsvgSubPath *sp;    /* path-data normalized */
+} MsvgGlyphAttributes;
+
 /* element structure */
 
 typedef struct _MsvgElement {
@@ -334,6 +363,9 @@ typedef struct _MsvgElement {
         MsvgLinearGradientAttributes *plgradattr;
         MsvgRadialGradientAttributes *prgradattr;
         MsvgStopAttributes *pstopattr;
+        MsvgFontAttributes *pfontattr;
+        MsvgFontFaceAttributes *pfontfaceattr;
+        MsvgGlyphAttributes *pglyphattr;
     };
 } MsvgElement;
 
@@ -376,7 +408,7 @@ int MsvgInsertSonElement(MsvgElement *el, MsvgElement *father);
 int MsvgInsertPSiblingElement(MsvgElement *el, MsvgElement *sibling);
 int MsvgInsertNSiblingElement(MsvgElement *el, MsvgElement *sibling);
 
-MsvgElement *MsvgDupElement(MsvgElement *el);
+MsvgElement *MsvgDupElement(MsvgElement *el, int copytree);
 
 /* functions in rdsvgf.c */
 

@@ -151,6 +151,7 @@ void MsvgPrintPctx(FILE *f, MsvgPaintCtx *pctx)
     fprintf(f, "  tmatrix        (%g %g %g %g %g %g)\n",
             pctx->tmatrix.a, pctx->tmatrix.b, pctx->tmatrix.c,
             pctx->tmatrix.d, pctx->tmatrix.e, pctx->tmatrix.f);
+    fprintf(f, "  text-anchor    %s\n", printivalue(pctx->text_anchor));
     fprintf(f, "  font-family    %s\n", printivalue(pctx->font_family));
     fprintf(f, "  font-style     %s\n", printivalue(pctx->font_style));
     fprintf(f, "  font-weight    %s\n", printivalue(pctx->font_weight));

@@ -65,10 +65,10 @@ int main(int argc, char **argv)
     printf("==== Tree counts raw tree\n");
     MsvgCalcCountsRawTree(root, &tc);
     for (eid=EID_SVG+1; eid <= EID_LAST; eid++) {
-        printf("%-10s : %d\n", MsvgFindElementName(eid), tc.nelem[eid]);
+        printf("%-14s : %d\n", MsvgFindElementName(eid), tc.nelem[eid]);
     }
-    printf("Total      : %d\n", tc.totelem);
-    printf("With Id    : %d\n", tc.totelwid);
+    printf("Total          : %d\n", tc.totelem);
+    printf("With Id        : %d\n", tc.totelwid);
 
     if (!sid) return 1;
 
@@ -90,10 +90,10 @@ int main(int argc, char **argv)
     MsvgRaw2CookedTree(root);
     MsvgCalcCountsCookedTree(root, &tc);
     for (eid=EID_SVG+1; eid <= EID_LAST; eid++) {
-        printf("%-10s : %d\n", MsvgFindElementName(eid), tc.nelem[eid]);
+        printf("%-14s : %d\n", MsvgFindElementName(eid), tc.nelem[eid]);
     }
-    printf("Total      : %d\n", tc.totelem);
-    printf("With Id    : %d\n", tc.totelwid);
+    printf("Total          : %d\n", tc.totelem);
+    printf("With Id        : %d\n", tc.totelwid);
 
     printf("==== Finding %s in cooked tree\n", sid);
     el = MsvgFindIdCookedTree(root, sid);

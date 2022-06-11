@@ -93,7 +93,11 @@ static void addTextRawAttr(MsvgElement *el, char *key, int value)
 
     if (value == INHERIT_VALUE) MsvgAddRawAttribute(el, key, "inherit");
 
-    if (strcmp(key,"font-family") == 0) {
+    if (strcmp(key,"text-anchor") == 0) {
+        if (value == TEXTANCHOR_START) MsvgAddRawAttribute(el, key, "start");
+        else if (value == TEXTANCHOR_MIDDLE) MsvgAddRawAttribute(el, key, "middle");
+        else if (value == TEXTANCHOR_END) MsvgAddRawAttribute(el, key, "end");
+    } else if (strcmp(key,"font-family") == 0) {
         if (value == FONTFAMILY_SANS) MsvgAddRawAttribute(el, key, "sans");
         else if (value == FONTFAMILY_SERIF) MsvgAddRawAttribute(el, key, "serif");
         else if (value == FONTFAMILY_CURSIVE) MsvgAddRawAttribute(el, key, "cursive");
@@ -137,6 +141,7 @@ static void torawPCtxAttr(MsvgElement *el)
                 tm->a, tm->b, tm->c, tm->d, tm->e, tm->f);
         MsvgAddRawAttribute(el, "transform", s);
     }
+    addTextRawAttr(el, "text-anchor", el->pctx->text_anchor);
     addTextRawAttr(el, "font-family", el->pctx->font_family);
     addTextRawAttr(el, "font-style", el->pctx->font_style);
     addTextRawAttr(el, "font-weight", el->pctx->font_weight);

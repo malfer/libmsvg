@@ -106,6 +106,18 @@ static void MsvgFreeElement(MsvgElement *el)
         case EID_STOP :
             free(el->pstopattr);
             break;
+        case EID_FONT :
+            //free(el->p_attr);
+            break;
+        case EID_FONTFACE :
+            //free(el->p_attr);
+            break;
+        case EID_MISSINGGLYPH :
+            //free(el->p_attr);
+            break;
+        case EID_GLYPH :
+            //free(el->p_attr);
+            break;
         case EID_V_CONTENT :
             break;
         default :
@@ -188,7 +200,7 @@ int MsvgInsertNSiblingElement(MsvgElement *el, MsvgElement *sibling)
     return 1;
 }
 
-MsvgElement *MsvgDupElement(MsvgElement *el)
+MsvgElement *MsvgDupElement(MsvgElement *el, int copytree)
 {
     MsvgElement *newel, *ptrnew, *ptrold;
 
@@ -199,9 +211,11 @@ MsvgElement *MsvgDupElement(MsvgElement *el)
     MsvgCopyCookedAttributes(newel, el);
     MsvgCopyContents(newel, el);
 
+    if (copytree != 1) return newel;
+
     ptrold = el->fson;
     while (ptrold) {
-        ptrnew = MsvgDupElement(ptrold);
+        ptrnew = MsvgDupElement(ptrold, 1);
         if (ptrnew) MsvgInsertSonElement(ptrnew, newel);
         ptrold = ptrold->nsibling;
     }

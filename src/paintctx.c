@@ -45,6 +45,7 @@ MsvgPaintCtx *MsvgNewPaintCtx(const MsvgPaintCtx *src)
     pctx->stroke_width = NODEFINED_VALUE;
     pctx->stroke_opacity = NODEFINED_VALUE;
     TMSetIdentity(&(pctx->tmatrix));
+    pctx->text_anchor = NODEFINED_IVALUE;
     pctx->font_family = NODEFINED_IVALUE;
     pctx->font_style = NODEFINED_IVALUE;
     pctx->font_weight = NODEFINED_IVALUE;

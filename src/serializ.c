@@ -85,6 +85,13 @@ static MsvgPaintCtx *process_pctx_inheritance(const MsvgPaintCtx *fath,
 
     TMMpy(&(des->tmatrix), &(fath->tmatrix), &(son->tmatrix));
 
+    if (son->text_anchor == INHERIT_IVALUE ||
+        son->text_anchor == NODEFINED_IVALUE) {
+        des->text_anchor = fath->text_anchor;
+    } else {
+        des->text_anchor = son->text_anchor;
+    }
+
     if (son->font_family == INHERIT_IVALUE ||
         son->font_family == NODEFINED_IVALUE) {
         des->font_family = fath->font_family;
@@ -141,6 +148,11 @@ static void process_pctx_defaults(MsvgPaintCtx *des)
     if (des->stroke_opacity == INHERIT_VALUE ||
         des->stroke_opacity == NODEFINED_VALUE) {
         des->stroke_opacity = 1.0;  // solid
+    }
+
+    if (des->text_anchor == INHERIT_IVALUE ||
+        des->text_anchor == NODEFINED_IVALUE) {
+        des->text_anchor = TEXTANCHOR_START;
     }
 
     if (des->font_family == INHERIT_IVALUE ||

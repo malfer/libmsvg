@@ -60,7 +60,7 @@ int main(int argc, char **argv)
     
     printf("===== Duplicate svgtree =====\n");
     MsvgElement *rootdup;
-    rootdup = MsvgDupElement(root);
+    rootdup = MsvgDupElement(root, 1);
     MsvgPrintRawElementTree(stdout, rootdup, 0);
     
     printf("===== Writing duplicate svgtree on %s =====\n", TESTFILEB);

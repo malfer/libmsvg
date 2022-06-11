@@ -1,3 +1,10 @@
+2022-06-05
+    Added text_anchor cooked attr to MsvgPaintCtx.
+    Aditional parameter int copytree to the MsvgDupElement function.
+    Initial work to add new elements EID_FONT, EID_FONTFACE,
+      EID_MISSINGGLYPH and EID_GLYPH.
+2022-06-05
+    Updated docs to v0.50
 2022-05-31
     Added fill_iri and stroke_iri members to the MsvgPaintCtx struct
     and populate them if fill or stroke are IRI_COLOR

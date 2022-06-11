@@ -48,7 +48,7 @@ static void inheritStops(MsvgElement *el, const MsvgElement *rel)
 
     stopel = rel->fson;
     while (stopel) {
-        newstop = MsvgDupElement(stopel);
+        newstop = MsvgDupElement(stopel, 0);
         if (newstop) MsvgInsertSonElement(newstop, el);
         MsvgDelRawAttribute(newstop, "id");
         MsvgDelRawAttribute(newstop, "xml:id");
