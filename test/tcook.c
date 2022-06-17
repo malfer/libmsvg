@@ -16,6 +16,8 @@
 #include <string.h>
 #include "msvg.h"
 
+#define TESTFILE "msvgt4.svg"
+
 typedef struct {
     int usetranscooked;
 } UserData;
@@ -51,6 +53,7 @@ int main(int argc, char **argv)
     int error;
     UserData ud = {0};
     int normalizegradients = 0;
+    int writecook = 0;
 
     if (argc > 0) {
         argv++;
@@ -58,7 +61,9 @@ int main(int argc, char **argv)
     }
 
     while (argc > 0 && argv[0][0] == '-') {
-        if (strcmp(argv[0], "-utc") == 0)
+        if (strcmp(argv[0], "-w") == 0)
+            writecook = 1;
+        else if (strcmp(argv[0], "-utc") == 0)
             ud.usetranscooked = 1;
         else if (strcmp(argv[0], "-ng") == 0)
             normalizegradients = 1;
@@ -67,7 +72,7 @@ int main(int argc, char **argv)
     }
 
     if (argc < 1) {
-        printf("Usage: tcook [-utc] [-ng] file\n");
+        printf("Usage: tcook [-w] [-utc] [-ng] file\n");
         return 0;
     }
 
@@ -97,6 +102,15 @@ int main(int argc, char **argv)
     if (ud.usetranscooked)
         printf("===== transforming elements\n");
     MsvgSerCookedTree(root, sufn, &ud);
+
+    if (writecook) {
+        printf("===== Cooked to Raw =====\n");
+        MsvgCooked2RawTree(root);
+        printf("===== Writing %s =====\n", TESTFILE);
+        if (!MsvgWriteSvgFile(root, TESTFILE)) {
+            printf("Error writing %s\n", TESTFILE);
+        }
+    }
 
     MsvgDeleteElement(root);
 

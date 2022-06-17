@@ -1,3 +1,6 @@
+2022-06-16
+    Finish integration of EID_FONT, EID_FONTFACE, EID_MISSINGGLYPH
+      and EID_GLYPH.
 2022-06-05
     Added text_anchor cooked attr to MsvgPaintCtx.
     Aditional parameter int copytree to the MsvgDupElement function.

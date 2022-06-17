@@ -121,6 +121,56 @@ static void addTextRawAttr(MsvgElement *el, char *key, int value)
     }
 }
 
+static void addPathRawAttr(MsvgElement *el, MsvgSubPath *rsp)
+{
+    MsvgSubPath *sp;
+    int i, n, tpoints;
+    char *s, *p, salto;
+    int csalto;
+
+    if (rsp == NULL) return;
+
+    sp = rsp;
+    tpoints = 0;
+    while (sp) {
+        tpoints += sp->npoints;
+        sp = sp->next;
+    }
+
+    s = malloc(sizeof(char)*tpoints*40+3);
+    if (s == NULL) return;
+    p = s;
+
+    sp = rsp;
+    csalto = 0;
+    while (sp) {
+        for (i=0; i<sp->npoints; i++) {
+            if (sp->spp[i].cmd != ' ') {
+                n = sprintf(p, "%c", sp->spp[i].cmd);
+                p += n;
+            }
+            salto = ' ';
+            if (csalto >= 9) {
+                salto = '\n';
+                csalto = 0;
+            } else {
+                csalto++;
+            }
+            n = sprintf(p, "%g,%g%c", sp->spp[i].x, sp->spp[i].y, salto);
+            p += n;
+        }
+        if (sp->closed) {
+            n = sprintf(p, "Z ");
+            p += n;
+        }
+        sp = sp->next;
+    }
+
+    MsvgAddRawAttribute(el, "d", s);
+
+    free(s);
+}
+
 static void torawPCtxAttr(MsvgElement *el)
 {
     char s[121];
@@ -268,30 +318,7 @@ static void toRawPolygonCookedAttr(MsvgElement *el)
 
 static void toRawPathCookedAttr(MsvgElement *el)
 {
-    MsvgSubPath *sp;
-    int i, n;
-    char *s, *p;
-
-    sp = el->ppathattr->sp;
-
-    s = malloc(sizeof(char)*sp->npoints*40+1);
-    if (s == NULL) return;
-    p = s;
-
-    for (i=0; i<sp->npoints; i++) {
-        if (sp->spp[i].cmd != ' ') {
-            n = sprintf(p, "%c", sp->spp[i].cmd);
-            p += n;
-        }
-        n = sprintf(p, "%g,%g ", sp->spp[i].x, sp->spp[i].y);
-        p += n;
-    }
-
-    if (sp->closed) sprintf(p, "Z");
-
-    MsvgAddRawAttribute(el, "d", s);
-
-    free(s);
+    addPathRawAttr(el, el->ppathattr->sp);
 }
 
 static void toRawTextCookedAttr(MsvgElement *el)
@@ -330,6 +357,39 @@ static void toRawStopCookedAttr(MsvgElement *el)
     addDoubleRawAttr(el, "offset", el->pstopattr->offset);
     addSpcDblRawAttr(el, "stop-opacity", el->pstopattr->sopacity);
     addColorRawAttr(el, "stop-color", el->pstopattr->scolor);
+}
+
+static void toRawFontCookedAttr(MsvgElement *el)
+{
+    addDoubleRawAttr(el, "horiz-adv-x", el->pfontattr->horiz_adv_x);
+}
+
+static void toRawFontFaceCookedAttr(MsvgElement *el)
+{
+    if (el->pfontfaceattr->sfont_family)
+        MsvgAddRawAttribute(el, "font-family", el->pfontfaceattr->sfont_family);
+    //addTextRawAttr(el, "font-family", el->pctx->font_family);
+    addTextRawAttr(el, "font-style", el->pfontfaceattr->font_style);
+    addTextRawAttr(el, "font-weight", el->pfontfaceattr->font_weight);
+    addDoubleRawAttr(el, "units-per-em", el->pfontfaceattr->units_per_em);
+    addDoubleRawAttr(el, "ascent", el->pfontfaceattr->ascent);
+    addDoubleRawAttr(el, "descent", el->pfontfaceattr->descent);
+}
+
+static void toRawMissingGlyphCookedAttr(MsvgElement *el)
+{
+    addDoubleRawAttr(el, "horiz-adv-x", el->pglyphattr->horiz_adv_x);
+    addPathRawAttr(el, el->pglyphattr->sp);
+}
+
+static void toRawGlyphCookedAttr(MsvgElement *el)
+{
+    char s[41];
+
+    sprintf(s, "&#x%lx;", el->pglyphattr->unicode);
+    MsvgAddRawAttribute(el, "unicode", s);
+    addDoubleRawAttr(el, "horiz-adv-x", el->pglyphattr->horiz_adv_x);
+    addPathRawAttr(el, el->pglyphattr->sp);
 }
 
 static void toRawElement(MsvgElement *el)
@@ -381,6 +441,18 @@ static void toRawElement(MsvgElement *el)
             break;
         case EID_STOP :
             toRawStopCookedAttr(el);
+            break;
+        case EID_FONT :
+            toRawFontCookedAttr(el);
+            break;
+        case EID_FONTFACE :
+            toRawFontFaceCookedAttr(el);
+            break;
+        case EID_MISSINGGLYPH :
+            toRawMissingGlyphCookedAttr(el);
+            break;
+        case EID_GLYPH :
+            toRawGlyphCookedAttr(el);
             break;
         default :
             break;

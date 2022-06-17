@@ -256,6 +256,26 @@ int MsvgCopyCookedAttributes(MsvgElement *desel, const MsvgElement *srcel)
         case EID_STOP :
             *(desel->pstopattr) = *(srcel->pstopattr);
             break;
+        case EID_FONT :
+            *(desel->pfontattr) = *(srcel->pfontattr);
+            break;
+        case EID_FONTFACE :
+            if (desel->pfontfaceattr->sfont_family)
+                free(desel->pfontfaceattr->sfont_family);
+            *(desel->pfontfaceattr) = *(srcel->pfontfaceattr);
+            if (srcel->pfontfaceattr->sfont_family) {
+                desel->pfontfaceattr->sfont_family =
+                strdup(srcel->pfontfaceattr->sfont_family);
+            }
+            break;
+        case EID_MISSINGGLYPH :
+        case EID_GLYPH :
+            if (desel->pglyphattr->sp) MsvgDestroySubPath(desel->pglyphattr->sp);
+            *(desel->pglyphattr) = *(srcel->pglyphattr);
+            if (srcel->pglyphattr->sp) {
+                desel->pglyphattr->sp = MsvgDupSubPath(srcel->pglyphattr->sp);
+            }
+            break;
         default :
             break;
     }

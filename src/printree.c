@@ -2,7 +2,8 @@
  * 
  * libmsvg, a minimal library to read and write svg files
  *
- * Copyright (C) 2010, 2020 Mariano Alvarez Fernandez (malfer at telefonica.net)
+ * Copyright (C) 2010, 2020-2022 Mariano Alvarez Fernandez
+ * (malfer at telefonica.net)
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -158,6 +159,24 @@ void MsvgPrintPctx(FILE *f, MsvgPaintCtx *pctx)
     fprintf(f, "  font-size      %s\n", printdvalue(pctx->font_size));
 }
 
+static void printPath(FILE *f, MsvgSubPath *osp)
+{
+    MsvgSubPath *sp;
+    int i;
+
+    sp = osp;
+    while (sp) {
+        fprintf(f, "  sp             (npoints:%d closed:%d) ",
+                sp->npoints, sp->closed);
+        for (i=0; i<sp->npoints; i++) {
+            if (sp->spp[i].cmd != ' ') fprintf(f, "%c ", sp->spp[i].cmd);
+            fprintf(f, "%g,%g ", sp->spp[i].x, sp->spp[i].y);
+        }
+        fprintf(f, "\n");
+        sp = sp->next;
+    }
+}
+
 static void printSvgCookedAttr(FILE *f, MsvgElement *el)
 {
     fprintf(f, "  width          %g\n", el->psvgattr->width);
@@ -247,20 +266,7 @@ static void printPolygonCookedAttr(FILE *f, MsvgElement *el)
 
 static void printPathCookedAttr(FILE *f, MsvgElement *el)
 {
-    MsvgSubPath *sp;
-    int i;
-
-    sp = el->ppathattr->sp;
-    while (sp) {
-        fprintf(f, "  sp             (npoints:%d closed:%d) ",
-                sp->npoints, sp->closed);
-        for (i=0; i<sp->npoints; i++) {
-            if (sp->spp[i].cmd != ' ') fprintf(f, "%c ", sp->spp[i].cmd);
-            fprintf(f, "%g,%g ", sp->spp[i].x, sp->spp[i].y);
-        }
-        fprintf(f, "\n");
-        sp = sp->next;
-    }
+    printPath(f, el->ppathattr->sp);
 }
 
 static void printTextCookedAttr(FILE *f, MsvgElement *el)
@@ -299,6 +305,36 @@ static void printStopCookedAttr(FILE *f, MsvgElement *el)
     fprintf(f, "  offset         %g\n", el->pstopattr->offset);
     fprintf(f, "  stop-opacity   %s\n", printdvalue(el->pstopattr->sopacity));
     fprintf(f, "  stop-color     %s\n", printcolor(el->pstopattr->scolor));
+}
+
+static void printFontCookedAttr(FILE *f, MsvgElement *el)
+{
+    fprintf(f, "  horiz_adv_x    %g\n", el->pfontattr->horiz_adv_x);
+}
+
+static void printFontFaceCookedAttr(FILE *f, MsvgElement *el)
+{
+    if (el->pfontfaceattr->sfont_family)
+        fprintf(f, "  sfont_family   %s\n", el->pfontfaceattr->sfont_family);
+    fprintf(f, "  font-family    %s\n", printivalue(el->pfontfaceattr->font_family));
+    fprintf(f, "  font-style     %s\n", printivalue(el->pfontfaceattr->font_style));
+    fprintf(f, "  font-weight    %s\n", printivalue(el->pfontfaceattr->font_weight));
+    fprintf(f, "  units_per_em   %g\n", el->pfontfaceattr->units_per_em);
+    fprintf(f, "  ascent         %g\n", el->pfontfaceattr->ascent);
+    fprintf(f, "  descent        %g\n", el->pfontfaceattr->descent);
+}
+
+static void printGlyphCookedAttr(FILE *f, MsvgElement *el)
+{
+    fprintf(f, "  unicode        #%08lx\n", el->pglyphattr->unicode);
+    fprintf(f, "  horiz_adv_x    %g\n", el->pglyphattr->horiz_adv_x);
+    printPath(f, el->pglyphattr->sp);
+}
+
+static void printMissingGlyphCookedAttr(FILE *f, MsvgElement *el)
+{
+    fprintf(f, "  horiz_adv_x    %g\n", el->pglyphattr->horiz_adv_x);
+    printPath(f, el->pglyphattr->sp);
 }
 
 static void printVContentCookedAttr(FILE *f, MsvgElement *el)
@@ -359,6 +395,18 @@ void MsvgPrintCookedElement(FILE *f, MsvgElement *el)
             break;
         case EID_STOP :
             printStopCookedAttr(f, el);
+            break;
+        case EID_FONT :
+            printFontCookedAttr(f, el);
+            break;
+        case EID_FONTFACE :
+            printFontFaceCookedAttr(f, el);
+            break;
+        case EID_MISSINGGLYPH :
+            printMissingGlyphCookedAttr(f, el);
+            break;
+        case EID_GLYPH :
+            printGlyphCookedAttr(f, el);
             break;
         case EID_V_CONTENT :
             printVContentCookedAttr(f, el);

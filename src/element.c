@@ -298,6 +298,7 @@ static MsvgElement *MsvgNewPathElement(MsvgElement *father)
     }
 
     element->ppathattr = ppathattr;
+    element->ppathattr->sp = NULL;
     return element;
 }
 
@@ -400,72 +401,86 @@ static MsvgElement *MsvgNewStopElement(MsvgElement *father)
 static MsvgElement *MsvgNewFontElement(MsvgElement *father)
 {
     MsvgElement *element;
-    /*MsvgStopAttributes *pstopattr;
+    MsvgFontAttributes *pfontattr;
 
-    pstopattr = calloc(1, sizeof(MsvgLinearGradientAttributes));
-    if (pstopattr == NULL) return NULL;*/
+    pfontattr = calloc(1, sizeof(MsvgFontAttributes));
+    if (pfontattr == NULL) return NULL;
 
     element = MsvgNewGenericElement(EID_FONT, father, 0);
     if (element == NULL) {
-        //free(pstopattr);
+        free(pfontattr);
         return NULL;
     }
 
-    //element->pstopattr = pstopattr;
+    element->pfontattr = pfontattr;
+    element->pfontattr->horiz_adv_x = 0;
     return element;
 }
 
 static MsvgElement *MsvgNewFontFaceElement(MsvgElement *father)
 {
     MsvgElement *element;
-    /*MsvgStopAttributes *pstopattr;
+    MsvgFontFaceAttributes *pfontfaceattr;
 
-    pstopattr = calloc(1, sizeof(MsvgLinearGradientAttributes));
-    if (pstopattr == NULL) return NULL;*/
+    pfontfaceattr = calloc(1, sizeof(MsvgFontFaceAttributes));
+    if (pfontfaceattr == NULL) return NULL;
 
     element = MsvgNewGenericElement(EID_FONTFACE, father, 0);
     if (element == NULL) {
-        //free(pstopattr);
+        free(pfontfaceattr);
         return NULL;
     }
 
-    //element->pstopattr = pstopattr;
+    element->pfontfaceattr = pfontfaceattr;
+    element->pfontfaceattr->sfont_family = NULL;
+    element->pfontfaceattr->font_family = NODEFINED_IVALUE;
+    element->pfontfaceattr->font_style = NODEFINED_IVALUE;
+    element->pfontfaceattr->font_weight = NODEFINED_IVALUE;
+    element->pfontfaceattr->units_per_em = 1000.0;
+    element->pfontfaceattr->ascent = NODEFINED_VALUE;
+    element->pfontfaceattr->descent = NODEFINED_VALUE;
     return element;
 }
 
 static MsvgElement *MsvgNewMissingGlyphElement(MsvgElement *father)
 {
     MsvgElement *element;
-    /*MsvgStopAttributes *pstopattr;
+    MsvgGlyphAttributes *pglyphattr;
 
-    pstopattr = calloc(1, sizeof(MsvgLinearGradientAttributes));
-    if (pstopattr == NULL) return NULL;*/
+    pglyphattr = calloc(1, sizeof(MsvgGlyphAttributes));
+    if (pglyphattr == NULL) return NULL;
 
     element = MsvgNewGenericElement(EID_MISSINGGLYPH, father, 0);
     if (element == NULL) {
-        //free(pstopattr);
+        free(pglyphattr);
         return NULL;
     }
 
-    //element->pstopattr = pstopattr;
+    element->pglyphattr = pglyphattr;
+    element->pglyphattr->unicode = 0;
+    element->pglyphattr->horiz_adv_x = NODEFINED_VALUE;
+    element->pglyphattr->sp = NULL;
     return element;
 }
 
 static MsvgElement *MsvgNewGlyphElement(MsvgElement *father)
 {
     MsvgElement *element;
-    /*MsvgStopAttributes *pstopattr;
+    MsvgGlyphAttributes *pglyphattr;
 
-    pstopattr = calloc(1, sizeof(MsvgLinearGradientAttributes));
-    if (pstopattr == NULL) return NULL;*/
+    pglyphattr = calloc(1, sizeof(MsvgGlyphAttributes));
+    if (pglyphattr == NULL) return NULL;
 
     element = MsvgNewGenericElement(EID_GLYPH, father, 0);
     if (element == NULL) {
-        //free(pstopattr);
+        free(pglyphattr);
         return NULL;
     }
 
-    //element->pstopattr = pstopattr;
+    element->pglyphattr = pglyphattr;
+    element->pglyphattr->unicode = 0;
+    element->pglyphattr->horiz_adv_x = NODEFINED_VALUE;
+    element->pglyphattr->sp = NULL;
     return element;
 }
 

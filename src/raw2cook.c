@@ -368,7 +368,6 @@ static void cookPolygonGenAttr(MsvgElement *el, char *key, char *value)
 static void cookPathGenAttr(MsvgElement *el, char *key, char *value)
 {
     if (strcmp(key, "d") == 0) el->ppathattr->sp = MsvgScanPath(value);
-    return;
 }
 
 static void cookTextGenAttr(MsvgElement *el, char *key, char *value)
@@ -407,6 +406,48 @@ static void cookStopGenAttr(MsvgElement *el, char *key, char *value)
     if (strcmp(key, "offset") == 0) el->pstopattr->offset = atof(value);
     else if (strcmp(key, "stop-opacity") == 0) el->pstopattr->sopacity = opacitytof(value);
     else if (strcmp(key, "stop-color") == 0) el->pstopattr->scolor = colortorgb(value);
+}
+
+static void cookFontGenAttr(MsvgElement *el, char *key, char *value)
+{
+    if (strcmp(key, "horiz-adv-x") == 0) el->pfontattr->horiz_adv_x = atof(value);
+}
+
+static void cookFontFaceGenAttr(MsvgElement *el, char *key, char *value)
+{
+    if (strcmp(key, "font-family") == 0) {
+        el->pfontfaceattr->sfont_family = strdup(value);
+        el->pfontfaceattr->font_family = fontfamily(value);
+    }
+    else if (strcmp(key, "font-style") == 0)
+        el->pfontfaceattr->font_style = fontstyle(value);
+    else if (strcmp(key, "font-weight") == 0)
+        el->pfontfaceattr->font_weight = fontweight(value);
+    else if (strcmp(key, "units-per-em") == 0)
+        el->pfontfaceattr->units_per_em = atof(value);
+    else if (strcmp(key, "ascent") == 0)
+        el->pfontfaceattr->ascent = atof(value);
+    else if (strcmp(key, "descent") == 0)
+        el->pfontfaceattr->descent = atof(value);
+}
+
+static void cookMissingGlyphGenAttr(MsvgElement *el, char *key, char *value)
+{
+    if (strcmp(key, "horiz-adv-x") == 0) el->pglyphattr->horiz_adv_x = atof(value);
+    else if (strcmp(key, "d") == 0) el->pglyphattr->sp = MsvgScanPath(value);
+}
+
+static void cookGlyphGenAttr(MsvgElement *el, char *key, char *value)
+{
+    if (strcmp(key, "unicode") == 0) {
+        if (strncmp(value, "&#x", 3) == 0)
+            sscanf(&(value[3]), "%lx;", &(el->pglyphattr->unicode));
+        else
+            el->pglyphattr->unicode = value[0]; // TODO, get the UTF-8 value
+        printf("Unicode!! %s %08lx\n", value, el->pglyphattr->unicode);
+    }
+    else if (strcmp(key, "horiz-adv-x") == 0) el->pglyphattr->horiz_adv_x = atof(value);
+    else if (strcmp(key, "d") == 0) el->pglyphattr->sp = MsvgScanPath(value);
 }
 
 static void cookVContentGenAttr(MsvgElement *el, char *key, char *value)
@@ -512,6 +553,18 @@ static void cookElement(MsvgElement *el, int depth)
                 case EID_STOP :
                     cookStopGenAttr(el, pattr->key, pattr->value);
                     break;
+                case EID_FONT :
+                    cookFontGenAttr(el, pattr->key, pattr->value);
+                    break;
+                case EID_FONTFACE :
+                    cookFontFaceGenAttr(el, pattr->key, pattr->value);
+                    break;
+                case EID_MISSINGGLYPH :
+                    cookMissingGlyphGenAttr(el, pattr->key, pattr->value);
+                    break;
+                case EID_GLYPH :
+                    cookGlyphGenAttr(el, pattr->key, pattr->value);
+                    break;
                 case EID_V_CONTENT :
                     cookVContentGenAttr(el, pattr->key, pattr->value);
                     break;
@@ -526,50 +579,11 @@ static void cookElement(MsvgElement *el, int depth)
         case EID_SVG :
             checkSvgCookedAttr(el);
             break;
-        case EID_DEFS :
-            //checkDefsCookedAttr(el);
-            break;
-        case EID_G :
-            //checkGCookedAttr(el);
-            break;
-        case EID_USE :
-            //checkUseCookedAttr(el);
-            break;
         case EID_RECT :
             checkRectCookedAttr(el);
             break;
-        case EID_CIRCLE :
-            //checkCircleCookedAttr(el);
-            break;
         case EID_ELLIPSE :
             checkEllipseCookedAttr(el);
-            break;
-        case EID_LINE :
-            //checkLineCookedAttr(el);
-            break;
-        case EID_POLYLINE :
-            //checkPolylineCookedAttr(el);
-            break;
-        case EID_POLYGON :
-            //checkPolygonCookedAttr(el);
-            break;
-        case EID_PATH :
-            //checkPathCookedAttr(el);
-            break;
-        case EID_TEXT :
-            //checkTextCookedAttr(el);
-            break;
-        case EID_LINEARGRADIENT :
-            //checkLinearGradientAttr(el);
-            break;
-        case EID_RADIALGRADIENT :
-            //checkRadialGradientAttr(el);
-            break;
-        case EID_STOP :
-            //checkStopAttr(el);
-            break;
-        case EID_V_CONTENT :
-            //checkVContentCookedAttr(el);
             break;
         default :
             break;

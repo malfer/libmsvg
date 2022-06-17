@@ -107,16 +107,19 @@ static void MsvgFreeElement(MsvgElement *el)
             free(el->pstopattr);
             break;
         case EID_FONT :
-            //free(el->p_attr);
+            free(el->pfontattr);
             break;
         case EID_FONTFACE :
-            //free(el->p_attr);
+            if (el->pfontfaceattr->sfont_family) free(el->pfontfaceattr->sfont_family);
+            free(el->pfontfaceattr);
             break;
         case EID_MISSINGGLYPH :
-            //free(el->p_attr);
+            if (el->pglyphattr->sp) MsvgDestroySubPath(el->pglyphattr->sp);
+            free(el->pglyphattr);
             break;
         case EID_GLYPH :
-            //free(el->p_attr);
+            if (el->pglyphattr->sp) MsvgDestroySubPath(el->pglyphattr->sp);
+            free(el->pglyphattr);
             break;
         case EID_V_CONTENT :
             break;

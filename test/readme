@@ -8,11 +8,13 @@ tread [-r] [-id=id] file.svg -> read the svg file, print the raw tree and counts
 
 tdel -> build a raw tree, delete, prune and insert elements and attributes
 
-tcook [-utc] [-ng] file.svg -> read the svg file, convert to cooked and serialize,
+tcook [-w] [-utc] [-ng] file.svg -> read the svg file, convert to cooked and serialize,
+                         if "-w" is provided call MsvgCooked2RawTree and write 
+                           "msvgt4.svg"
                          if "-utc" is provided MsvgTransformCookedElement
-                         is called for each serialized element
+                           is called for each serialized element
                          if "-ng" is provided MsvgNormalizeRawGradients
-                         is called before converting to cooked tree
+                           is called before converting to cooked tree
 
 trbuild -> build a raw tree, write "msvgt2a.svg", duplicate the tree and
            write "msvgt2b.svg"
