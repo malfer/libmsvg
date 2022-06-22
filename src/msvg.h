@@ -31,7 +31,7 @@
 
 #include <stdio.h>
 
-#define LIBMSVG_VERSION_API 0x0051
+#define LIBMSVG_VERSION_API 0x0052
 
 /* define id's for supported elements */
 
@@ -120,6 +120,7 @@ typedef int rgbcolor;
 #define FONTFAMILY_CURSIVE      3
 #define FONTFAMILY_FANTASY      4
 #define FONTFAMILY_MONOSPACE    5
+#define FONTFAMILY_OTHER        6
 
 #define FONTSTYLE_NORMAL    1
 #define FONTSTYLE_ITALIC    2
@@ -188,7 +189,8 @@ typedef struct _MsvgPaintCtx {
     double stroke_opacity; /* stroke-opacity attribute */
     TMatrix tmatrix;       /* transformation matrix */
     int text_anchor;       /* text-anchor attribute */
-    int font_family;       /* font-family attribute */
+    char *sfont_family;    /* font-family string attribute */
+    int ifont_family;      /* font-family type attribute */
     int font_style;        /* font-style attribute */
     int font_weight;       /* font-weight attribute */
     double font_size;      /* font-size attribute */
@@ -316,7 +318,7 @@ typedef struct _MsvgFontAttributes {
 
 typedef struct _MsvgFontFaceAttributes {
     char *sfont_family;     /* font-family string attribute */
-    int font_family;        /* font-family attribute */
+    int ifont_family;       /* font-family type attribute */
     int font_style;         /* font-style attribute */
     int font_weight;        /* font-weight attribute */
     double units_per_em;    /* em square size */
@@ -326,7 +328,7 @@ typedef struct _MsvgFontFaceAttributes {
 
 typedef struct _MsvgGlyphAttributes {
     long unicode;       /* unicode point */
-    double horiz_adv_x; /* default horizontal advance */
+    double horiz_adv_x; /* horizontal advance */
     MsvgSubPath *sp;    /* path-data normalized */
 } MsvgGlyphAttributes;
 
@@ -392,6 +394,7 @@ int MsvgCopyCookedAttributes(MsvgElement *desel, const MsvgElement *srcel);
 MsvgPaintCtx *MsvgNewPaintCtx(const MsvgPaintCtx *src);
 void MsvgCopyPaintCtx(MsvgPaintCtx *des, const MsvgPaintCtx *src);
 void MsvgDestroyPaintCtx(MsvgPaintCtx *pctx);
+void MsvgUndefPaintCtxTextAttr(MsvgPaintCtx *pctx);
 
 /* functions in content.c */
 
@@ -409,6 +412,8 @@ int MsvgInsertPSiblingElement(MsvgElement *el, MsvgElement *sibling);
 int MsvgInsertNSiblingElement(MsvgElement *el, MsvgElement *sibling);
 
 MsvgElement *MsvgDupElement(MsvgElement *el, int copytree);
+
+int MsvgReplaceElement(MsvgElement *old, MsvgElement *newe);
 
 /* functions in rdsvgf.c */
 
@@ -495,6 +500,9 @@ typedef struct {
 
 /* functions in find.c */
 
+typedef void (*MsvgWalkUserFn)(MsvgElement *el, void *udata);
+
+void MsvgWalkTree(MsvgElement *root, MsvgWalkUserFn wufn, void *udata);
 MsvgElement *MsvgFindFirstFather(MsvgElement *el);
 void MsvgCalcCountsCookedTree(const MsvgElement *el, MsvgTreeCounts *tc);
 void MsvgCalcCountsRawTree(const MsvgElement *el, MsvgTreeCounts *tc);
@@ -513,5 +521,34 @@ int MsvgGetCookedDims(MsvgElement *root, double *minx, double *maxx,
 /* functions in gradnorm.c */
 
 int MsvgNormalizeRawGradients(MsvgElement *el);
+
+/* binary svg font struct */
+
+typedef struct _MsvgBGlyph {
+    long unicode;           /* unicode point */
+    double horiz_adv_x;     /* horizontal advance */
+    MsvgSubPath *sp;        /* path-data normalized */
+} MsvgBGlyph;
+
+typedef struct _MsvgBFont {
+    double horiz_adv_x;     /* default horizontal advance */
+    char *sfont_family;     /* font-family string attribute */
+    int ifont_family;       /* font-family type attribute */
+    int font_style;         /* font-style attribute */
+    int font_weight;        /* font-weight attribute */
+    double units_per_em;    /* em square size */
+    double ascent;          /* ascent size */
+    double descent;         /* descent size */
+    MsvgBGlyph missing;     /* missing glyph */
+    int num_glyphs;         /* number of glyphs */
+    MsvgBGlyph glyph[1];    /* glyphs table, not actual size */
+} MsvgBFont;
+
+/* functions in bfont.c */
+
+MsvgBFont *MsvgNewBFont(MsvgElement *el);
+void MsvgDestroyBFont(MsvgBFont *bfont);
+MsvgElement *MsvgCharToPath(long unicode, double font_size, double *advx, MsvgBFont *bfont);
+MsvgElement *MsvgTextToPathGroup(MsvgElement *el, MsvgBFont *bfont);
 
 #endif  /* whole file */

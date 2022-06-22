@@ -97,12 +97,6 @@ static void addTextRawAttr(MsvgElement *el, char *key, int value)
         if (value == TEXTANCHOR_START) MsvgAddRawAttribute(el, key, "start");
         else if (value == TEXTANCHOR_MIDDLE) MsvgAddRawAttribute(el, key, "middle");
         else if (value == TEXTANCHOR_END) MsvgAddRawAttribute(el, key, "end");
-    } else if (strcmp(key,"font-family") == 0) {
-        if (value == FONTFAMILY_SANS) MsvgAddRawAttribute(el, key, "sans");
-        else if (value == FONTFAMILY_SERIF) MsvgAddRawAttribute(el, key, "serif");
-        else if (value == FONTFAMILY_CURSIVE) MsvgAddRawAttribute(el, key, "cursive");
-        else if (value == FONTFAMILY_FANTASY) MsvgAddRawAttribute(el, key, "fantasy");
-        else if (value == FONTFAMILY_MONOSPACE) MsvgAddRawAttribute(el, key, "monospace");
     } else if (strcmp(key,"font-style") == 0) {
         if (value == FONTSTYLE_NORMAL) MsvgAddRawAttribute(el, key, "normal");
         else if (value == FONTSTYLE_ITALIC) MsvgAddRawAttribute(el, key, "italic");
@@ -192,7 +186,8 @@ static void torawPCtxAttr(MsvgElement *el)
         MsvgAddRawAttribute(el, "transform", s);
     }
     addTextRawAttr(el, "text-anchor", el->pctx->text_anchor);
-    addTextRawAttr(el, "font-family", el->pctx->font_family);
+    if (el->pctx->sfont_family)
+        MsvgAddRawAttribute(el, "font-family", el->pctx->sfont_family);
     addTextRawAttr(el, "font-style", el->pctx->font_style);
     addTextRawAttr(el, "font-weight", el->pctx->font_weight);
     addSpcDblRawAttr(el, "font-size", el->pctx->font_size);
@@ -368,7 +363,6 @@ static void toRawFontFaceCookedAttr(MsvgElement *el)
 {
     if (el->pfontfaceattr->sfont_family)
         MsvgAddRawAttribute(el, "font-family", el->pfontfaceattr->sfont_family);
-    //addTextRawAttr(el, "font-family", el->pctx->font_family);
     addTextRawAttr(el, "font-style", el->pfontfaceattr->font_style);
     addTextRawAttr(el, "font-weight", el->pfontfaceattr->font_weight);
     addDoubleRawAttr(el, "units-per-em", el->pfontfaceattr->units_per_em);
@@ -378,7 +372,8 @@ static void toRawFontFaceCookedAttr(MsvgElement *el)
 
 static void toRawMissingGlyphCookedAttr(MsvgElement *el)
 {
-    addDoubleRawAttr(el, "horiz-adv-x", el->pglyphattr->horiz_adv_x);
+    if (el->pglyphattr->horiz_adv_x != NODEFINED_VALUE)
+        addDoubleRawAttr(el, "horiz-adv-x", el->pglyphattr->horiz_adv_x);
     addPathRawAttr(el, el->pglyphattr->sp);
 }
 
@@ -388,7 +383,8 @@ static void toRawGlyphCookedAttr(MsvgElement *el)
 
     sprintf(s, "&#x%lx;", el->pglyphattr->unicode);
     MsvgAddRawAttribute(el, "unicode", s);
-    addDoubleRawAttr(el, "horiz-adv-x", el->pglyphattr->horiz_adv_x);
+    if (el->pglyphattr->horiz_adv_x != NODEFINED_VALUE)
+        addDoubleRawAttr(el, "horiz-adv-x", el->pglyphattr->horiz_adv_x);
     addPathRawAttr(el, el->pglyphattr->sp);
 }
 

@@ -26,6 +26,7 @@ LIBOBJS=tables.o \
         find.o \
         cokdims.o \
         gradnorm.o \
+        bfont.o \
         util.o
 
 LIB=libmsvg.a

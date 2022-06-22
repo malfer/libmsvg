@@ -29,6 +29,18 @@
 #include <string.h>
 #include "msvg.h"
 
+void MsvgWalkTree(MsvgElement *root, MsvgWalkUserFn wufn, void *udata)
+{
+    MsvgElement *pel;
+
+    pel = root;
+    while (pel) {
+        wufn(pel, udata);
+        if (pel->fson) MsvgWalkTree(pel->fson, wufn, udata);
+        pel = pel->nsibling;
+    }
+}
+
 MsvgElement *MsvgFindFirstFather(MsvgElement *el)
 {
     MsvgElement *f, *ff;
@@ -114,7 +126,7 @@ MsvgElement *MsvgFindIdCookedTree(MsvgElement *el, char *id)
 
     if (el->eid > EID_SVG && el->id && strcmp(el->id, id) == 0)
         return el;
-    
+
     if (el->fson) {
         aux = MsvgFindIdCookedTree(el->fson, id);
         if (aux) return aux;
@@ -138,7 +150,7 @@ MsvgElement *MsvgFindIdRawTree(MsvgElement *el, char *id)
         if (rid && strcmp(rid, id) == 0)
             return el;
     }
-    
+
     if (el->fson) {
         aux = MsvgFindIdRawTree(el->fson, id);
         if (aux) return aux;

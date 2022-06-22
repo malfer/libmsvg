@@ -153,7 +153,9 @@ void MsvgPrintPctx(FILE *f, MsvgPaintCtx *pctx)
             pctx->tmatrix.a, pctx->tmatrix.b, pctx->tmatrix.c,
             pctx->tmatrix.d, pctx->tmatrix.e, pctx->tmatrix.f);
     fprintf(f, "  text-anchor    %s\n", printivalue(pctx->text_anchor));
-    fprintf(f, "  font-family    %s\n", printivalue(pctx->font_family));
+    if (pctx->sfont_family)
+        fprintf(f, "  sfont_family   %s\n", pctx->sfont_family);
+    fprintf(f, "  ifont-family   %s\n", printivalue(pctx->ifont_family));
     fprintf(f, "  font-style     %s\n", printivalue(pctx->font_style));
     fprintf(f, "  font-weight    %s\n", printivalue(pctx->font_weight));
     fprintf(f, "  font-size      %s\n", printdvalue(pctx->font_size));
@@ -316,7 +318,7 @@ static void printFontFaceCookedAttr(FILE *f, MsvgElement *el)
 {
     if (el->pfontfaceattr->sfont_family)
         fprintf(f, "  sfont_family   %s\n", el->pfontfaceattr->sfont_family);
-    fprintf(f, "  font-family    %s\n", printivalue(el->pfontfaceattr->font_family));
+    fprintf(f, "  ifont-family   %s\n", printivalue(el->pfontfaceattr->ifont_family));
     fprintf(f, "  font-style     %s\n", printivalue(el->pfontfaceattr->font_style));
     fprintf(f, "  font-weight    %s\n", printivalue(el->pfontfaceattr->font_weight));
     fprintf(f, "  units_per_em   %g\n", el->pfontfaceattr->units_per_em);
@@ -326,14 +328,14 @@ static void printFontFaceCookedAttr(FILE *f, MsvgElement *el)
 
 static void printGlyphCookedAttr(FILE *f, MsvgElement *el)
 {
-    fprintf(f, "  unicode        #%08lx\n", el->pglyphattr->unicode);
-    fprintf(f, "  horiz_adv_x    %g\n", el->pglyphattr->horiz_adv_x);
+    fprintf(f, "  unicode        U+%04lx\n", el->pglyphattr->unicode);
+    fprintf(f, "  horiz_adv_x    %s\n", printdvalue(el->pglyphattr->horiz_adv_x));
     printPath(f, el->pglyphattr->sp);
 }
 
 static void printMissingGlyphCookedAttr(FILE *f, MsvgElement *el)
 {
-    fprintf(f, "  horiz_adv_x    %g\n", el->pglyphattr->horiz_adv_x);
+    fprintf(f, "  horiz_adv_x    %s\n", printdvalue(el->pglyphattr->horiz_adv_x));
     printPath(f, el->pglyphattr->sp);
 }
 

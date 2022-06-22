@@ -46,7 +46,8 @@ MsvgPaintCtx *MsvgNewPaintCtx(const MsvgPaintCtx *src)
     pctx->stroke_opacity = NODEFINED_VALUE;
     TMSetIdentity(&(pctx->tmatrix));
     pctx->text_anchor = NODEFINED_IVALUE;
-    pctx->font_family = NODEFINED_IVALUE;
+    pctx->sfont_family = NULL;
+    pctx->ifont_family = NODEFINED_IVALUE;
     pctx->font_style = NODEFINED_IVALUE;
     pctx->font_weight = NODEFINED_IVALUE;
     pctx->font_size = NODEFINED_VALUE;
@@ -61,10 +62,12 @@ void MsvgCopyPaintCtx(MsvgPaintCtx *des, const MsvgPaintCtx *src)
     if (!des || !src) return;
     if (des->fill_iri) free(des->fill_iri);
     if (des->stroke_iri) free(des->stroke_iri);
+    if (des->sfont_family) free(des->sfont_family);
 
     *des = *src;
     if (src->fill_iri) des->fill_iri = strdup(src->fill_iri);
     if (src->stroke_iri) des->stroke_iri = strdup(src->stroke_iri);
+    if (src->sfont_family) des->sfont_family = strdup(src->sfont_family);
 }
 
 void MsvgDestroyPaintCtx(MsvgPaintCtx *pctx)
@@ -72,5 +75,17 @@ void MsvgDestroyPaintCtx(MsvgPaintCtx *pctx)
     if (!pctx) return;
     if (pctx->fill_iri) free(pctx->fill_iri);
     if (pctx->stroke_iri) free(pctx->stroke_iri);
+    if (pctx->sfont_family) free(pctx->sfont_family);
     free(pctx);
+}
+
+void MsvgUndefPaintCtxTextAttr(MsvgPaintCtx *pctx)
+{
+    if (!pctx) return;
+    if (pctx->sfont_family) free(pctx->sfont_family);
+    pctx->sfont_family = NULL;
+    pctx->ifont_family = NODEFINED_IVALUE;
+    pctx->font_style = NODEFINED_IVALUE;
+    pctx->font_weight = NODEFINED_IVALUE;
+    pctx->font_size = NODEFINED_VALUE;
 }

@@ -86,7 +86,7 @@ int MsvgI_read_numbers(char *s, double *df, int maxnumbers)
     return n;
 }
 
-char * MsvgI_rmspaces(char *s)
+char *MsvgI_rmspaces(char *s)
 {
     char *p;
     int len;
@@ -102,4 +102,84 @@ char * MsvgI_rmspaces(char *s)
     p[len] = '\0';
 
     return p;
+}
+
+long MsvgI_NextUCPfromUTF8Str(const unsigned char *s, int *nb)
+{
+    *nb = 1;
+
+    // ASCII (1 byte)
+    if (s[0] < 0x80) {
+        return s[0];
+    }
+
+    // two bytes
+    if (s[0] >= 0xC2 && s[0] <= 0xDF) {
+        if ((s[1] & 0xC0) != 0x80) {
+            goto ILLFORMED;
+        }
+        *nb = 2;
+        return (((long)(s[0]) & 0x1f) << 6) |
+               ((long)(s[1]) & 0x3f);
+    }
+
+    // three bytes
+    if ((s[0] & 0xf0) == 0xe0) {
+        if (s[0] == 0xE0) {
+            if (s[1] < 0xA0 || s[1] > 0xBF) {
+                goto ILLFORMED;
+            }
+        } else if (s[0] == 0xED) {
+            if (s[1] < 0x80 || s[1] > 0x9F) {
+                goto ILLFORMED;
+            }
+        } else {
+            if ((s[1] & 0xC0) != 0x80) {
+            goto ILLFORMED;
+            }
+        }
+        if ((s[2] & 0xC0) != 0x80) {
+            *nb = 2;
+            goto ILLFORMED;
+        }
+        *nb = 3;
+        return (((long)(s[0]) & 0x0f) << 12) |
+               (((long)(s[1]) & 0x3f) << 6) |
+               ((long)(s[2]) & 0x3f);
+    }
+
+    // four bytes
+    if (s[0] >= 0xF0 && s[0] <= 0xF4) {
+        if (s[0] == 0xF0) {
+            if (s[1] < 0x90 || s[1] > 0xBF) {
+                goto ILLFORMED;
+            }
+        } else if (s[0] == 0xF4) {
+            if (s[1] < 0x80 || s[1] > 0x8F) {
+                goto ILLFORMED;
+            }
+        } else {
+            if ((s[1] & 0xC0) != 0x80) {
+            goto ILLFORMED;
+            }
+        }
+        if ((s[2] & 0xC0) != 0x80) {
+            *nb = 2;
+            goto ILLFORMED;
+        }
+        if ((s[3] & 0xC0) != 0x80) {
+            *nb = 3;
+            goto ILLFORMED;
+        }
+        *nb = 4;
+        return (((long)(s[0]) & 0x07) << 18) |
+               (((long)(s[1]) & 0x3f) << 12) |
+               (((long)(s[2]) & 0x3f) << 6) |
+               ((long)(s[3]) & 0x3f);
+    }
+
+    // Here for forbiden bytes in UTF-8 C0-C1, F5-FF
+
+ILLFORMED:
+    return (long)0xFFFD;
 }

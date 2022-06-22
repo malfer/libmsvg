@@ -1,3 +1,20 @@
+2022-06-23
+    New funtion to walk a tree:
+      void MsvgWalkTree(MsvgElement *root, MsvgWalkUserFn wufn, void *udata);
+    New function to replace an element:
+      int MsvgReplaceElement(MsvgElement *old, MsvgElement *newe);
+    New funtion to undefine text properties in a MsvgPaintCtx:
+      void MsvgUndefPaintCtxTextAttr(MsvgPaintCtx *pctx);
+    The raw atrribute font-family now generates two cooked attributes:
+    sfont_family and ifont_family
+    New struct MsvgBfont to hold a binary representation of a svg font
+    and functions to convert a text element to a group of path elements:
+      MsvgBFont *MsvgNewBFont(MsvgElement *el);
+      void MsvgDestroyBFont(MsvgBFont *bfont);
+      MsvgElement *MsvgCharToPath(long unicode, double font_size, double *advx, MsvgBFont *bfont);
+      MsvgElement *MsvgTextToPathGroup(MsvgElement *el, MsvgBFont *bfont);
+    Added the test program test/tfont.c and svgpics/font01.svg example to
+    exercise the text to path conversion
 2022-06-16
     Finish integration of EID_FONT, EID_FONTFACE, EID_MISSINGGLYPH
       and EID_GLYPH.

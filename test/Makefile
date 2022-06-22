@@ -14,7 +14,8 @@ SAMPLES=tread$(EXE) \
         trbuild$(EXE) \
         tcbuild$(EXE) \
         tdel$(EXE) \
-        tcook$(EXE)
+        tcook$(EXE) \
+        tfont$(EXE)
 
 ### LINUX VERSION
 

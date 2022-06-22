@@ -25,11 +25,17 @@
  *
  */
 
+/* Internal utility functions */
+
 /* how many numbers in string? */
 int MsvgI_count_numbers(char *s);
 
 /* read up to maxnumbers from string into df */
 int MsvgI_read_numbers(char *s, double *df, int maxnumbers);
 
-/*remove spaces before and after, note: s is modified */
-char * MsvgI_rmspaces(char *s);
+/* remove spaces before and after, note: s is modified */
+char *MsvgI_rmspaces(char *s);
+
+/* return next unicode code point from a utf-8 string
+ * nb will be the number of bytes consumed */
+long MsvgI_NextUCPfromUTF8Str(const unsigned char *s, int *nb);

@@ -433,7 +433,7 @@ static MsvgElement *MsvgNewFontFaceElement(MsvgElement *father)
 
     element->pfontfaceattr = pfontfaceattr;
     element->pfontfaceattr->sfont_family = NULL;
-    element->pfontfaceattr->font_family = NODEFINED_IVALUE;
+    element->pfontfaceattr->ifont_family = NODEFINED_IVALUE;
     element->pfontfaceattr->font_style = NODEFINED_IVALUE;
     element->pfontfaceattr->font_weight = NODEFINED_IVALUE;
     element->pfontfaceattr->units_per_em = 1000.0;

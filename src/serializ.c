@@ -92,11 +92,13 @@ static MsvgPaintCtx *process_pctx_inheritance(const MsvgPaintCtx *fath,
         des->text_anchor = son->text_anchor;
     }
 
-    if (son->font_family == INHERIT_IVALUE ||
-        son->font_family == NODEFINED_IVALUE) {
-        des->font_family = fath->font_family;
+    if (son->ifont_family == INHERIT_IVALUE ||
+        son->ifont_family == NODEFINED_IVALUE) {
+        if (fath->sfont_family) des->sfont_family = strdup(fath->sfont_family);
+        des->ifont_family = fath->ifont_family;
     } else {
-        des->font_family = son->font_family;
+        if (son->sfont_family) des->sfont_family = strdup(son->sfont_family);
+        des->ifont_family = son->ifont_family;
     }
 
     if (son->font_style == INHERIT_IVALUE ||
@@ -155,9 +157,9 @@ static void process_pctx_defaults(MsvgPaintCtx *des)
         des->text_anchor = TEXTANCHOR_START;
     }
 
-    if (des->font_family == INHERIT_IVALUE ||
-        des->font_family == NODEFINED_IVALUE) {
-        des->font_family = FONTFAMILY_SANS;
+    if (des->ifont_family == INHERIT_IVALUE ||
+        des->ifont_family == NODEFINED_IVALUE) {
+        des->ifont_family = FONTFAMILY_SANS;
     }
 
     if (des->font_style == INHERIT_IVALUE ||

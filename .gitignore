@@ -9,17 +9,15 @@ test/trbuild
 test/tcbuild
 test/tdel
 test/tcook
+test/tfont
 mgrx/rsvg
 mgrx/gsvg
 mgrx/showsvg
 # Ignore graphics files from test programs
-test/msvgt1.svg
-test/msvgt2a.svg
-test/msvgt2b.svg
-test/msvgt3.svg
-test/msvgt4.svg
+test/msvgt*.svg
 mgrx/tgsvg.svg
 # Others
 svgexpls
 grad
+fonts
 .directory

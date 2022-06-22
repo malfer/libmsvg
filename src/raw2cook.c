@@ -200,7 +200,7 @@ static int fontfamily(char *value)
     else if (strstr(value, "cursive") != NULL) return FONTFAMILY_CURSIVE;
     else if (strstr(value, "fantasy") != NULL) return FONTFAMILY_FANTASY;
     else if (strstr(value, "monospace") != NULL) return FONTFAMILY_MONOSPACE;
-    else return NODEFINED_IVALUE;
+    else return FONTFAMILY_OTHER;
 }
 
 static int fontstyle(char *value)
@@ -257,7 +257,10 @@ static int cookPCtxAttr(MsvgElement *el, char *key, char *value)
         else if (strcmp(key, "stroke-opacity") == 0) el->pctx->stroke_opacity = opacitytof(value);
         else if (strcmp(key, "transform") == 0) gettmatrix(value, &(el->pctx->tmatrix));
         else if (strcmp(key, "text-anchor") == 0) el->pctx->text_anchor = textanchor(value);
-        else if (strcmp(key, "font-family") == 0) el->pctx->font_family = fontfamily(value);
+        else if (strcmp(key, "font-family") == 0) {
+            el->pctx->sfont_family = strdup(value);
+            el->pctx->ifont_family = fontfamily(value);
+        }
         else if (strcmp(key, "font-style") == 0) el->pctx->font_style = fontstyle(value);
         else if (strcmp(key, "font-weight") == 0) el->pctx->font_weight = fontweight(value);
         else if (strcmp(key, "font-size") == 0) el->pctx->font_size = fontsize(value);
@@ -417,7 +420,7 @@ static void cookFontFaceGenAttr(MsvgElement *el, char *key, char *value)
 {
     if (strcmp(key, "font-family") == 0) {
         el->pfontfaceattr->sfont_family = strdup(value);
-        el->pfontfaceattr->font_family = fontfamily(value);
+        el->pfontfaceattr->ifont_family = fontfamily(value);
     }
     else if (strcmp(key, "font-style") == 0)
         el->pfontfaceattr->font_style = fontstyle(value);
@@ -439,12 +442,15 @@ static void cookMissingGlyphGenAttr(MsvgElement *el, char *key, char *value)
 
 static void cookGlyphGenAttr(MsvgElement *el, char *key, char *value)
 {
+    int nb;
+
     if (strcmp(key, "unicode") == 0) {
         if (strncmp(value, "&#x", 3) == 0)
             sscanf(&(value[3]), "%lx;", &(el->pglyphattr->unicode));
         else
-            el->pglyphattr->unicode = value[0]; // TODO, get the UTF-8 value
-        printf("Unicode!! %s %08lx\n", value, el->pglyphattr->unicode);
+            el->pglyphattr->unicode =
+                MsvgI_NextUCPfromUTF8Str((unsigned char *)value, &nb);
+        //printf("Unicode!! %s %08lx\n", value, el->pglyphattr->unicode);
     }
     else if (strcmp(key, "horiz-adv-x") == 0) el->pglyphattr->horiz_adv_x = atof(value);
     else if (strcmp(key, "d") == 0) el->pglyphattr->sp = MsvgScanPath(value);

@@ -225,3 +225,25 @@ MsvgElement *MsvgDupElement(MsvgElement *el, int copytree)
 
     return newel;
 }
+
+int MsvgReplaceElement(MsvgElement *old, MsvgElement *newe)
+{
+    if (old == NULL || newe == NULL) return 0;
+
+    newe->father = old->father;
+    newe->psibling = old->psibling;
+    newe->nsibling = old->nsibling;
+    if (newe->psibling) {
+        newe->psibling->nsibling = newe;
+    } else {
+        newe->father->fson = newe;
+    }
+    if (newe->nsibling) {
+        newe->nsibling->psibling = newe;
+    }
+    old->father = NULL;
+    old->psibling = NULL;
+    old->nsibling = NULL;
+
+    return 1;
+}
