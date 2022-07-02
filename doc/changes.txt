@@ -1,4 +1,6 @@
 2022-07-02
+    Updated docs to v0.60
+2022-07-02
     Added gfont subdir with three svg fonts, derived from Free GNU fonts.
     When converting from cooked to raw tree path and poly data do a line
     break every MAX_COORD_PER_LINE.

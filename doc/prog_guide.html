@@ -6,9 +6,9 @@
 </head>
 
 <body>
-<h1>libmsvg v0.50</h1>
+<h1>libmsvg v0.60</h1>
 <h2>Programmer's guide</h2>
-<p>Last update: June 1, 2022</p>
+<p>Last update: July 1, 2022</p>
 
 <hr>
 <h2>Abstract</h2>
@@ -40,6 +40,8 @@ There are also a large number of introductory texts on the Internet.</p>
 <li><a href="#finding">Finding elements in a MsvgElement tree</a>
 <li><a href="#tmatrix">Working with cooked transformation matrix</a>
 <li><a href="#serialize">Serialize a COOKED MsvgElement tree</a>
+<li><a href="#text2path">Converting text elements to path elements</a>
+<li><a href="#path2poly">Converting path elements to poly elements</a>
 <li><a href="#writing">Writing SVG files</a>
 <li><a href="#appendixa">Appendix A, the libmsvg SVG subset</a>
 <li><a href="#appendixb">Appendix B, raw to cooked parameter conversion</a>
@@ -148,7 +150,8 @@ with only one element) for your program's needs.</p>
 
 <p>The other supported elements are EID_DEFS, EID_G, EID_RECT, EID_CIRCLE, EID_ELLIPSE,
 EID_LINE, EID_POLYLINE, EID_POLYGON, EID_PATH, EID_TEXT, EID_USE, EID_LINEARGRADIENT,
-EID_RADIALGRADIENT and EID_STOP.</p>
+EID_RADIALGRADIENT, EID_STOP, EID_FONT, EID_FONTFACE, EID_MISSINGGLYPH and
+EID_GLYPH.</p>
 
 <p>This graph represents an example of a MsvgElement tree:</p>
 <p><center>
@@ -167,17 +170,24 @@ elements that can be its children:
     <li>EID_RECT, EID_CIRCLE, EID_ELLIPSE, EID_LINE, EID_POLYLINE, EID_POLYGON,
     EID_PATH and EID_TEXT define things to draw, they can not have children.
     <li>EID_DEFS can contain elements that are not drawn immediately but can be
-    referenced elsewhere in the element tree, and also paint server definitions
-    such as gradients. Possible children are:
+    referenced elsewhere in the element tree, also paint server definitions
+    such as gradients and finally font definitions. Possible children are:
     EID_G, EID_RECT, EID_CIRCLE, EID_ELLIPSE, EID_LINE, EID_POLYLINE, EID_POLYGON,
-    EID_PATH, EID_TEXT, EID_LINEARGRADIENT and EID_RADIALGRADIENT.
+    EID_PATH, EID_TEXT, EID_LINEARGRADIENT, EID_RADIALGRADIENT and EID_FONT.
     <li>EID_LINEARGRADIENT and EID_RADIALGRADIENT are gradient definitions, they
     can have EID_STOP children only.
+    <li>EID_STOP is used to set gradient stop points only, they can not have
+    children.
     <li>EID_USE is used to reference some other drawable element and draw it
     (possibly with a translation or other transformation), they can not have
     children.
-    <li>EID_STOP is used to set gradient stop points only, they can not have
-    children.
+    <li>EID_FONT let us to define a font, nowadays it is considered a deprecated
+    svg element, but it is the only way to define fonts inside a static svg file
+    without external dependencies, so I think it is valuable for libmsvg. Possible
+    children are: EID_FONTFACE, EID_MISSINGGLYPH and EID_GLYPH.
+    <li>EID_FONTFACE defines properties of his EID_FONT father. Childless.
+    <li>EID_MISSINGGLYPH defines the path to draw for code points undefined. Childless.
+    <li>EID_GLYPH defines the path to draw for a specific code point. Childless.
 </ul>
 
 <h3>Element attributes</h3>
@@ -250,6 +260,9 @@ typedef struct _MsvgElement {
         MsvgLinearGradientAttributes *plgradattr;
         MsvgRadialGradientAttributes *prgradattr;
         MsvgStopAttributes *pstopattr;
+        MsvgFontAttributes *pfontattr;
+        MsvgFontFaceAttributes *pfontfaceattr;
+        MsvgGlyphAttributes *pglyphattr;
     };
 } MsvgElement;
 </pre>
@@ -284,7 +297,7 @@ typedef struct {
     double a, b, c, d, e, f;
 } TMatrix;
 
-typedef struct _MsvgPaintCtx {
+ttypedef struct _MsvgPaintCtx {
     rgbcolor fill;         /* fill color attribute */
     char *fill_iri;        /* paint server if fill == IRI_COLOR */
     double fill_opacity;   /* fill-opacity attribute */
@@ -293,7 +306,9 @@ typedef struct _MsvgPaintCtx {
     double stroke_width;   /* stroke-width attribute */
     double stroke_opacity; /* stroke-opacity attribute */
     TMatrix tmatrix;       /* transformation matrix */
-    int font_family;       /* font-family attribute */
+    int text_anchor;       /* text-anchor attribute */
+    char *sfont_family;    /* font-family string attribute */
+    int ifont_family;      /* font-family type attribute */
     int font_style;        /* font-style attribute */
     int font_weight;       /* font-weight attribute */
     double font_size;      /* font-size attribute */
@@ -320,10 +335,21 @@ rasterizing any element it is neceary to calculate the Current Transformation
 Matrix, multiplying all the ancestors transformation matrix in order and
 finally with the own element transformation matrix.</p>
 
+<p>The font-family raw attribute will be stored literaly (if fefined) in
+sfont_family, a processed integer based in the raw attribute will be stored in
+ifont_family, aside from INHERIT_IVALUE and NODEFINED_IVALUE it can be one
+of the values defined in msvg.h</p>
+
 <p>Values that can be converted from raw to cooked are listend in Appendix B.</p>
 
-<p>Cooked specific attributes are different for each element type id and are stored
-in a union, you can inspect each one in the msvg.h include file.</p>
+<p>Cooked specific attributes are different for each element type id (with some
+exceptions) and are stored in a union, you can inspect each one in the msvg.h
+include file.</p>
+
+<p>Exceptions: EID_DEFS and EID_G don't have specific cooked attributes really,
+in this version of libmsvg they have a dummy one but probably it will be deleted
+in future versions. EID_MISSINGGLYPH share sppecific cooked attributes with
+EID_GLYPH.
 
 <hr>
 <h2><a name="reading">Reading SVG files</a></h2>
@@ -499,20 +525,34 @@ MsvgInsertNSiblingElement function inserts the element like a next sibling. The
 three functions return 1 if all was ok, 0 otherwise.</p>
 
 <pre>
-MsvgElement *MsvgDupElement(MsvgElement *el);
+MsvgElement *MsvgDupElement(MsvgElement *el, int copytree);
 </pre>
-<p>The MsvgDupElement duplicates the element passed as parameter, if that
-element have children it duplicates all the child elements too.</p>
+<p>The MsvgDupElement function duplicates the element passed as the first parameter,
+if that element have children and the copytree parameter equals to 1 it duplicates
+all the child elements too.</p>
+
+<pre>
+int MsvgReplaceElement(MsvgElement *old, MsvgElement *newe);
+</pre>
+<p>MsvgReplaceElement replaces an old element (can be a subtree) by a new element
+(can be a subtree too) in a tree. Note that the old element is pruned from the
+tree, so if you don't need it remeber to call MsvgDeleteElement to delete it.</p>
 
 <hr>
 <h2><a name="finding">Finding elements in a MsvgElement tree</a></h2>
-<p>There are some functions to find elements in a MsvgElement tree.</p>
+<h3>Walking a tree</h3>
+<p>Walking a tree, visiting each element is easy using the element pointers,
+but if you prefer you can use a msvg funtion</p>
 
 <pre>
-MsvgElement *MsvgFindFirstFather(MsvgElement *el);
-</pre>
-<p>returns the first father of an element, normally a EID_SVG element</p>
+typedef void (*MsvgWalkUserFn)(MsvgElement *el, void *udata);
 
+void MsvgWalkTree(MsvgElement *root, MsvgWalkUserFn wufn, void *udata);
+</pre>
+<p>MsvgWalkTree will call the suplied wufn user function for each element in the
+tree, in udata you can pass a user data struct or NULL</p>
+
+<h3>Counting</h3>
 <pre>
 typedef struct {
     int nelem[EID_LAST+1];  // num elements per type
@@ -529,6 +569,14 @@ for cooked trees, this is necsary to populate the totelwid variable
 because in raw trees is necesary to check the raw attribute "id" and
 for cooked trees we can use the id cooked attribute. Note that the root
 EID_SVG element is not counted</p>
+
+<h3>Finding</h3>
+<p>There are some functions to find elements in a MsvgElement tree.</p>
+
+<pre>
+MsvgElement *MsvgFindFirstFather(MsvgElement *el);
+</pre>
+<p>returns the first father of an element, normally a EID_SVG element</p>
 
 <pre>
 MsvgElement *MsvgFindIdCookedTree(MsvgElement *el, char *id);
@@ -697,22 +745,97 @@ static void userfn(MsvgElement *el, MsvgPaintCtx *pctx, void *udata)
 ...
 </pre>
 
+<hr>
+<h2><a name="text2path">Converting text elements to path elements</a></h2>
+<p>Despite the svg standard defines a font element they don't recommend using it,
+instead they recommend to use external fonts. The result is that drawing text
+elements in a svg file is not predictable, it depends of the render program and
+the fonts instaled in the rendering machine. Even if you provides a svg font
+in your svg file and point text elements to that font most svg renderer programs
+use external fonts. Anyway one thing you can do is to convert text elements to
+path elements before render. Msvg provides some functions to help do that.</p>
+
+<h3>Create a MsvgBFont structure</h3>
+<p>Msvg provides the MsvgBFont structure to hold a binary representation for a
+font element (and his children)</p>
+
+<pre>
+MsvgBFont *MsvgNewBFont(MsvgElement *el);
+void MsvgDestroyBFont(MsvgBFont *bfont);
+</pre>
+<p>MsvgNewBFont cretes a new MsvgBFont from an EID_FONT element. It the element
+is not a EID_FONT element or there are problems creating the struct it returns
+NULL. Use MsvgDestroyBFont to destroy the MsvgBFont when you don't need it
+anymore</p>
+
+<h3>Converting a unicode char to a path element</h3>
+<pre>
+MsvgElement *MsvgCharToPath(long unicode, double font_size, double *advx, MsvgBFont *bfont);
+</pre>
+<p>This function return a EID_PATH element for the unicode char and the bfont
+provided, it needs the required font_size too and returns in advx the advance
+distance necesary to draw the next character.</p>
+
+<h3>Converting a text element to a path element</h3>
+<pre>
+MsvgElement *MsvgTextToPathGroup(MsvgElement *el, MsvgBFont *bfont);
+</pre>
+<p>MsvgTextToPathGroup returns an EID_G subtree with an EID_PATH element for each
+character the EID_TEXT element provided contents. To do that it calls
+MsvgCharToPath for each character in the EID_TEXT contents using the element
+font_size and advancing the x position. After that (and checking for NULL returns
+first) you can replace the text element with the group element in the tree,
+by example:
+<pre>
+    MsvgElement *el, *font, *group;
+    MsvgBFon *bfont;
+
+    //... find EID_FONT element in a tree
+    font = ...
+    bfont = MsvgNewBFont(font);
+    // remember to check for NULL in a real program
+
+    //... find the EID_TEXT you want to convert
+    el = ...
+
+    if (el->eid == EID_TEXT) {
+        group = MsvgTextToPathGroup(el, bfont);
+        if (group) {
+            if (MsvgReplaceElement(el, group))
+            MsvgDeleteElement(el);
+        }
+    }
+
+    // delete bfont if we don't need it anymore
+    MsvgDestroyBFont(bfont);
+ </pre>
+
+<h3>SVG fonts</h3>
+<p>Obviusly to make use the above functions you need SVG fonts, linmsvg came with some
+SVG fonts in the "gfont" subdirectory, they are subsets (covering Latin, Greek, Cyrilic
+and some other chars) of the Free GNU Fonts, but they are not part of libmsvg really,
+like the original ones they are covered by the GPLv3 but with an exception that let you
+to embed them in a document.</p>
+
+<hr>
+<h2><a name="path2poly">Converting path elements to poly elements</a></h2>
 <p>Another interesting funtion included in libmsvg is:</p>
 
 <pre>
-MsvgElement *MsvgPathEltoPolyEl(MsvgElement *el, int nsp, double px_x_unit);
+MsvgElement *MsvgSubPathToPoly(MsvgElement *el, int nsp, double px_x_unit);
 </pre>
 
 <p>that transform a subpath from an EID_PATH element either in an EID_POLYLINE or
 an EID_POLYGON element (note that an EID_PATH element could have one or more
 subpaths). This way you can use a graphics library that not know how to handle
-Bezier curves to render the svg-tree. An example of coding:</p>
+Bezier curves to render the svg-tree. An example of coding that you can use
+while serialize a tree:</p>
 
 <pre>
         case EID_PATH :
             nsp = MsvgCountSubPaths(newel->ppathattr->sp);
             for (i=0; i&lt;nsp; i++) {
-                newel2 = MsvgPathEltoPolyEl(newel, i, 1);
+                newel2 = MsvgSubPathToPoly(newel, i, 1);
                 if (newel2) {
                     if (newel2->eid == EID_POLYGON)
                         YourDrawPolygonElement(newel2);
@@ -728,6 +851,34 @@ Bezier curves to render the svg-tree. An example of coding:</p>
 coordinates, it is important so that the function can calculate the number of
 points to interpolate for each bezier curve. Here we pass 1 for simplicity but
 in a real program it must be calculated to have smooth curves.</p>
+
+<p>The function:</p>
+<pre>
+MsvgElement *MsvgPathToPolyGroup(MsvgElement *el, double px_x_unit);
+</pre>
+
+<p>returns an EID_G subtree with all the subpaths converted to EID_POLYLINE or
+EID_POLYGON elements, so you can, by example,  substitute the path element with
+the group:</p>
+<pre>
+    MsvgElement *el, *group;
+
+    //... find the EID_PATH you want to convert
+    el = ...
+
+    if (el->eid == EID_PATH) {
+        group = MsvgPathToPolyGroup(el, 1);
+        if (group) {
+            if (MsvgReplaceElement(el, group))
+            MsvgDeleteElement(el);
+        }
+    }
+ </pre>
+
+<p>Note that there is a caveat in this procedure, when filling a path the holes
+must not be filled, but converting paths to polys you lost this information, so
+you need to do some special code to handle it. We try to add a solution to this
+in future libmsvg releases.</p>
 
 <hr>
 <h2><a name="writing">Writing SVG files</a></h2>
@@ -788,7 +939,7 @@ can have any attribute.</p>
       <p>viewbox=&quot;min-x min-y width height&quot;</p>
       <p>width=&quot;length&quot;</p>
       <p>height=&quot;length&quot;</p>
-      <p>preserveaspectratio=&quot;valor&quot; (TO DO)</p>
+      <p>preserveaspectratio=&quot;value&quot; (TO DO)</p>
       <p>viewport-fill=&quot;color&quot;</p>
       <p>viewport-fill-opacity=&quot;n&quot;</p>
       <p>id=&quot;value&quot;</p>
@@ -799,6 +950,7 @@ can have any attribute.</p>
       <p>stroke-width=&quot;n&quot;</p>
       <p>stroke-opacity=&quot;n&quot;</p>
       <p>transform=&quot;transformation&quot;</p>
+      <p>text-anchor=&quot;value&quot;</p>
       <p>font-family=&quot;value&quot;</p>
       <p>font-style=&quot;value&quot;</p>
       <p>font-weight=&quot;value&quot;</p>
@@ -823,7 +975,7 @@ can have any attribute.</p>
       <p>&lt;g&gt;, &lt;rect&gt;, &lt;circle&gt;, &lt;ellipse&gt;,
       &lt;line&gt;, &lt;polyline&gt;, &lt;polygon&gt;,
       &lt;path&gt;, &lt;text&gt;, &lt;linearGradient&gt;,
-      &lt;radialGradient&gt;</p>
+      &lt;radialGradient&gt;, &lt;font&gt;</p>
     </td>
   </tr>
   <tr valign=top>
@@ -839,6 +991,7 @@ can have any attribute.</p>
       <p>stroke-width=&quot;n&quot;</p>
       <p>stroke-opacity=&quot;n&quot;</p>
       <p>transform=&quot;transformation&quot;</p>
+      <p>text-anchor=&quot;value&quot;</p>
       <p>font-family=&quot;value&quot;</p>
       <p>font-style=&quot;value&quot;</p>
       <p>font-weight=&quot;value&quot;</p>
@@ -866,6 +1019,7 @@ can have any attribute.</p>
       <p>stroke-width=&quot;n&quot;</p>
       <p>stroke-opacity=&quot;n&quot;</p>
       <p>transform=&quot;transformation&quot;</p>
+      <p>text-anchor=&quot;value&quot;</p>
       <p>font-family=&quot;value&quot;</p>
       <p>font-style=&quot;value&quot;</p>
       <p>font-weight=&quot;value&quot;</p>
@@ -1037,6 +1191,7 @@ can have any attribute.</p>
       <p>stroke-width=&quot;n&quot;</p>
       <p>stroke-opacity=&quot;n&quot;</p>
       <p>transform=&quot;transformation&quot;</p>
+      <p>text-anchor=&quot;value&quot;</p>
       <p>font-family=&quot;value&quot;</p>
       <p>font-style=&quot;value&quot;</p>
       <p>font-weight=&quot;value&quot;</p>
@@ -1087,6 +1242,63 @@ can have any attribute.</p>
       <p>id=&quot;value&quot;</p>
       <p>stop-color=&quot;color&quot;</p>
       <p>stop-opacity=&quot;n&quot;</p>
+    </td>
+    <td width=31%>
+      <p><br></p>
+    </td>
+  </tr>
+  <tr valign=top>
+    <td width=25%>
+      <p>&lt;font&gt;</p>
+    </td>
+    <td width=44%>
+      <p>id=&quot;value&quot;</p>
+      <p>horiz-adv-x=&quot;n&quot;</p>
+    </td>
+    <td width=31%>
+      <p>-- possible child elements --</p>
+      <p>&lt;font-face&gt;, &lt;missing-glyph&gt;, &lt;glyph&gt;</p>
+    </td>
+  </tr>
+  <tr valign=top>
+    <td width=25%>
+      <p>&lt;font-face&gt;</p>
+    </td>
+    <td width=44%>
+      <p>id=&quot;value&quot;</p>
+      <p>font-family=&quot;value&quot;</p>
+      <p>font-style=&quot;value&quot;</p>
+      <p>font-weight=&quot;value&quot;</p>
+      <p>units-per-em=&quot;n&quot;</p>
+      <p>ascent=&quot;n&quot;</p>
+      <p>descent=&quot;n&quot;</p>
+    </td>
+    <td width=31%>
+      <p><br></p>
+    </td>
+  </tr>
+  <tr valign=top>
+    <td width=25%>
+      <p>&lt;missing-glyph&gt;</p>
+    </td>
+    <td width=44%>
+      <p>id=&quot;value&quot;</p>
+      <p>horiz-adv-x=&quot;n&quot;</p>
+      <p>d=&quot;path-data&quot;</p>
+    </td>
+    <td width=31%>
+      <p><br></p>
+    </td>
+  </tr>
+  <tr valign=top>
+    <td width=25%>
+      <p>&lt;glyph&gt;</p>
+    </td>
+    <td width=44%>
+      <p>id=&quot;value&quot;</p>
+      <p>unicode=&quot;value&quot;</p>
+      <p>horiz-adv-x=&quot;n&quot;</p>
+      <p>d=&quot;path-data&quot;</p>
     </td>
     <td width=31%>
       <p><br></p>
@@ -1239,21 +1451,41 @@ RAW parameters can have any value.</p>
 
   <tr valign=top>
     <td width=20%>
-      <p>font-family</p>
+      <p>text-anchor</p>
     </td>
     <td width=40%>
       <p>NO DEFINED => NODEFINED_IVALUE</p>
+      <p>inherit => INHERIT_IVALUE</p>
+      <p>start => TEXTANCHOR_START</p>
+      <p>middel => TEXTANCHOR_MIDDLE</p>
+      <p>end => TEXTANCHOR_END</p>
+    </td>
+    <td width=40%>
+      <p>If after the inheritance process text-anchor is not defined it will
+      be TEXTANCHOR_START.</p>
+    </td>
+  </tr>
+  <tr valign=top>
+    <td width=20%>
+      <p>font-family</p>
+    </td>
+    <td width=40%>
+      <p>NO DEFINED => sfont_family=NULL and ifont_family=NODEFINED_IVALUE</p>
+      <p>if defined sfont_family=value and ifont_family will have the
+      integer constant defined bellow:</p>
       <p>inherit => INHERIT_IVALUE</p>
       <p>value contents "sans" => FONTFAMILY_SANS</p>
       <p>value contents "serif" => FONTFAMILY_SERIF</p>
       <p>value contents "cursive" => FONTFAMILY_CURSIVE</p>
       <p>value contents "fantasy" => FONTFAMILY_FANTASY</p>
       <p>value contents "monospace" => FONTFAMILY_MONOSPACE</p>
-      <p>other values => (TO DO or NOT TO DO)</p>
+      <p>other values => FONTFAMILY_OTHER</p>
     </td>
     <td width=40%>
-      <p>If after the inheritance process font-family is not defined it will
-      be FONTFAMILY_SANS.</p>
+      <p>The literal value of font-family will be stored in sfont_family,
+      a processed integer will be stored in ifont_family</p>
+      <p>If after the inheritance process font-family is not defined ifont_family
+      will be FONTFAMILY_SANS and sfont_family will be NULL.</p>
     </td>
   </tr>
   <tr valign=top>
@@ -1372,6 +1604,26 @@ RAW parameters can have any value.</p>
     </td>
     <td width=40%>
       <p>If offset is not defined it will be 0.</p>
+    </td>
+  </tr>
+
+  <tr valign=top>
+    <td width=20%>
+      <p>unicode</p>
+    </td>
+    <td width=40%>
+      <p>string => read first UTF-8 char</p>
+      <p>note that expat change html entities first:</p>
+      <p>&amp;#xn => hexadecimal code point n</p>
+      <p>&amp;amp; => &amp;</p>
+      <p>&amp;quot; => &quot;</p>
+      <p>&amp;apos; => &apos;</p>
+      <p>&amp;lt; => &lt;</p>
+      <p>&amp;gt; => &gt;</p>
+    </td>
+    <td width=40%>
+      <p>If there are more than one UTF-8 characters in the value
+      string or unicode is not defined the stored value is 0</p>
     </td>
   </tr>
 

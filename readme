@@ -1,4 +1,4 @@
-Welcome to libmsvg version 0.50
+Welcome to libmsvg version 0.60
 ===============================
 
 libmsvg is a work in progress to make a minimal and generic library to read
@@ -40,7 +40,7 @@ libmsvg installation instructions
 Requirements:
 -------------
 
-  The source files:  libmsvg0050.tar.gz or msvg0050.zip
+  The source files:  libmsvg0060.tar.gz or msvg0060.zip
   This document:     readme
 
 A. Unpacking the libmsvg archive
@@ -59,9 +59,9 @@ A. Unpacking the libmsvg archive
 
   3) unpack the libmsvg archive:
 
-         tar xzvf libmsvg0050.tar.gz
+         tar xzvf libmsvg0060.tar.gz
      or
-         unzip msvg0050.zip
+         unzip msvg0060.zip
 
      This will create the subdirectory 'libmsvg'.
 
