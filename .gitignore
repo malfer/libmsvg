@@ -10,6 +10,7 @@ test/tcbuild
 test/tdel
 test/tcook
 test/tfont
+test/tpa2poly
 mgrx/rsvg
 mgrx/gsvg
 mgrx/showsvg

@@ -202,7 +202,7 @@ static ExpPointArray *PathToExpPointArray(MsvgSubPath *sp, double px_x_unit)
     return pa;
 }
 
-MsvgElement *MsvgPathEltoPolyEl(MsvgElement *el, int nsp, double px_x_unit)
+MsvgElement *MsvgSubPathToPoly(MsvgElement *el, int nsp, double px_x_unit)
 {
     MsvgElement *newel;
     MsvgSubPath *sp;
@@ -244,4 +244,28 @@ MsvgElement *MsvgPathEltoPolyEl(MsvgElement *el, int nsp, double px_x_unit)
     }
 
     return newel;
+}
+
+MsvgElement *MsvgPathToPolyGroup(MsvgElement *el, double px_x_unit)
+{
+    MsvgElement *newel, *group;
+    MsvgSubPath *sp;
+    int nsp;
+
+    if (el->eid != EID_PATH) return NULL;
+    sp = el->ppathattr->sp;
+    if (sp == NULL) return NULL;
+
+    group = MsvgNewElement(EID_G, NULL);
+    if (group == NULL) return NULL;
+
+    nsp = 0;
+    while (sp) {
+        newel = MsvgSubPathToPoly(el, nsp, px_x_unit);
+        if (newel) MsvgInsertSonElement(newel, group);
+        sp = sp->next;
+        nsp++;
+    }
+
+    return group;
 }

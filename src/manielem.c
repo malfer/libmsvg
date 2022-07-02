@@ -47,7 +47,6 @@ void MsvgPruneElement(MsvgElement *el)
         el->psibling->nsibling = el->nsibling;
         if (el->nsibling != NULL) {
             el->nsibling->psibling = el->psibling;
-            el->nsibling->psibling = NULL;
             el->nsibling = NULL;
         }
         el->psibling = NULL;

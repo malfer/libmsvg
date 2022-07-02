@@ -61,7 +61,7 @@ MsvgBFont *MsvgNewBFont(MsvgElement *el)
         } else if (nson->eid == EID_MISSINGGLYPH) {
             nmg++;
         } else if (nson->eid == EID_GLYPH) {
-            ng++;
+            if (nson->pglyphattr->unicode >= 0) ng++;
         }
         nson = nson->nsibling;
     }
@@ -89,7 +89,7 @@ MsvgBFont *MsvgNewBFont(MsvgElement *el)
             bfont->missing.horiz_adv_x = nson->pglyphattr->horiz_adv_x;
             bfont->missing.sp = MsvgDupSubPath(nson->pglyphattr->sp);
         } else if (nson->eid == EID_GLYPH) {
-            if (bfont->num_glyphs < ng) {
+            if (nson->pglyphattr->unicode >= 0 && bfont->num_glyphs < ng) {
                 bfont->glyph[bfont->num_glyphs].unicode = nson->pglyphattr->unicode;
                 bfont->glyph[bfont->num_glyphs].horiz_adv_x = nson->pglyphattr->horiz_adv_x;
                 bfont->glyph[bfont->num_glyphs].sp = MsvgDupSubPath(nson->pglyphattr->sp);

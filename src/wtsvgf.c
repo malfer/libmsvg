@@ -47,13 +47,8 @@ static void writeLabelElement(FILE *f, enum EID eid, int start, int depth)
         fputs(">\n", f);
 }
 
-static void writeContent(FILE *f, char *s, int depth)
+static void writeString(FILE *f, char *s)
 {
-    int i;
-
-    for (i=0; i<depth; i++)
-        fputs("  ", f);
-
     while (*s) {
         switch (*s) {
             case '<' :
@@ -65,12 +60,27 @@ static void writeContent(FILE *f, char *s, int depth)
             case '&' :
                 fputs("&amp;", f);
                 break;
+            case '"' :
+                fputs("&quot;", f);
+                break;
+            case '\'' :
+                fputs("&apos;", f);
+                break;
             default:
                 fputc(*s, f);
         }
         s++;
     }
+}
 
+static void writeContent(FILE *f, char *s, int depth)
+{
+    int i;
+
+    for (i=0; i<depth; i++)
+        fputs("  ", f);
+
+    writeString(f, s);
     fputs("\n", f);
 }
 
@@ -82,7 +92,9 @@ static void writeElement(FILE *f, MsvgElement *el, int depth)
     if (el->frattr != NULL) {
         pattr = el->frattr;
         while (pattr != NULL) {
-            fprintf(f, " %s=\"%s\"", pattr->key, pattr->value);
+            fprintf(f, " %s=\"", pattr->key);
+            writeString(f, pattr->value);
+            fputs("\"", f);
             pattr = pattr->nrattr;
         }
     }

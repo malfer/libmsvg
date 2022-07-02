@@ -1,3 +1,14 @@
+2022-07-02
+    Added gfont subdir with three svg fonts, derived from Free GNU fonts.
+    When converting from cooked to raw tree path and poly data do a line
+    break every MAX_COORD_PER_LINE.
+    Solved bug in MsvgPruneElement.
+    Changed function name MsvgPathEltoPolyEl to MsvgSubPathToPoly.
+    New function:
+      MsvgElement *MsvgPathToPolyGroup(MsvgElement *el, double px_x_unit);
+    When writing a svg file convert [&"'<>] to the xml entities for parameter
+    values and contents.
+    New test/tpa2poly.c program to test MsvgPathToPolyGroup.
 2022-06-23
     New funtion to walk a tree:
       void MsvgWalkTree(MsvgElement *root, MsvgWalkUserFn wufn, void *udata);

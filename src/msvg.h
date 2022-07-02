@@ -463,7 +463,8 @@ MsvgElement *MsvgTransformCookedElement(MsvgElement *el, MsvgPaintCtx *pctx);
 
 /* functions in path2ply.c */
 
-MsvgElement *MsvgPathEltoPolyEl(MsvgElement *el, int nsp, double px_x_unit);
+MsvgElement *MsvgSubPathToPoly(MsvgElement *el, int nsp, double px_x_unit);
+MsvgElement *MsvgPathToPolyGroup(MsvgElement *el, double px_x_unit);
 
 /* functions in tmatrix.c */
 

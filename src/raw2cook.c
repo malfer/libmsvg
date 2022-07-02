@@ -445,11 +445,9 @@ static void cookGlyphGenAttr(MsvgElement *el, char *key, char *value)
     int nb;
 
     if (strcmp(key, "unicode") == 0) {
-        if (strncmp(value, "&#x", 3) == 0)
-            sscanf(&(value[3]), "%lx;", &(el->pglyphattr->unicode));
-        else
-            el->pglyphattr->unicode =
-                MsvgI_NextUCPfromUTF8Str((unsigned char *)value, &nb);
+        // if more than one unicode store 0
+        el->pglyphattr->unicode = MsvgI_NextUCPfromUTF8Str((unsigned char *)value, &nb);
+        if (value[nb] != '\0') el->pglyphattr->unicode = 0;
         //printf("Unicode!! %s %08lx\n", value, el->pglyphattr->unicode);
     }
     else if (strcmp(key, "horiz-adv-x") == 0) el->pglyphattr->horiz_adv_x = atof(value);

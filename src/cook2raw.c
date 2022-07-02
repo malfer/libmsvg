@@ -115,12 +115,14 @@ static void addTextRawAttr(MsvgElement *el, char *key, int value)
     }
 }
 
+#define MAX_COORD_PER_LINE 10
+
 static void addPathRawAttr(MsvgElement *el, MsvgSubPath *rsp)
 {
     MsvgSubPath *sp;
     int i, n, tpoints;
     char *s, *p, salto;
-    int csalto;
+    int csalto, first;
 
     if (rsp == NULL) return;
 
@@ -131,36 +133,82 @@ static void addPathRawAttr(MsvgElement *el, MsvgSubPath *rsp)
         sp = sp->next;
     }
 
+    if (tpoints < 1) return;
     s = malloc(sizeof(char)*tpoints*40+3);
     if (s == NULL) return;
     p = s;
 
     sp = rsp;
-    csalto = 0;
+    csalto = 1;
+    first = 1;
     while (sp) {
         for (i=0; i<sp->npoints; i++) {
-            if (sp->spp[i].cmd != ' ') {
-                n = sprintf(p, "%c", sp->spp[i].cmd);
-                p += n;
-            }
-            salto = ' ';
-            if (csalto >= 9) {
-                salto = '\n';
-                csalto = 0;
+            if (!first) {
+                if (csalto >= MAX_COORD_PER_LINE) {
+                    salto = '\n';
+                    csalto = 1;
+                } else {
+                    salto = ' ';
+                    csalto++;
+                }
+                *p = salto;
+                p++;
             } else {
-                csalto++;
+                first = 0;
             }
-            n = sprintf(p, "%g,%g%c", sp->spp[i].x, sp->spp[i].y, salto);
+            if (sp->spp[i].cmd != ' ') {
+                *p = sp->spp[i].cmd;
+                p++;
+            }
+            n = sprintf(p, "%g,%g", sp->spp[i].x, sp->spp[i].y);
             p += n;
         }
         if (sp->closed) {
-            n = sprintf(p, "Z ");
-            p += n;
+            *p = 'Z';
+            p++;
         }
         sp = sp->next;
     }
+    *p = '\0';
 
     MsvgAddRawAttribute(el, "d", s);
+
+    free(s);
+}
+
+static void addPolyRawAttr(MsvgElement *el, int npoints, double *points)
+{
+    int i, n;
+    char *s, *p, salto;
+    int csalto, first;
+
+    if (npoints < 1) return;
+    s = malloc(sizeof(char)*npoints*40+3);
+    if (s == NULL) return;
+    p = s;
+
+    csalto = 1;
+    first = 1;
+    for (i=0; i<npoints; i++) {
+        if (!first) {
+            if (csalto >= MAX_COORD_PER_LINE) {
+                salto = '\n';
+                csalto = 1;
+            } else {
+                salto = ' ';
+                csalto++;
+            }
+            *p = salto;
+            p++;
+        } else {
+            first = 0;
+        }
+            n = sprintf(p, "%g,%g", points[i*2], points[i*2+1]);
+            p += n;
+    }
+    *p = '\0';
+
+    MsvgAddRawAttribute(el, "points", s);
 
     free(s);
 }
@@ -273,42 +321,12 @@ static void toRawLineCookedAttr(MsvgElement *el)
 
 static void toRawPolylineCookedAttr(MsvgElement *el)
 {
-    int i, n;
-    char *s, *p;
-
-    s = malloc(sizeof(char)*el->ppolylineattr->npoints*40+1);
-    if (s == NULL) return;
-    p = s;
-
-    for (i=0; i<el->ppolylineattr->npoints; i++) {
-        n = sprintf(p, "%g,%g ", el->ppolylineattr->points[i*2],
-                    el->ppolylineattr->points[i*2+1]);
-        p += n;
-    }
-
-    MsvgAddRawAttribute(el, "points", s);
-
-    free(s);
+    addPolyRawAttr(el, el->ppolylineattr->npoints, el->ppolylineattr->points);
 }
 
 static void toRawPolygonCookedAttr(MsvgElement *el)
 {
-    int i, n;
-    char *s, *p;
-
-    s = malloc(sizeof(char)*el->ppolygonattr->npoints*40+1);
-    if (s == NULL) return;
-    p = s;
-
-    for (i=0; i<el->ppolygonattr->npoints; i++) {
-        n = sprintf(p, "%g,%g ", el->ppolygonattr->points[i*2],
-                    el->ppolygonattr->points[i*2+1]);
-        p += n;
-    }
-
-    MsvgAddRawAttribute(el, "points", s);
-
-    free(s);
+    addPolyRawAttr(el, el->ppolygonattr->npoints, el->ppolygonattr->points);
 }
 
 static void toRawPathCookedAttr(MsvgElement *el)
