@@ -89,7 +89,7 @@ static MsvgElement *CreateTree(void)
 static void TestFunc(void)
 {
     GrEvent ev;
-    GrSVGDrawMode sdm = {SVGDRAWMODE_PAR, SVGDRAWADJ_CENTER, 1.0, 0, 0, 0};
+    GrSVGDrawMode sdm = {SVGDRAWMODE_PAR, SVGDRAWADJ_CENTER, 1.0, 0, 0, 0, 0};
     MsvgElement *root;
 
     root = CreateTree();

@@ -31,7 +31,7 @@ static void TestFunc(void)
     GrEvent ev;
     MsvgElement *root;
     int error;
-    GrSVGDrawMode sdm = {SVGDRAWMODE_FIT, SVGDRAWADJ_LEFT, 1.0, 0, 0, 0};
+    GrSVGDrawMode sdm = {SVGDRAWMODE_FIT, SVGDRAWADJ_LEFT, 1.0, 0, 0, 0, 0};
     
     //GrClearContext(GrBlack());
     root = MsvgReadSvgFile(TEST_FILE, &error);

@@ -31,10 +31,9 @@ static int gwidth = 1024;
 static int gheight = 728;
 static int gbpp = 24;
 
-static int DrawSvgFile(char *fname, int rotang, GrSVGDrawMode *sdm)
+static MsvgElement *LoadSvgFile(char *fname, int *error)
 {
-    // returns:
-    // 0=no error
+    // error=
     //
     // if MsvgReadSvgFile fail
     // >0 expat error
@@ -42,67 +41,37 @@ static int DrawSvgFile(char *fname, int rotang, GrSVGDrawMode *sdm)
     // -2 memory error creating parser
     // -3 memory error building the tree
     //
-    // -5 MsvgRaw2CookedTree fail
-    //
-    // if GrDrawSVGtreeUsingDB fail
-    // -6 (-1-5) root==NULL
-    // -7 (-2-5) root->eid != EID_SVG
-    // -8 (-3-5) tree_type != COOKED_SVGTREE
-    // -9 (-4-5) sdm->mode unknow
-    // -10 (-5-5) Possible overflow
-    // -11 (-6-5) serializing error
+    // -5 MsvgRaw2CookedTree failed
 
     MsvgElement *root;
-    //char s[81];
-    int error = 0;
-    double cx, cy;
-    TMatrix trot, taux;
     double gminx, gmaxx, gminy, gmaxy;
-    static int print_dims = 1;
     
-    root = MsvgReadSvgFile(fname, &error);
-    if (root == NULL) return error;
+    *error = 0;
+    root = MsvgReadSvgFile(fname, error);
+    if (root == NULL) return NULL;
 
-    /*if (rotang != 0) {
-        sprintf(s, "rotate(%d %d %d)", rotang, 250, 500);
-        MsvgAddRawAttribute(root, "transform", s);
-    }*/
-
-    if (!MsvgRaw2CookedTree(root)) return -5;
-
-    if (print_dims) {
-        printf("Declared dimensions minx:%g  miny:%g  width:%g  height:%g\n",
-               root->psvgattr->vb_min_x, root->psvgattr->vb_min_y,
-               root->psvgattr->vb_width, root->psvgattr->vb_height);
-        if (MsvgGetCookedDims(root, &gminx, &gmaxx, &gminy, &gmaxy)) {
-            printf("Calculated dimensions minx:%g  miny:%g  width:%g  height:%g\n",
-                    gminx, gminy, gmaxx-gminx, gmaxy-gminy);
-        }
-        print_dims = 0;
-            
+    if (MsvgRaw2CookedTree(root) != 1) {
+        *error = -5;
+        return NULL;
     }
 
-    if (rotang != 0) {
-        cx = root->psvgattr->vb_width / 2 + root->psvgattr->vb_min_x;
-        cy = root->psvgattr->vb_height / 2 + root->psvgattr->vb_min_y;
-        TMSetRotation(&trot, rotang, cx, cy);
-        taux = root->pctx->tmatrix;
-        TMMpy(&(root->pctx->tmatrix), &taux, &trot);
+    printf("Declared dimensions minx:%g  miny:%g  width:%g  height:%g\n",
+            root->psvgattr->vb_min_x, root->psvgattr->vb_min_y,
+            root->psvgattr->vb_width, root->psvgattr->vb_height);
+    if (MsvgGetCookedDims(root, &gminx, &gmaxx, &gminy, &gmaxy)) {
+        printf("Calculated dimensions minx:%g  miny:%g  width:%g  height:%g\n",
+                gminx, gminy, gmaxx-gminx, gmaxy-gminy);
     }
 
-    //GrDrawSVGtree(root, sdm);
-    error = GrDrawSVGtreeUsingDB(root, sdm);
-    MsvgDeleteElement(root);
-    if (error) return error - 5;
-
-    return 0;
+    return root;
 }
 
 int main(int argc,char **argv)
 {
-    GrSVGDrawMode sdm = {SVGDRAWMODE_PAR, SVGDRAWADJ_LEFT, 1.0, 0, 0, 0};
-    int rotang = 0;
+    GrSVGDrawMode sdm = {SVGDRAWMODE_PAR, SVGDRAWADJ_LEFT, 1.0, 0, 0, 0, 0};
     char *fname;
+    MsvgElement *root;
+    int error;
 
     if (argc <2) {
         printf("Usage: showsvg file.svg [width height bpp]\n");
@@ -117,6 +86,12 @@ int main(int argc,char **argv)
         gbpp = atoi(argv[4]);
     }
 
+    root = LoadSvgFile(fname, &error);
+    if (root == NULL) {
+        printf("Error %d opening %s\n", error, fname);
+        return 1;
+    }
+
     // set default driver and ask for user window resize if it is supported
     GrSetDriverExt(NULL, "rszwin");
     GrSetUserEncoding(GRENC_UTF_8);
@@ -129,6 +104,7 @@ int main(int argc,char **argv)
         GrEvent ev;
         GrContext *ctx = NULL;
         int mouseoldx = 0, mouseoldy = 0;
+        int rewrite = 1;
 
         GrSetMode(GR_width_height_bpp_graphics, gwidth, gheight, gbpp);
         GrClearScreen(GrWhite());
@@ -153,14 +129,18 @@ int main(int argc,char **argv)
         while (1) {
             int error;
 
-            error = DrawSvgFile(fname, rotang, &sdm);
-            if (error) {
-                if (error == -10) { // Possible overflow
-                    ;
-                } else {
-                    printf("Error %d drawing %s\n", error, fname);
-                    exitloop = 1;
-                    break;
+            if (rewrite) {
+                error = GrDrawSVGtreeUsingDB(root, &sdm);
+                if (error) {
+                    if (error == -4) { // Possible overflow
+                        printf("Possible overflow %g %g\n",
+                               root->psvgattr->vb_width* sdm.zoom,
+                               root->psvgattr->vb_height* sdm.zoom);
+                    } else {
+                        printf("Error %d drawing %s\n", error, fname);
+                        exitloop = 1;
+                        break;
+                    }
                 }
             }
             GrEventWait(&ev);
@@ -169,6 +149,7 @@ int main(int argc,char **argv)
                 exitloop = 1;
                 break;
             }
+            rewrite = 1;
             if (ev.type == GREV_KEY) {
                 if (ev.p1 == 'b') sdm.bg = GrBlack();
                 else if (ev.p1 == 'w') sdm.bg = GrWhite();
@@ -192,8 +173,8 @@ int main(int argc,char **argv)
                     sdm.zoom = sdm.zoom / 2;
                     sdm.xdespl /= 2;
                     sdm.ydespl /= 2; }
-                else if (ev.p1 == '>') rotang++;
-                else if (ev.p1 == '<') rotang--;
+                else if (ev.p1 == '>') sdm.rotang++;
+                else if (ev.p1 == '<') sdm.rotang--;
                 else if (ev.p1 == GrKey_Left)  sdm.xdespl -= 10;
                 else if (ev.p1 == GrKey_Right)  sdm.xdespl += 10;
                 else if (ev.p1 == GrKey_Up)  sdm.ydespl -= 10;
@@ -205,8 +186,8 @@ int main(int argc,char **argv)
                     sdm.zoom = 1.0;
                     sdm.xdespl = 0;
                     sdm.ydespl = 0;
-                    rotang = 0;
-                }
+                    sdm.rotang = 0; }
+                else rewrite = 0;
             }
             else if (ev.type == GREV_MOUSE) {
                  if (ev.p1 == GRMOUSE_B4_RELEASED) {
@@ -219,20 +200,24 @@ int main(int argc,char **argv)
                     sdm.ydespl /= 2; }
                 else if (ev.p1 == GRMOUSE_LB_PRESSED) {
                     mouseoldx = ev.p2;
-                    mouseoldy = ev.p3; }
+                    mouseoldy = ev.p3;
+                    rewrite = 0; }
                 else if (ev.p1 == GRMOUSE_LB_RELEASED) {
                     sdm.xdespl += ev.p2 - mouseoldx;
                     sdm.ydespl += ev.p3 - mouseoldy; }
                 else if (ev.p1 == GRMOUSE_RB_PRESSED) {
-                    mouseoldx = ev.p2; }
+                    mouseoldx = ev.p2;
+                    rewrite = 0; }
                 else if (ev.p1 == GRMOUSE_RB_RELEASED) {
-                    rotang += ev.p2 - mouseoldx; }
+                    sdm.rotang += ev.p2 - mouseoldx; }
+                else rewrite = 0;
             }
             else if (ev.type == GREV_WSZCHG) {
                 gwidth = ev.p3;
                 gheight = ev.p4;
                 break;
             }
+            else rewrite = 0;
         }
 
         if (ctx) GrDestroyContext(ctx);
@@ -241,6 +226,7 @@ int main(int argc,char **argv)
     }
 
     GrSetMode(GR_default_text);
+    MsvgDeleteElement(root);
 
     return 0;
 }

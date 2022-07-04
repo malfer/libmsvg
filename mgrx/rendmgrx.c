@@ -34,19 +34,14 @@
 #include "rendmgrx.h"
 #include "pathmgrx.h"
 
-static double glob_vb_min_x;
-static double glob_vb_min_y;
-static double glob_scale_x;
-static double glob_scale_y;
-static double glob_thick1 = 1;
 static double glob_xorg;
 static double glob_yorg;
 static GrColor glob_bg;
 
 static void get_icoord(int *x, int *y, double dx, double dy)
 {
-    *x = (dx - glob_vb_min_x) / glob_scale_x + 0.5 + glob_xorg;
-    *y = (dy - glob_vb_min_y) / glob_scale_y + 0.5 + glob_yorg;
+    *x = dx + 0.5 + glob_xorg;
+    *y = dy + 0.5 + glob_yorg;
 }
 
 static void DrawRectElement(MsvgElement *el, MsvgPaintCtx *pctx)
@@ -68,7 +63,7 @@ static void DrawRectElement(MsvgElement *el, MsvgPaintCtx *pctx)
     }
     if (pctx->stroke != NO_COLOR) {
         cstroke = GrAllocColor2(pctx->stroke);
-        istroke_width = pctx->stroke_width * glob_thick1 + 0.5;
+        istroke_width = pctx->stroke_width + 0.5;
         if (istroke_width > 1) {
             lopt.lno_color = cstroke;
             lopt.lno_width = istroke_width;
@@ -90,8 +85,8 @@ static void DrawCircleElement(MsvgElement *el, MsvgPaintCtx *pctx)
     int cx, cy, rx, ry;
 
     get_icoord(&cx, &cy, el->pcircleattr->cx, el->pcircleattr->cy);
-    rx = el->pcircleattr->r / glob_scale_x + 0.5;
-    ry = el->pcircleattr->r / glob_scale_y + 0.5;
+    rx = el->pcircleattr->r + 0.5;
+    ry = el->pcircleattr->r + 0.5;
     
     if (pctx->fill != NO_COLOR) {
         cfill = GrAllocColor2(pctx->fill);
@@ -99,7 +94,7 @@ static void DrawCircleElement(MsvgElement *el, MsvgPaintCtx *pctx)
     }
     if (pctx->stroke != NO_COLOR) {
         cstroke = GrAllocColor2(pctx->stroke);
-        istroke_width = pctx->stroke_width * glob_thick1 + 0.5;
+        istroke_width = pctx->stroke_width + 0.5;
         if (istroke_width > 1) {
             lopt.lno_color = cstroke;
             lopt.lno_width = istroke_width;
@@ -124,34 +119,28 @@ static void DrawEllipseElement(MsvgElement *el, MsvgPaintCtx *pctx)
     double rx, ry, d1, d2;
     double rotang, sinang, cosang;
     int icx, icy, irx, iry;
-    double min_scale, precalx, precaly;
 
     d1 = el->pellipseattr->rx_x - el->pellipseattr->cx;
     d2 = el->pellipseattr->rx_y - el->pellipseattr->cy;
     rotang = atan2(d2, d1);
-    //printf("rotang %g\n", rotang);
     rx = sqrt(d1 * d1 + d2 * d2);
     d1 = el->pellipseattr->ry_x - el->pellipseattr->cx;
     d2 = el->pellipseattr->ry_y - el->pellipseattr->cy;
     ry = sqrt(d1 * d1 + d2 * d2);
 
     get_icoord(&icx, &icy, el->pellipseattr->cx, el->pellipseattr->cy);
-    min_scale = (glob_scale_x > glob_scale_y) ? glob_scale_y : glob_scale_x;
-    irx = rx / min_scale + 0.5;
-    iry = ry / min_scale + 0.5;
-    //printf("%g %g   %g %g   %d %d\n", rx, ry, glob_scale_x, glob_scale_y, irx, iry);
+    irx = rx  + 0.5;
+    iry = ry  + 0.5;
     
     npoints = GrGenerateEllipse(icx, icy, irx, iry, points);
 
     sinang = sin(-rotang);
     cosang = cos(-rotang);
-    precalx = min_scale / glob_scale_x;
-    precaly = min_scale / glob_scale_y;
     for (i=0; i<npoints; i++) {
         x = points[i][0] - icx;
         y = points[i][1] - icy;
-        points[i][0] = (cosang * x + sinang * y) * precalx + icx + 0.5;
-        points[i][1] = (-sinang * x + cosang * y) * precaly + icy + 0.5;
+        points[i][0] = (cosang * x + sinang * y) + icx + 0.5;
+        points[i][1] = (-sinang * x + cosang * y) + icy + 0.5;
     }
 
     if (pctx->fill != NO_COLOR) {
@@ -160,8 +149,7 @@ static void DrawEllipseElement(MsvgElement *el, MsvgPaintCtx *pctx)
     }
     if (pctx->stroke != NO_COLOR) {
         cstroke = GrAllocColor2(pctx->stroke);
-        istroke_width = pctx->stroke_width * glob_thick1 + 0.5;
-        //printf("%g %g %d\n", el->pctx.stroke_width, glob_thick1, istroke_width);
+        istroke_width = pctx->stroke_width + 0.5;
         if (istroke_width > 1) {
             lopt.lno_color = cstroke;
             lopt.lno_width = istroke_width;
@@ -186,7 +174,7 @@ static void DrawLineElement(MsvgElement *el, MsvgPaintCtx *pctx)
 
     if (pctx->stroke != NO_COLOR) {
         cstroke = GrAllocColor2(pctx->stroke);
-        istroke_width = pctx->stroke_width * glob_thick1 + 0.5;
+        istroke_width = pctx->stroke_width + 0.5;
         if (istroke_width > 1) {
             lopt.lno_color = cstroke;
             lopt.lno_width = istroke_width;
@@ -223,7 +211,7 @@ static void DrawPolylineElement(MsvgElement *el, MsvgPaintCtx *pctx)
     }
     if (pctx->stroke != NO_COLOR) {
         cstroke = GrAllocColor2(pctx->stroke);
-        istroke_width = pctx->stroke_width * glob_thick1 + 0.5;
+        istroke_width = pctx->stroke_width + 0.5;
         if (istroke_width > 1) {
             lopt.lno_color = cstroke;
             lopt.lno_width = istroke_width;
@@ -261,7 +249,7 @@ static void DrawPolygonElement(MsvgElement *el, MsvgPaintCtx *pctx)
     }
     if (pctx->stroke != NO_COLOR) {
         cstroke = GrAllocColor2(pctx->stroke);
-        istroke_width = pctx->stroke_width * glob_thick1 + 0.5;
+        istroke_width = pctx->stroke_width + 0.5;
         //printf("%g %g %d\n", el->pctx.stroke_width, glob_thick1, istroke_width);
         if (istroke_width > 1) {
             lopt.lno_color = cstroke;
@@ -295,7 +283,7 @@ static void DrawPathElement(MsvgElement *el, MsvgPaintCtx *pctx)
     }
     if (pctx->stroke != NO_COLOR) {
         cstroke = GrAllocColor2(pctx->stroke);
-        istroke_width = pctx->stroke_width * glob_thick1 + 0.5;
+        istroke_width = pctx->stroke_width + 0.5;
         lopt.lno_color = cstroke;
         lopt.lno_width = istroke_width;
         lopt.lno_pattlen = 0;
@@ -398,7 +386,10 @@ int GrDrawSVGtree(MsvgElement *root, GrSVGDrawMode *sdm)
 {
     GrColor cfill;
     double ratiow, ratioh, rvb_width, rvb_height;
-    double old_width, old_height, zoom;
+    int ret;
+    double cx, cy;
+    TMatrix taux1, taux2, taux3, tsave;
+    double scale_x, scale_y;
 
     if (root == NULL) return -1;
     if (root->eid != EID_SVG) return -2;
@@ -407,83 +398,48 @@ int GrDrawSVGtree(MsvgElement *root, GrSVGDrawMode *sdm)
     rvb_width = root->psvgattr->vb_width;
     rvb_height = root->psvgattr->vb_height;
 
-    ratiow = GrSizeX() / rvb_width;
-    ratioh = GrSizeY() / rvb_height;
-
-    glob_xorg = 0;
-    glob_yorg = 0;
-    
-    zoom = sdm->zoom;
+    // check for possible integer overflow (it happens if zoom is a big value)
+    if ((rvb_width* sdm->zoom) > (INT_MAX/2) ||
+        (rvb_height* sdm->zoom) > (INT_MAX/2)) {
+        //printf("Possible overflow %g %g\n", rvb_width* sdm->zoom, rvb_height* sdm->zoom);
+        return -4;
+    }
 
     switch (sdm->mode) {
         case SVGDRAWMODE_FIT :
-            if (ratiow > ratioh)
-                glob_thick1 = (GrSizeY() / rvb_height) * zoom;
-            else
-                glob_thick1 = (GrSizeX() / rvb_width) * zoom;
-            glob_scale_x = (rvb_width / zoom) / GrSizeX();
-            glob_scale_y = (rvb_height / zoom) / GrSizeY();
-            if (sdm->adj == SVGDRAWADJ_CENTER) {
-                glob_xorg = (GrSizeX() - GrSizeX() * zoom) / 2;
-                glob_yorg = (GrSizeY() - GrSizeY() * zoom) / 2;
-            } else if (sdm->adj == SVGDRAWADJ_RIGHT) {
-                glob_xorg = (GrSizeX() - GrSizeX() * zoom);
-                glob_yorg = (GrSizeY() - GrSizeY() * zoom);
-            }
+            scale_x = rvb_width / GrSizeX();
+            scale_y = rvb_height / GrSizeY();
             break;
         case SVGDRAWMODE_PAR :
-            old_width = rvb_width;
-            old_height = rvb_height;
-            if (ratiow > ratioh)
-                rvb_width = (GrSizeX() * rvb_height) / GrSizeY();
-            else
-                rvb_height = (GrSizeY() * rvb_width) / GrSizeX();
-            glob_thick1 = (GrSizeX() / rvb_width) * zoom;
-            glob_scale_x = (rvb_width / zoom) / GrSizeX();
-            glob_scale_y = (rvb_height / zoom) / GrSizeY();
-            if (sdm->adj == SVGDRAWADJ_CENTER) {
-                glob_xorg = ((rvb_width / zoom - old_width) /
-                         (rvb_width / zoom) / 2) * GrSizeX();
-                glob_yorg = ((rvb_height  / zoom - old_height) /
-                         (rvb_height / zoom) / 2) * GrSizeY();
-            } else if (sdm->adj == SVGDRAWADJ_RIGHT) {
-                glob_xorg = ((rvb_width / zoom - old_width) /
-                         (rvb_width / zoom)) * GrSizeX();
-                glob_yorg = ((rvb_height  / zoom - old_height) /
-                         (rvb_height / zoom)) * GrSizeY();
+            ratiow = GrSizeX() / rvb_width;
+            ratioh = GrSizeY() / rvb_height;
+            if (ratiow > ratioh) {
+                scale_x = rvb_height / GrSizeY();
+                scale_y = rvb_height / GrSizeY();
+            } else {
+                scale_x = rvb_width / GrSizeX();
+                scale_y = rvb_width / GrSizeX();
             }
             break;
         case SVGDRAWMODE_SCOORD :
-            glob_thick1 = 1.0 * zoom;
-            glob_scale_x = 1 / zoom;
-            glob_scale_y = 1 / zoom;
-            if (sdm->adj == SVGDRAWADJ_CENTER) {
-                glob_xorg = (GrSizeX() - rvb_width * zoom) / 2;
-                glob_yorg = (GrSizeY() - rvb_height * zoom) / 2;
-            } else if (sdm->adj == SVGDRAWADJ_RIGHT) {
-                glob_xorg = (GrSizeX() - rvb_width * zoom);
-                glob_yorg = (GrSizeY() - rvb_height * zoom);
-            }
+            scale_x = 1;
+            scale_y = 1;
             break;
         default:
-            return -4;
+            return -5;
     }
 
-    glob_vb_min_x = root->psvgattr->vb_min_x;
-    glob_vb_min_y = root->psvgattr->vb_min_y;
-
-    glob_xorg += sdm->xdespl;
-    glob_yorg += sdm->ydespl;
-
-    // check if possible integer overflow (it happens if zoom is a big value)
-    if (((rvb_width/glob_scale_x)+glob_xorg) > (INT_MAX/2) ||
-        ((rvb_height/glob_scale_y)+glob_yorg) > (INT_MAX/2) ||
-        glob_xorg < (INT_MIN/2) || glob_yorg < (INT_MIN/2)) {
-        printf("Possible overflow %g %g   %g %g\n", glob_xorg, glob_yorg,
-               (rvb_width/glob_scale_x)+glob_xorg,
-               (rvb_height/glob_scale_y)+glob_yorg);
+    if (sdm->adj == SVGDRAWADJ_LEFT) {
+        glob_xorg = 0;
+        glob_yorg = 0;
+    } else if (sdm->adj == SVGDRAWADJ_CENTER) {
+        glob_xorg = (GrSizeX() - rvb_width * sdm->zoom / scale_x) / 2;
+        glob_yorg = (GrSizeY() - rvb_height * sdm->zoom / scale_y) / 2;
+    } else if (sdm->adj == SVGDRAWADJ_RIGHT) {
+        glob_xorg = (GrSizeX() - rvb_width * sdm->zoom / scale_x);
+        glob_yorg = (GrSizeY() - rvb_height * sdm->zoom / scale_y);
+    } else
         return -5;
-    }
 
     glob_bg = sdm->bg;
     if (root->psvgattr->vp_fill != NO_COLOR) {
@@ -494,7 +450,24 @@ int GrDrawSVGtree(MsvgElement *root, GrSVGDrawMode *sdm)
         GrClearContext(sdm->bg);
     }
 
-    if (!MsvgSerCookedTree(root, sufn, NULL)) return -6;
+    TMSetTranslation(&taux1, sdm->xdespl, sdm->ydespl);
+    TMSetScaling(&taux2, sdm->zoom / scale_x, sdm->zoom / scale_y);
+    TMMpy(&taux3, &taux1, &taux2);
+
+    cx = root->psvgattr->vb_width / 2;
+    cy = root->psvgattr->vb_height / 2;
+    TMSetRotation(&taux2, sdm->rotang, cx, cy);
+    TMMpy(&taux1, &taux3, &taux2);
+
+    TMSetTranslation(&taux2, -root->psvgattr->vb_min_x, -root->psvgattr->vb_min_y);
+    TMMpy(&taux3, &taux1, &taux2);
+
+    tsave = root->pctx->tmatrix;
+    TMMpy(&(root->pctx->tmatrix), &taux3, &tsave);
+
+    ret = MsvgSerCookedTree(root, sufn, NULL);
+    root->pctx->tmatrix = tsave;
+    if (ret != 1) return -6;
 
     return 0;
 }
