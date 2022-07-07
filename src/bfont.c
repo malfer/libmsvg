@@ -116,6 +116,47 @@ void MsvgDestroyBFont(MsvgBFont *bfont)
     free(bfont);
 }
 
+double MsvgGetCharAdvx(long unicode, double font_size, MsvgBFont *bfont)
+{
+    MsvgBGlyph key, *found;
+    double dscale, advx;
+
+    key.unicode = unicode;
+
+    found = bsearch(&key, &(bfont->glyph[0]), bfont->num_glyphs,
+                    sizeof(MsvgBGlyph), cmpGlyph);
+
+    dscale = font_size / bfont->units_per_em;
+
+    if (!found) {
+        advx = bfont->missing.horiz_adv_x;
+    } else {
+        advx = found->horiz_adv_x;
+    }
+    if (advx == NODEFINED_VALUE) advx = bfont->horiz_adv_x;
+    advx *= dscale;
+
+    return advx;
+}
+
+double MsvgGetStrAdvx(char *text, double font_size, MsvgBFont *bfont)
+{
+    double advx = 0;
+    unsigned char *p;
+    int nb;
+    long ucp;
+
+    p = (unsigned char *)text;
+
+    while (*p) {
+        ucp = MsvgI_NextUCPfromUTF8Str(p, &nb);
+        advx += MsvgGetCharAdvx(ucp, font_size, bfont);
+        p += nb;
+    }
+
+    return advx;
+}
+
 MsvgElement *MsvgCharToPath(long unicode, double font_size, double *advx, MsvgBFont *bfont)
 {
     MsvgElement *path;
@@ -163,6 +204,7 @@ MsvgElement *MsvgCharToPath(long unicode, double font_size, double *advx, MsvgBF
 MsvgElement *MsvgTextToPathGroup(MsvgElement *el, MsvgBFont *bfont)
 {
     MsvgElement *group, *path;
+    MsvgPaintCtx *ipctx;
     TMatrix trans;
     MsvgSubPath *sp;
     unsigned char *p;
@@ -176,15 +218,30 @@ MsvgElement *MsvgTextToPathGroup(MsvgElement *el, MsvgBFont *bfont)
     group = MsvgNewElement(EID_G, NULL);
     if (group == NULL) return NULL;
 
+    ipctx = MsvgBuildPaintCtxInherited(el);
+    if (ipctx== NULL) {
+        MsvgDeleteElement(group);
+        return NULL;
+    }
+
     MsvgCopyPaintCtx(group->pctx, el->pctx);
 
     x = el->ptextattr->x;
     y = el->ptextattr->y;
     p = (unsigned char *)el->fcontent->s;
 
+    if ((ipctx->text_anchor == TEXTANCHOR_MIDDLE) ||
+        (ipctx->text_anchor == TEXTANCHOR_END)) {
+        advx =  MsvgGetStrAdvx(el->fcontent->s, ipctx->font_size, bfont);
+        if (ipctx->text_anchor == TEXTANCHOR_MIDDLE)
+            x -= advx / 2;
+        else
+            x -= advx;
+    }
+
     while (*p) {
         ucp = MsvgI_NextUCPfromUTF8Str(p, &nb);
-        path = MsvgCharToPath(ucp, group->pctx->font_size, &advx, bfont);
+        path = MsvgCharToPath(ucp, ipctx->font_size, &advx, bfont);
         if (path) {
             TMSetTranslation(&trans, x, y);
             sp = path->ppathattr->sp;

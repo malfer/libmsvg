@@ -195,11 +195,11 @@ static int textanchor(char *value)
 static int fontfamily(char *value)
 {
     if (strcmp(value, "inherit") == 0) return INHERIT_IVALUE;
-    else if (strstr(value, "sans") != NULL) return FONTFAMILY_SANS;
-    else if (strstr(value, "serif") != NULL) return FONTFAMILY_SERIF;
-    else if (strstr(value, "cursive") != NULL) return FONTFAMILY_CURSIVE;
-    else if (strstr(value, "fantasy") != NULL) return FONTFAMILY_FANTASY;
-    else if (strstr(value, "monospace") != NULL) return FONTFAMILY_MONOSPACE;
+    else if (strstr(value, "Sans") != NULL) return FONTFAMILY_SANS;
+    else if (strstr(value, "Serif") != NULL) return FONTFAMILY_SERIF;
+    else if (strstr(value, "Cursive") != NULL) return FONTFAMILY_CURSIVE;
+    else if (strstr(value, "Fantasy") != NULL) return FONTFAMILY_FANTASY;
+    else if (strstr(value, "Mono") != NULL) return FONTFAMILY_MONOSPACE;
     else return FONTFAMILY_OTHER;
 }
 

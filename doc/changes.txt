@@ -1,3 +1,16 @@
+2022-07-06
+    Moved MsvgProcPaintCtxInheritance(MsvgPaintCtx and
+    MsvgProcPaintCtxDefaults from sec/serializ.c to src/paintctx.c
+    New functions:
+      double MsvgGetCharAdvx(long unicode, double font_size, MsvgBFont *bfont);
+      double MsvgGetStrAdvx(char *text, double font_size, MsvgBFont *bfont);
+      int MsvgGetInheritedTextAnchor(const MsvgElement *el);
+      double MsvgGetInheritedFontSize(const MsvgElement *el);
+    MsvgTextToPathGroup now have inheritance in account for font_size and
+    text_anchor.
+2022-07-04
+    Changes to the MGRX tests:
+    reworked rendmgrx.c to use transformation for rotating, pan and zooming.
 2022-07-02
     Updated docs to v0.60
 2022-07-02

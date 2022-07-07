@@ -395,6 +395,11 @@ MsvgPaintCtx *MsvgNewPaintCtx(const MsvgPaintCtx *src);
 void MsvgCopyPaintCtx(MsvgPaintCtx *des, const MsvgPaintCtx *src);
 void MsvgDestroyPaintCtx(MsvgPaintCtx *pctx);
 void MsvgUndefPaintCtxTextAttr(MsvgPaintCtx *pctx);
+int MsvgGetInheritedTextAnchor(const MsvgElement *el);
+double MsvgGetInheritedFontSize(const MsvgElement *el);
+void MsvgProcPaintCtxInheritance(MsvgPaintCtx *son, const MsvgPaintCtx *fath);
+void MsvgProcPaintCtxDefaults(MsvgPaintCtx *des);
+MsvgPaintCtx *MsvgBuildPaintCtxInherited(MsvgElement *el);
 
 /* functions in content.c */
 
@@ -549,6 +554,8 @@ typedef struct _MsvgBFont {
 
 MsvgBFont *MsvgNewBFont(MsvgElement *el);
 void MsvgDestroyBFont(MsvgBFont *bfont);
+double MsvgGetCharAdvx(long unicode, double font_size, MsvgBFont *bfont);
+double MsvgGetStrAdvx(char *text, double font_size, MsvgBFont *bfont);
 MsvgElement *MsvgCharToPath(long unicode, double font_size, double *advx, MsvgBFont *bfont);
 MsvgElement *MsvgTextToPathGroup(MsvgElement *el, MsvgBFont *bfont);
 
