@@ -31,7 +31,7 @@
 
 #include <stdio.h>
 
-#define LIBMSVG_VERSION_API 0x0052
+#define LIBMSVG_VERSION_API 0x0070
 
 /* define id's for supported elements */
 
@@ -397,6 +397,8 @@ void MsvgDestroyPaintCtx(MsvgPaintCtx *pctx);
 void MsvgUndefPaintCtxTextAttr(MsvgPaintCtx *pctx);
 int MsvgGetInheritedTextAnchor(const MsvgElement *el);
 double MsvgGetInheritedFontSize(const MsvgElement *el);
+void MsvgGetInheritedFontFamily(const MsvgElement *el, int *ifont_family,
+                                char **sfont_family);
 void MsvgProcPaintCtxInheritance(MsvgPaintCtx *son, const MsvgPaintCtx *fath);
 void MsvgProcPaintCtxDefaults(MsvgPaintCtx *des);
 MsvgPaintCtx *MsvgBuildPaintCtxInherited(MsvgElement *el);
@@ -558,5 +560,16 @@ double MsvgGetCharAdvx(long unicode, double font_size, MsvgBFont *bfont);
 double MsvgGetStrAdvx(char *text, double font_size, MsvgBFont *bfont);
 MsvgElement *MsvgCharToPath(long unicode, double font_size, double *advx, MsvgBFont *bfont);
 MsvgElement *MsvgTextToPathGroup(MsvgElement *el, MsvgBFont *bfont);
+
+/* functions in bfontlib.c */
+
+int MsvgBFontLibLoad(MsvgElement *el);
+int MsvgBFontLibLoadFromFile(char *fname);
+MsvgBFont *MsvgBFontLibFind(char *sfont_family, int ifont_family);
+void MsvgBFontLibFree(void);
+MsvgElement *MsvgTextToPathGroupUsingBFontLib(MsvgElement *el);
+int MsvgBFontLibGetNumOfFonts(void);
+MsvgBFont *MsvgBFontLibGetBFontByNumber(int nfont);
+void MsvgBFontLibSetDefaultBfont(int nfont);
 
 #endif  /* whole file */

@@ -28,6 +28,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include "msvg.h"
 #include "util.h"
 
@@ -194,13 +195,25 @@ static int textanchor(char *value)
 
 static int fontfamily(char *value)
 {
-    if (strcmp(value, "inherit") == 0) return INHERIT_IVALUE;
-    else if (strstr(value, "Sans") != NULL) return FONTFAMILY_SANS;
-    else if (strstr(value, "Serif") != NULL) return FONTFAMILY_SERIF;
-    else if (strstr(value, "Cursive") != NULL) return FONTFAMILY_CURSIVE;
-    else if (strstr(value, "Fantasy") != NULL) return FONTFAMILY_FANTASY;
-    else if (strstr(value, "Mono") != NULL) return FONTFAMILY_MONOSPACE;
-    else return FONTFAMILY_OTHER;
+    char *s;
+    int i, len, ret;
+
+    len = strlen(value);
+    s = malloc(len+1);
+    if (s == NULL) return FONTFAMILY_OTHER;
+    for (i=0; i<len; i++) s[i] = tolower(value[i]);
+    s[len] = '\0';
+
+    if (strcmp(s, "inherit") == 0) ret = INHERIT_IVALUE;
+    else if (strstr(s, "sans") != NULL) ret = FONTFAMILY_SANS;
+    else if (strstr(s, "serif") != NULL) ret = FONTFAMILY_SERIF;
+    else if (strstr(s, "cursive") != NULL) ret = FONTFAMILY_CURSIVE;
+    else if (strstr(s, "fantasy") != NULL) ret = FONTFAMILY_FANTASY;
+    else if (strstr(s, "mono") != NULL) ret = FONTFAMILY_MONOSPACE;
+    else ret = FONTFAMILY_OTHER;
+
+    free(s);
+    return ret;
 }
 
 static int fontstyle(char *value)

@@ -66,6 +66,77 @@ static MsvgElement *LoadSvgFile(char *fname, int *error)
     return root;
 }
 
+typedef struct _Repdata {
+    int nte;            // num of EID_TEXT elements
+    int max;            // max EID_TEXT elements
+    MsvgElement *el[1]; // elements (not actual size)
+} Repdata;
+
+static void reptext(MsvgElement *el, void *udata)
+{
+    Repdata *rd;
+
+    rd = (Repdata *)udata;
+
+    if (el->eid == EID_TEXT) {
+        if (rd->nte < rd->max) {
+            rd->el[rd->nte] = el;
+            rd->nte++;
+        }
+    }
+}
+
+static void ReplaceTextByPaths(MsvgElement *root)
+{
+    MsvgTreeCounts tc;
+    MsvgBFont *bfont;
+    Repdata *rd;
+    int nte, i;
+
+    MsvgCalcCountsCookedTree(root, &tc);
+    if (tc.nelem[EID_TEXT] < 0) return; // nothing to do
+
+    if (tc.nelem[EID_FONT] > 0) { // we have one or more internal fonts, load them
+        MsvgBFontLibLoad(root);
+    }
+
+    // now load three standard fonts sans, serif & mono
+    MsvgBFontLibLoadFromFile("../gfonts/rsans.svg");
+    MsvgBFontLibLoadFromFile("../gfonts/rserif.svg");
+    MsvgBFontLibLoadFromFile("../gfonts/rmono.svg");
+
+    // do the work
+    nte = tc.nelem[EID_TEXT];
+    rd = malloc(sizeof(Repdata)+sizeof(MsvgElement *)*nte);
+    if (rd == NULL) { // opss no memory
+        MsvgBFontLibFree();
+        return;
+    }
+    rd->nte = 0;
+    rd->max = nte;
+
+    MsvgWalkTree(root, reptext, rd);
+
+    for(i=0; i<rd->nte; i++) {
+        MsvgElement *group;
+
+        if (rd->el[i]->eid == EID_TEXT) {
+            bfont = MsvgBFontLibFind(rd->el[i]->pctx->sfont_family,
+                                     rd->el[i]->pctx->ifont_family);
+            if (bfont != NULL) {
+                group = MsvgTextToPathGroup(rd->el[i], bfont);
+                if (group) {
+                    if (MsvgReplaceElement(rd->el[i], group))
+                    MsvgDeleteElement(rd->el[i]);
+                }
+            }
+        }
+    }
+
+    MsvgBFontLibFree();
+    free(rd);
+}
+
 int main(int argc,char **argv)
 {
     GrSVGDrawMode sdm = {SVGDRAWMODE_PAR, SVGDRAWADJ_LEFT, 1.0, 0, 0, 0, 0};
@@ -91,6 +162,8 @@ int main(int argc,char **argv)
         printf("Error %d opening %s\n", error, fname);
         return 1;
     }
+
+    ReplaceTextByPaths(root);
 
     // set default driver and ask for user window resize if it is supported
     GrSetDriverExt(NULL, "rszwin");

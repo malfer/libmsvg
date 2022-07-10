@@ -83,6 +83,7 @@ void MsvgUndefPaintCtxTextAttr(MsvgPaintCtx *pctx)
 {
     if (!pctx) return;
     if (pctx->sfont_family) free(pctx->sfont_family);
+    pctx->text_anchor = NODEFINED_IVALUE;
     pctx->sfont_family = NULL;
     pctx->ifont_family = NODEFINED_IVALUE;
     pctx->font_style = NODEFINED_IVALUE;
@@ -128,6 +129,34 @@ double MsvgGetInheritedFontSize(const MsvgElement *el)
     }
 
     return 12.0;
+}
+
+void MsvgGetInheritedFontFamily(const MsvgElement *el, int *ifont_family,
+                                char **sfont_family)
+{
+    MsvgElement *fath;
+
+    *ifont_family = FONTFAMILY_SANS;
+    *sfont_family = NULL;
+
+    if (el && el->pctx) {
+        if ((el->pctx->ifont_family != INHERIT_IVALUE) &&
+            (el->pctx->ifont_family != NODEFINED_IVALUE)) {
+            *ifont_family = el->pctx->ifont_family;
+            *sfont_family = el->pctx->sfont_family;
+        } else {
+            fath = el->father;
+            while (fath) {
+                if (fath->pctx && (fath->pctx->ifont_family != INHERIT_IVALUE) &&
+                   (fath->pctx->ifont_family != NODEFINED_IVALUE)) {
+                    *ifont_family = fath->pctx->ifont_family;
+                    *sfont_family = fath->pctx->sfont_family;
+                    break;
+                }
+                fath = fath->father;
+            }
+        }
+    }
 }
 
 void MsvgProcPaintCtxInheritance(MsvgPaintCtx *son, const MsvgPaintCtx *fath)

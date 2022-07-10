@@ -4,7 +4,7 @@ tread [-r] [-id=id] file.svg -> read the svg file, print the raw tree and counts
                          and write "msvgt1.svg",
                          if "-r" show debug info when reading the svg file,
                          if a "-id=id" is provided find the element in the raw
-                         tree, convert to cooked and find again
+                           tree, convert to cooked and find again
 
 tdel -> build a raw tree, delete, prune and insert elements and attributes
 
@@ -21,10 +21,12 @@ trbuild -> build a raw tree, write "msvgt2a.svg", duplicate the tree and
 
 tcbuild -> build a cooked tree, convert to raw tree, print and write "msvgt3.svg"
 
-tfont font.svg file.svg -> read the first svg font in svg, change text elements
-                          in file.svg to a group of path elements using the svg
-                          font readed (font.svg and file.svg can be the same file)
-                          and write "msvgt5.svg"
+tfont file.svg [font.svg] -> load the internal svg fonts in "file.svg", load the 
+                             three standard fonts in "../gfonts", change text elements
+                             in file.svg to a group of path elements using the matching
+                             bfont in the lib loaded svg and write "msvgt5.svg"
+                             if "font.svg" is provided load the fonts there and use the
+                               first one as the matching bfont
 
 tpa2poly file.svg -> read the svg file, find <path> elements and change them by
                      groups of <polygon> or <polyline> elements and finally write

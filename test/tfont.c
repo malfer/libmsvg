@@ -18,17 +18,6 @@
 
 #define TESTFILE "msvgt5.svg"
 
-static MsvgBFont *bfont = NULL;
-
-static void findfont(MsvgElement *el, void *udata)
-{
-    if (bfont) return;
-
-    if (el->eid == EID_FONT) {
-        bfont = MsvgNewBFont(el);
-    }
-}
-
 typedef struct _Repdata {
     int nte;            // num of EID_TEXT elements
     int max;            // max EID_TEXT elements
@@ -49,18 +38,23 @@ static void reptext(MsvgElement *el, void *udata)
     }
 }
 
-static void replacetextbypath(MsvgElement *root)
+static int ReplaceTextByPaths(MsvgElement *root)
 {
     MsvgTreeCounts tc;
+    MsvgBFont *bfont;
     Repdata *rd;
     int nte, i;
+    int nr = 0;
 
     MsvgCalcCountsCookedTree(root, &tc);
-    nte = tc.nelem[EID_TEXT];
-    if (nte < 1) return;
+    if (tc.nelem[EID_TEXT] < 0) return 0; // nothing to do
 
+    nte = tc.nelem[EID_TEXT];
     rd = malloc(sizeof(Repdata)+sizeof(MsvgElement *)*nte);
-    if (rd == NULL) return;
+    if (rd == NULL) { // opss no memory
+        MsvgBFontLibFree();
+        return 0;
+    }
     rd->nte = 0;
     rd->max = nte;
 
@@ -70,21 +64,29 @@ static void replacetextbypath(MsvgElement *root)
         MsvgElement *group;
 
         if (rd->el[i]->eid == EID_TEXT) {
-            group = MsvgTextToPathGroup(rd->el[i], bfont);
-            if (group) {
-                if (MsvgReplaceElement(rd->el[i], group))
-                MsvgDeleteElement(rd->el[i]);
+            bfont = MsvgBFontLibFind(rd->el[i]->pctx->sfont_family,
+                                     rd->el[i]->pctx->ifont_family);
+            if (bfont != NULL) {
+                group = MsvgTextToPathGroup(rd->el[i], bfont);
+                if (group) {
+                    if (MsvgReplaceElement(rd->el[i], group)) {
+                        MsvgDeleteElement(rd->el[i]);
+                        nr++;
+                    }
+                }
             }
         }
     }
 
     free(rd);
+    return nr;
 }
 
 int main(int argc, char **argv)
 {
     MsvgElement *root;
-    int error;
+    int error, ind, ind2, nr;
+    int loadbfontlib = 1;
 
     if (argc > 0) {
         argv++;
@@ -101,11 +103,35 @@ int main(int argc, char **argv)
     }*/
 
     if (argc < 1) {
-        printf("Usage: tfont font.svg file.svg\n");
+        printf("Usage: tfont file.svg [font.svg]\n");
         return 0;
     }
 
-    printf("==== Reading svg font file %s\n", argv[0]);
+    if (argc > 1) {
+        printf("==== Reading svg font file %s\n", argv[1]);
+        root = MsvgReadSvgFile(argv[1], &error);
+    
+        if (root == NULL) {
+            printf("Error %d reading %s\n", error, argv[1]);
+            return 0;
+        }
+
+        printf("==== Finding svg fonts in %s... ", argv[1]);
+        MsvgRaw2CookedTree(root);
+        ind = MsvgBFontLibLoad(root);
+        MsvgDeleteElement(root);
+        if (ind > 0) {
+            printf("Found!!\n");
+        } else {
+            printf("Not found :-(\n");
+            return 0;
+        }
+
+        MsvgBFontLibSetDefaultBfont(0);
+        loadbfontlib = 0;
+    }
+
+    printf("==== Reading svg file %s\n", argv[0]);
     root = MsvgReadSvgFile(argv[0], &error);
     
     if (root == NULL) {
@@ -115,28 +141,19 @@ int main(int argc, char **argv)
 
     MsvgRaw2CookedTree(root);
 
-    printf("==== Finding svg font... ");
-    MsvgWalkTree(root, findfont, NULL);
-    MsvgDeleteElement(root);
-    if (bfont) {
-        printf("Found!!\n");
-    } else {
-        printf("Not found :-(\n");
-        return 0;
+    if (loadbfontlib) {
+        printf("==== Loading fonts\n");
+        ind = MsvgBFontLibLoad(root);
+        if (ind) printf("%d internal fonts loaded\n", ind);
+        ind2 = MsvgBFontLibLoadFromFile("../gfonts/rsans.svg");
+        ind2 += MsvgBFontLibLoadFromFile("../gfonts/rserif.svg");
+        ind2 += MsvgBFontLibLoadFromFile("../gfonts/rmono.svg");
+        if (ind2) printf("%d external fonts loaded\n", ind2);
     }
 
-    printf("==== Reading svg file %s\n", argv[1]);
-    root = MsvgReadSvgFile(argv[1], &error);
-    
-    if (root == NULL) {
-        printf("Error %d reading %s\n", error, argv[1]);
-        return 0;
-    }
-
-    MsvgRaw2CookedTree(root);
- 
     printf("==== Replacing text elements by paths\n");
-    replacetextbypath(root);
+    nr = ReplaceTextByPaths(root);
+    printf("%d EID_TEXT elements replaced\n", nr);
 
     printf("==== Cooked to Raw\n");
     MsvgDelAllTreeRawAttributes(root);
@@ -147,7 +164,7 @@ int main(int argc, char **argv)
     }
 
     MsvgDeleteElement(root);
-    MsvgDestroyBFont(bfont);
+    MsvgBFontLibFree();
 
     return 1;
 }

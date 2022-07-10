@@ -24,7 +24,7 @@ http://www.gnu.org/copyleft/gpl.html
 </metadata>
   <defs>
     <font id="FreeSans" horiz-adv-x="0">
-      <font-face font-family="FreeSans" font-weight="400" font-stretch="normal" units-per-em="1000" panose-1="2 11 5 4 2 2 2 2 2 4" ascent="800" descent="-200" x-height="524" cap-height="729" bbox="-1166 -638 2260 1050" underline-thickness="50" underline-position="-201" unicode-range="U+0020-1091F" />
+      <font-face font-family="FreeSans" font-weight="400" font-stretch="normal" units-per-em="1000" panose-1="2 11 5 4 2 2 2 2 2 4" ascent="800" descent="-200" x-height="524" cap-height="729" bbox="-1166 -638 2260 1050" underline-thickness="50" underline-position="-201" unicode-range="U+0020-2718" />
       <missing-glyph horiz-adv-x="800" d="M619 520q0 -46 -18.5 -83t-44.5 -61.5t-52.5 -47t-45 -51t-18.5 -60.5v-47h-90v55q0 37 18.5 70t45 57t52.5 48t44.5 54.5t18.5 65.5q0 51 -35 82.5t-93 31.5q-73 0 -101 -41t-28 -115h-85q0 115 55.5 174.5t163.5 59.5q97 0 155 -52t58 -140zM440 75v-104h-90v104h90z M35 -139v939h730v-939h-730zM118 -69h564v799h-564v-799z" />
       <glyph glyph-name="space" unicode=" " horiz-adv-x="250" />
       <glyph glyph-name="exclam" unicode="!" horiz-adv-x="333" d="M208 729v-338l-22 -223h-39l-22 223v338h83zM208 104v-104h-84v104h84z" />

@@ -204,12 +204,11 @@ MsvgElement *MsvgCharToPath(long unicode, double font_size, double *advx, MsvgBF
 MsvgElement *MsvgTextToPathGroup(MsvgElement *el, MsvgBFont *bfont)
 {
     MsvgElement *group, *path;
-    MsvgPaintCtx *ipctx;
     TMatrix trans;
     MsvgSubPath *sp;
     unsigned char *p;
-    double x, y, advx;
-    int i, nb;
+    double x, y, advx, font_size;
+    int i, nb, text_anchor;
     long ucp;
 
     if (el->eid != EID_TEXT) return NULL;
@@ -218,22 +217,18 @@ MsvgElement *MsvgTextToPathGroup(MsvgElement *el, MsvgBFont *bfont)
     group = MsvgNewElement(EID_G, NULL);
     if (group == NULL) return NULL;
 
-    ipctx = MsvgBuildPaintCtxInherited(el);
-    if (ipctx== NULL) {
-        MsvgDeleteElement(group);
-        return NULL;
-    }
-
     MsvgCopyPaintCtx(group->pctx, el->pctx);
+    text_anchor = MsvgGetInheritedTextAnchor(el);
+    font_size = MsvgGetInheritedFontSize(el);
 
     x = el->ptextattr->x;
     y = el->ptextattr->y;
     p = (unsigned char *)el->fcontent->s;
 
-    if ((ipctx->text_anchor == TEXTANCHOR_MIDDLE) ||
-        (ipctx->text_anchor == TEXTANCHOR_END)) {
-        advx =  MsvgGetStrAdvx(el->fcontent->s, ipctx->font_size, bfont);
-        if (ipctx->text_anchor == TEXTANCHOR_MIDDLE)
+    if ((text_anchor == TEXTANCHOR_MIDDLE) ||
+        (text_anchor == TEXTANCHOR_END)) {
+        advx =  MsvgGetStrAdvx(el->fcontent->s, font_size, bfont);
+        if (text_anchor == TEXTANCHOR_MIDDLE)
             x -= advx / 2;
         else
             x -= advx;
@@ -241,7 +236,7 @@ MsvgElement *MsvgTextToPathGroup(MsvgElement *el, MsvgBFont *bfont)
 
     while (*p) {
         ucp = MsvgI_NextUCPfromUTF8Str(p, &nb);
-        path = MsvgCharToPath(ucp, ipctx->font_size, &advx, bfont);
+        path = MsvgCharToPath(ucp, font_size, &advx, bfont);
         if (path) {
             TMSetTranslation(&trans, x, y);
             sp = path->ppathattr->sp;

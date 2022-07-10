@@ -24,7 +24,7 @@ http://www.gnu.org/copyleft/gpl.html
 </metadata>
   <defs>
     <font id="FreeMono" horiz-adv-x="600">
-      <font-face font-family="FreeMono" font-weight="400" font-stretch="normal" units-per-em="1000" panose-1="2 15 4 9 2 2 5 2 4 4" ascent="800" descent="-200" x-height="417" cap-height="563" bbox="-793 -200.205 699 800" underline-thickness="50" underline-position="-150" unicode-range="U+0020-10323" />
+      <font-face font-family="FreeMono" font-weight="400" font-stretch="normal" units-per-em="1000" panose-1="2 15 4 9 2 2 5 2 4 4" ascent="800" descent="-200" x-height="417" cap-height="563" bbox="-793 -200.205 699 800" underline-thickness="50" underline-position="-150" unicode-range="U+0020-2718" />
       <missing-glyph d="M134 529q10 3 41 17.5t62.5 22.5t71.5 8q80 0 129 -42.5t49 -111.5q0 -56 -35.5 -94t-129.5 -82v-41q0 -27 -20 -27q-21 0 -21 27v68q88 37 126.5 71.5t38.5 77.5q0 50 -40 81.5t-102 31.5q-61 0 -129 -34v-41q0 -27 -20 -27q-21 0 -21 27v68zM287 85h27q26 0 41.5 -14 t15.5 -36t-16 -36t-41 -14h-27q-26 0 -41.5 14t-15.5 36t15.5 36t41.5 14zM40 -80v723h520v-723h-520zM73 -47h454v657h-454v-657z" />
       <glyph glyph-name="space" unicode=" " />
       <glyph glyph-name="exclam" unicode="!" d="M338 563l-18 -326q-2 -28 -21 -28q-18 0 -20 28l-18 326q0 2 -0.5 8t-0.5 8q0 17 11.5 28t28.5 11q16 0 27.5 -11t11.5 -28v-3t-0.5 -6t-0.5 -7zM293 85h13q23 0 38.5 -14.5t15.5 -35.5t-15.5 -35.5t-38.5 -14.5h-13q-22 0 -37.5 14.5t-15.5 35.5t15.5 35.5t37.5 14.5z " />
