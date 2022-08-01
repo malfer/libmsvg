@@ -45,7 +45,7 @@ static MsvgElement *LoadSvgFile(char *fname, int *error)
 
     MsvgElement *root;
     double gminx, gmaxx, gminy, gmaxy;
-    
+
     *error = 0;
     root = MsvgReadSvgFile(fname, error);
     if (root == NULL) return NULL;
@@ -198,6 +198,8 @@ int main(int argc,char **argv)
         GrMouseDisplayCursor();
 
         setlocale(LC_NUMERIC, "C");
+
+        sdm.bg = GrWhite();
 
         while (1) {
             int error;

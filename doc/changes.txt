@@ -1,3 +1,5 @@
+2022-08-01
+    Updated docs to v0.70
 2022-07-10
     New functions:
       void MsvgGetInheritedFontFamily(const MsvgElement *el, int *ifont_family,

@@ -6,9 +6,9 @@
 </head>
 
 <body>
-<h1>libmsvg v0.60</h1>
+<h1>libmsvg v0.70</h1>
 <h2>Programmer's guide</h2>
-<p>Last update: July 1, 2022</p>
+<p>Last update: July 11, 2022</p>
 
 <hr>
 <h2>Abstract</h2>
@@ -747,7 +747,7 @@ static void userfn(MsvgElement *el, MsvgPaintCtx *pctx, void *udata)
 
 <hr>
 <h2><a name="text2path">Converting text elements to path elements</a></h2>
-<p>Despite the svg standard defines a font element they don't recommend using it,
+<p>Despite the SVG standard defines a font element they don't recommend using it,
 instead they recommend to use external fonts. The result is that drawing text
 elements in a svg file is not predictable, it depends of the render program and
 the fonts instaled in the rendering machine. Even if you provides a svg font
@@ -811,11 +811,63 @@ by example:
  </pre>
 
 <h3>SVG fonts</h3>
-<p>Obviusly to make use the above functions you need SVG fonts, linmsvg came with some
+<p>Obviusly to make use of the above functions you need SVG fonts, linmsvg came with some
 SVG fonts in the "gfont" subdirectory, they are subsets (covering Latin, Greek, Cyrilic
 and some other chars) of the Free GNU Fonts, but they are not part of libmsvg really,
 like the original ones they are covered by the GPLv3 but with an exception that let you
 to embed them in a document.</p>
+
+<h3>SVG font library</h3>
+<p>To make the conversion from text to path easier, libmsvg includes some support
+to build an internal SVG font library:</p>
+<pre>
+int MsvgBFontLibLoad(MsvgElement *el);
+int MsvgBFontLibLoadFromFile(char *fname);
+MsvgBFont *MsvgBFontLibFind(char *sfont_family, int ifont_family);
+void MsvgBFontLibFree(void);
+MsvgElement *MsvgTextToPathGroupUsingBFontLib(MsvgElement *el);
+int MsvgBFontLibGetNumOfFonts(void);
+MsvgBFont *MsvgBFontLibGetBFontByNumber(int nfont);
+void MsvgBFontLibSetDefaultBfont(int nfont);
+</pre>
+<p>the first function load the SVG fonts embeded in the cooked tree element provided
+if any. The second one load the SVG fonts in the fname file. MsvgBFontLibFind
+return a MsvgBFont pointer to a font in the library wich his sfont_family
+member match the value provided (or a part of it), if no one is found it returns
+the one that match the ifont_family parameter, them if no one is found it
+returns the first MsvgBFont with his ifont_family member values FONTFAMILY_SANS,
+finally if no one is found it returns the one selected as default with
+MsvgBFontLibSetDefaultBfont or NULL. The function MsvgBFontLibFree free all the
+fonts in the library. MsvgBFontLibGetNumOfFonts and MsvgBFontLibGetBFontByNumber
+can be used to report the fonts in the library.</p>
+<p>Finally MsvgTextToPathGroupUsingBFontLib replace text by path using the best font
+found in the library as commented with the MsvgBFontLibFind function. This
+is an excerpt of a possible code to manage the conversion:</p>
+<pre>
+    int nf = 0;
+    ...
+    // load external fonts
+    nf = MsvgBFontLibLoadFromFile("../gfonts/rsans.svg");
+    if (nf > 0) MsvgBFontLibSetDefaultBfont(0);
+    nf += MsvgBFontLibLoadFromFile("../gfonts/rserif.svg");
+    nf += MsvgBFontLibLoadFromFile("../gfonts/rmono.svg");
+    // load internal fonts if any
+    nf += MsvgBFontLibLoad(root);
+    ...
+    //... find the EID_TEXT you want to replace
+    el = ...
+
+    if (el->eid == EID_TEXT) {
+        group = MsvgTextToPathGroupUsingBFontLib(el);
+        if (group) {
+            if (MsvgReplaceElement(el, group))
+            MsvgDeleteElement(el);
+        }
+    }
+    ...
+    // Free the font library when we don't need it
+    MsvgBFontLibFree();
+</pre>
 
 <hr>
 <h2><a name="path2poly">Converting path elements to poly elements</a></h2>
@@ -917,7 +969,7 @@ can have any attribute.</p>
 <table width=100% border=1 cellpadding=4 cellspacing=3>
   <tr valign=top>
     <th width=25%>
-      <p>Element</p>
+      <p>Element (EID)</p>
     </th>
     <th width=44%>
       <p>Specific supported attributes (status)</p>
@@ -928,7 +980,7 @@ can have any attribute.</p>
   </tr>
   <tr valign=top>
     <td width=25%>
-      <p>&lt;svg&gt;</p>
+      <p>&lt;svg&gt; (EID_SVG)</p>
     </td>
     <td width=44%>
       <p>version=&quot;1.2&quot; (fixed value)</p>
@@ -965,7 +1017,7 @@ can have any attribute.</p>
   </tr>
   <tr valign=top>
     <td width=25%>
-      <p>&lt;defs&gt;</p>
+      <p>&lt;defs&gt; (EID_DEFS)</p>
     </td>
     <td width=44%>
       <p>id=&quot;value&quot;</p>
@@ -980,7 +1032,7 @@ can have any attribute.</p>
   </tr>
   <tr valign=top>
     <td width=25%>
-      <p>&lt;g&gt;</p>
+      <p>&lt;g&gt; (EID_G)</p>
     </td>
     <td width=44%>
       <p>id=&quot;value&quot;</p>
@@ -1006,7 +1058,7 @@ can have any attribute.</p>
   </tr>
   <tr valign=top>
     <td width=25%>
-      <p>&lt;use&gt;</p>
+      <p>&lt;use&gt; (EID_USE)</p>
     </td>
     <td width=44%>
       <p>xlink:href =&quot;#id&quot;</p>
@@ -1033,7 +1085,7 @@ can have any attribute.</p>
   </tr>
   <tr valign=top>
     <td width=25%>
-      <p>&lt;rect&gt;</p>
+      <p>&lt;rect&gt; (EID_RECT)</p>
     </td>
     <td width=44%>
       <p>id=&quot;value&quot;</p>
@@ -1057,7 +1109,7 @@ can have any attribute.</p>
   </tr>
   <tr valign=top>
     <td width=25%>
-      <p>&lt;circle&gt;</p>
+      <p>&lt;circle&gt; (EID_CIRCLE)</p>
     </td>
     <td width=44%>
       <p>id=&quot;value&quot;</p>
@@ -1078,7 +1130,7 @@ can have any attribute.</p>
   </tr>
   <tr valign=top>
     <td width=25%>
-      <p>&lt;ellipse&gt;</p>
+      <p>&lt;ellipse&gt; (EID_ELLIPSE)</p>
     </td>
     <td width=44%>
       <p>id=&quot;value&quot;</p>
@@ -1103,7 +1155,7 @@ can have any attribute.</p>
   </tr>
   <tr valign=top>
     <td width=25%>
-      <p>&lt;line&gt;</p>
+      <p>&lt;line&gt; (EID_LINE)</p>
     </td>
     <td width=44%>
       <p>id=&quot;value&quot;</p>
@@ -1123,7 +1175,7 @@ can have any attribute.</p>
   </tr>
   <tr valign=top>
     <td width=25%>
-      <p>&lt;polyline&gt;</p>
+      <p>&lt;polyline&gt; (EID_POLYLINE)</p>
     </td>
     <td width=44%>
       <p>id=&quot;value&quot;</p>
@@ -1142,7 +1194,7 @@ can have any attribute.</p>
   </tr>
   <tr valign=top>
     <td width=25%>
-      <p>&lt;polygon&gt;</p>
+      <p>&lt;polygon&gt; (EID_POLYGON)</p>
     </td>
     <td width=44%>
       <p>id=&quot;value&quot;</p>
@@ -1161,7 +1213,7 @@ can have any attribute.</p>
   </tr>
   <tr valign=top>
     <td width=25%>
-      <p>&lt;path&gt;</p>
+      <p>&lt;path&gt; (EID_PATH)</p>
     </td>
     <td width=44%>
       <p>id=&quot;value&quot;</p>
@@ -1179,7 +1231,7 @@ can have any attribute.</p>
   </tr>
   <tr valign=top>
     <td width=25%>
-      <p>&lt;text&gt;</p>
+      <p>&lt;text&gt; (EID_TEXT)</p>
     </td>
     <td width=44%>
       <p>id=&quot;value&quot;</p>
@@ -1203,7 +1255,7 @@ can have any attribute.</p>
   </tr>
   <tr valign=top>
     <td width=25%>
-      <p>&lt;linearGradient&gt;</p>
+      <p>&lt;linearGradient&gt; (EID_LINEARGRADIENT)</p>
     </td>
     <td width=44%>
       <p>id=&quot;value&quot;</p>
@@ -1220,7 +1272,7 @@ can have any attribute.</p>
   </tr>
   <tr valign=top>
     <td width=25%>
-      <p>&lt;radialGradient&gt;</p>
+      <p>&lt;radialGradient&gt; (EID_RADIALGRADIENT)</p>
     </td>
     <td width=44%>
       <p>id=&quot;value&quot;</p>
@@ -1236,7 +1288,7 @@ can have any attribute.</p>
   </tr>
   <tr valign=top>
     <td width=25%>
-      <p>&lt;stop&gt;</p>
+      <p>&lt;stop&gt; (EID_STOP)</p>
     </td>
     <td width=44%>
       <p>id=&quot;value&quot;</p>
@@ -1249,7 +1301,7 @@ can have any attribute.</p>
   </tr>
   <tr valign=top>
     <td width=25%>
-      <p>&lt;font&gt;</p>
+      <p>&lt;font&gt; (EID_FONT)</p>
     </td>
     <td width=44%>
       <p>id=&quot;value&quot;</p>
@@ -1262,7 +1314,7 @@ can have any attribute.</p>
   </tr>
   <tr valign=top>
     <td width=25%>
-      <p>&lt;font-face&gt;</p>
+      <p>&lt;font-face&gt; (EID_FONTFACE)</p>
     </td>
     <td width=44%>
       <p>id=&quot;value&quot;</p>
@@ -1279,7 +1331,7 @@ can have any attribute.</p>
   </tr>
   <tr valign=top>
     <td width=25%>
-      <p>&lt;missing-glyph&gt;</p>
+      <p>&lt;missing-glyph&gt; (EID_MISSINGGLYPH)</p>
     </td>
     <td width=44%>
       <p>id=&quot;value&quot;</p>
@@ -1292,7 +1344,7 @@ can have any attribute.</p>
   </tr>
   <tr valign=top>
     <td width=25%>
-      <p>&lt;glyph&gt;</p>
+      <p>&lt;glyph&gt; (EID_GLYPH)</p>
     </td>
     <td width=44%>
       <p>id=&quot;value&quot;</p>
