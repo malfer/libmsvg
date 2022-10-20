@@ -237,11 +237,14 @@ static void DrawPolygonElement(MsvgElement *el, MsvgPaintCtx *pctx)
     points = calloc(npoints, sizeof(int[2]));
     if (points == NULL) return;
 
+    //printf("begin\n");
     for (i=0; i <npoints; i++) {
         get_icoord(&(points[i][0]), &(points[i][1]),
                    el->ppolygonattr->points[i*2],
                    el->ppolygonattr->points[i*2+1]);
+        //printf("%d %d\n", points[i][0], points[i][1]);
     }
+    //printf("end\n");
     
     if (pctx->fill != NO_COLOR) {
         cfill = GrAllocColor2(pctx->fill);
@@ -263,7 +266,7 @@ static void DrawPolygonElement(MsvgElement *el, MsvgPaintCtx *pctx)
     }
     free(points);
 }
-
+/*
 static void DrawPathElement(MsvgElement *el, MsvgPaintCtx *pctx)
 {
     GrColor cfill, rcfill;
@@ -326,6 +329,91 @@ static void DrawPathElement(MsvgElement *el, MsvgPaintCtx *pctx)
             changercfill = 0;
         }
         sp = sp->next;
+    }
+}
+*/
+static void DrawPathElement(MsvgElement *el, MsvgPaintCtx *pctx)
+{
+/* we really need here to modify MGRX to be able to fill multipolygons at once,
+ * by now we use a hack to detect if a polygon is inside of another one and
+ * fill with the backgroud color, at least it works ok drawing glyphs like "ià"
+ */
+    GrColor cfill, rcfill, bg;
+    GrColor cstroke;
+    GrLineOption lopt;
+    int istroke_width;
+    MsvgSubPath *sp;
+    GrPath *gp;
+    GrExpPointArray *pa, *fpa;
+    int x, y, i, inside;
+
+    if (pctx->fill != NO_COLOR) {
+        cfill = GrAllocColor2(pctx->fill);
+    }
+    if (pctx->stroke != NO_COLOR) {
+        cstroke = GrAllocColor2(pctx->stroke);
+        istroke_width = pctx->stroke_width + 0.5;
+        lopt.lno_color = cstroke;
+        lopt.lno_width = istroke_width;
+        lopt.lno_pattlen = 0;
+        lopt.lno_dashpat = NULL;
+    }
+
+    fpa = NULL;
+    bg = glob_bg;
+    sp = el->ppathattr->sp;
+    while (sp) {
+        gp = GrNewPath(sp->npoints);
+        if (gp) {
+            for (i=0; i< sp->npoints; i++) {
+                get_icoord(&x, &y, sp->spp[i].x, sp->spp[i].y);
+                GrAddPointToPath(gp, sp->spp[i].cmd, x, y);
+            }
+            gp->closed = sp->closed;
+            pa = GrPathToExpPointArray2(gp);
+            if (pa) {
+                if (pctx->fill != NO_COLOR) {
+                    if (fpa) {
+                        inside = GrInsidePolygonTest(fpa->npoints, fpa->points, 
+                                                     pa->points[0][0],
+                                                     pa->points[0][1]);
+                        rcfill = inside ? bg : cfill;
+                        if (!inside) {
+                            GrDestroyExpPointArray(fpa);
+                            fpa = NULL;
+                        }
+                    } else {
+                        bg = GrPixel(pa->points[0][0], pa->points[0][1]);
+                        rcfill = cfill;
+                    }
+                    GrFilledPolygon(pa->npoints, pa->points, rcfill);
+                }
+                if (pctx->stroke != NO_COLOR) {
+                    if (pa->closed) {
+                        if (istroke_width > 1)
+                            GrCustomPolygon(pa->npoints, pa->points, &lopt);
+                        else
+                            GrPolygon(pa->npoints, pa->points, cstroke);
+                    } else {
+                        if (istroke_width > 1)
+                            GrCustomPolyLine(pa->npoints, pa->points, &lopt);
+                        else
+                            GrPolyLine(pa->npoints, pa->points, cstroke);
+                    }
+                }
+                if (!fpa) {
+                    fpa = pa;
+                    pa = NULL;
+                } else {
+                    GrDestroyExpPointArray(pa);
+                }
+            }
+            GrDestroyPath(gp);
+        }
+        sp = sp->next;
+    }
+    if (fpa) {
+        GrDestroyExpPointArray(fpa);
     }
 }
 

@@ -364,3 +364,38 @@ GrExpPointArray * GrPathToExpPointArray2(GrPath *gp)
     //}
     return pa;
 }
+
+int GrInsidePolygonTest(int npoints, int points[][2], int x, int y)
+{
+    int i, ytest0, ytest1, xtest0, inside;
+    int *edge0, *edge1;
+
+    if (npoints < 3) return 0;
+
+    edge0 = points[npoints-1];
+    edge1 = points[0];
+    ytest0 = (edge0[1] >= y);
+    inside = 0;
+
+    for (i=0; i<npoints; i++) {
+        ytest1 = (edge1[1] >= y);
+
+        if (ytest0 != ytest1) {
+            xtest0 = (edge0[0] >= x);
+            if (xtest0 == (edge1[0] >= x)) {
+                if (xtest0) inside = !inside;
+            } else {
+                if ((edge1[0] - (edge1[1] - y) *
+                    (edge0[0] - edge1[0]) / (edge0[1] - edge1[1])) >= x) {
+                    inside = !inside;
+                }
+            }
+        }
+
+        ytest0 = ytest1;
+        edge0 = edge1;
+        edge1 += 2;
+    }
+
+    return inside;
+}

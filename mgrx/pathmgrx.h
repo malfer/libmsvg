@@ -58,3 +58,5 @@ void GrDestroyExpPointArray(GrExpPointArray *pa);
 int GrReducePoints(int numpts, int points[][2]);
 GrExpPointArray * GrPathToExpPointArray(GrPath *gp);
 GrExpPointArray * GrPathToExpPointArray2(GrPath *gp);
+
+int GrInsidePolygonTest(int npoints, int points[][2], int x, int y);
