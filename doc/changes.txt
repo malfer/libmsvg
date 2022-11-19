@@ -1,3 +1,5 @@
+2022-10-20
+    Updated docs to v0.71
 2022-10-19
     New gd subdirectory with examples to render svg files using the GD library
     and libmgrx. A bit incomplete but it works
