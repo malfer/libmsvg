@@ -1,3 +1,8 @@
+2022-10-19
+    New gd subdirectory with examples to render svg files using the GD library
+    and libmgrx. A bit incomplete but it works
+2022-10-18
+    Added svg2png.c program to MGRX test programs
 2022-10-20
     Hack to MGRX for drawing path elements with subpaths, check if every polygon
     is inside the last polygon and use the background color, so glyphs like "ià"
