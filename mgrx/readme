@@ -14,6 +14,7 @@ gcc -D__XWIN__ -c pathmgrx.c
 gcc -D__XWIN__ -o rsvg rsvg.c rendmgrx.o pathmgrx.o -lmsvg -lmgrxX -lX11 -lm
 gcc -D__XWIN__ -o gsvg gsvg.c rendmgrx.o pathmgrx.o -lmsvg -lmgrxX -lX11 -lm
 gcc -D__XWIN__ -o showsvg showsvg.c rendmgrx.o pathmgrx.o -lmsvg -lmgrxX -lX11 -lm
+gcc -D__XWIN__ -o svg2png svg2png.c rendmgrx.o pathmgrx.o -lmsvg -lmgrxX -lX11 -lm -lpng -lz
 
 Linux console:
 gcc -c rendmgrx.c
@@ -21,6 +22,7 @@ gcc -c pathmgrx.c
 gcc -o rsvg rsvg.c rendmgrx.o pathmgrx.o -lmsvg -lmgrx -lm
 gcc -o gsvg gsvg.c rendmgrx.o pathmgrx.o -lmsvg -lmgrx -lm
 gcc -o showsvg showsvg.c rendmgrx.o pathmgrx.o -lmsvg -lmgrx -lm
+gcc -o svg2png svg2png.c rendmgrx.o pathmgrx.o -lmsvg -lmgrx -lm -lpng -lz
 
 DOS (djgpp):
 gcc -c rendmgrx.c
@@ -28,6 +30,7 @@ gcc -c pathmgrx.c
 gcc -o rsvg.exe rsvg.c rendmgrx.o pathmgrx.o -lmsvg -lmgrx -lm
 gcc -o gsvg.exe gsvg.c rendmgrx.o pathmgrx.o -lmsvg -lmgrx -lm
 gcc -o showsvg.exe showsvg.c rendmgrx.o pathmgrx.o -lmsvg -lmgrx -lm
+gcc -o svg2png.exe svg2png.c rendmgrx.o pathmgrx.o -lmsvg -lmgrx -lm -lpng -lz
 
 Win32 (mingw):
 gcc -c rendmgrx.c
@@ -35,21 +38,30 @@ gcc -c pathmgrx.c
 gcc -o rsvg.exe rsvg.c rendmgrx.o pathmgrx.o -lmsvg -lmgrx -lm -mwindows
 gcc -o gsvg.exe gsvg.c rendmgrx.o pathmgrx.o -lmsvg -lmgrx -lm -mwindows
 gcc -o showsvg.exe showsvg.c rendmgrx.o pathmgrx.o -lmsvg -lmgrx -lm -mwindows
+gcc -o svg2png.exe svg2png.c rendmgrx.o pathmgrx.o -lmsvg -lmgrx -lm -lpng -lz -mconsole
 
 There is a simple makefile for the X11 version, run it by:
     make -f makefile.x11
 
-rsvg read test.svg and render it on screen.
-gsvg generates a MsvgElemnt tree programmatically and render it on screen.
-showsvg is a more elaborated svg visor that can zoomm and rotate, run it by:
-    showsvg filename.svg [width height bpp]
-for example:
-    showsvg ../svgpics/gtiger.svg
+rsvg -> read test.svg and render it on screen.
+gsvg -> generates a MsvgElemnt tree programmatically and render it on screen.
+showsvg -> is a more elaborated svg visor that can zoomm and rotate,
+           run it by: showsvg filename.svg [width height bpp]
+           for example: showsvg ../svgpics/gtiger.svg
+svg2png -> generates a png file from a svg one
+           run it with: svg2png [-f|p|s] [-l|c|r] [-gd width height] file.svg file.png
+           file.svg will be rendered to file.png
+           options:
+                -f|p|s => FIT, PAR(default) or SCOORD
+                -l|c|r => LEFT(default), CENTER or RIGHT
+                -gd width height => use the given dimensions for the output file,
+                                    by default it uses the svg file dimensions
+           example: ./svg2png ../svgpics/gtiger.svg gtiger.png
 
 License
 -------
 rendmgrx.c, rendmgrx.h, pathmgrx.c and pathmgrx.h will be someday part of
 the MGRX library, and are under the LGPL license, see copying.txt
 
-rsvg.c, gsvg.c and showsvg.c are libmsvg+MGRX tests programs, they are
-in the public domain.
+rsvg.c, gsvg.c, showsvg.c and svg2png.c are libmsvg+MGRX tests programs, they
+are in the public domain.
