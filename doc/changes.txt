@@ -1,9 +1,15 @@
-2022-10-20
+2022-12-05
+    Added the mod parameter to the MsvgTransformCookedElement function, it can be
+    0 (or MSVGTCE_NORMAL) or a ored combination of MSVGTCE_CIR2PATH, MSVGTCE_ELL2PATH
+    the first create path elements for circle elements, the second create path
+    elements for ellipse elements. It can be used for graphics libraries that doesn't
+    have primitives to draw circles and ellipses, like GD.
+2022-11-20
     Updated docs to v0.71
-2022-10-19
+2022-11-19
     New gd subdirectory with examples to render svg files using the GD library
     and libmgrx. A bit incomplete but it works
-2022-10-18
+2022-11-18
     Added svg2png.c program to MGRX test programs
 2022-10-20
     Hack to MGRX for drawing path elements with subpaths, check if every polygon

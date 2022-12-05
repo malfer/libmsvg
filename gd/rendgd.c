@@ -182,7 +182,7 @@ static void DrawPolylineElement(MsvgElement *el, MsvgPaintCtx *pctx)
     int istroke_width;
     int i, npoints;
     gdPointPtr points;
-    
+
     npoints = el->ppolylineattr->npoints;
     points = calloc(npoints, sizeof(gdPoint));
     if (points == NULL) return;
@@ -192,7 +192,7 @@ static void DrawPolylineElement(MsvgElement *el, MsvgPaintCtx *pctx)
                    el->ppolylineattr->points[i*2],
                    el->ppolylineattr->points[i*2+1]);
     }
-    
+
     if (pctx->fill != NO_COLOR) {
         cfill = pctx->fill;
         gdImageFilledPolygon(glob_im, points, npoints, cfill);
@@ -214,7 +214,7 @@ static void DrawPolygonElement(MsvgElement *el, MsvgPaintCtx *pctx)
     int istroke_width;
     int i, npoints;
     gdPointPtr points;
-    
+
     npoints = el->ppolygonattr->npoints;
     points = calloc(npoints, sizeof(gdPoint));
     if (points == NULL) return;
@@ -224,7 +224,7 @@ static void DrawPolygonElement(MsvgElement *el, MsvgPaintCtx *pctx)
                    el->ppolylineattr->points[i*2],
                    el->ppolylineattr->points[i*2+1]);
     }
-    
+
     if (pctx->fill != NO_COLOR) {
         cfill = pctx->fill;
         gdImageFilledPolygon(glob_im, points, npoints, cfill);
@@ -238,7 +238,42 @@ static void DrawPolygonElement(MsvgElement *el, MsvgPaintCtx *pctx)
     }
     free(points);
 }
+/*
+static int InsidePolygonTest(int npoints, double *points, double x, double y)
+{
+    int i, ytest0, ytest1, xtest0, inside;
+    double *edge0, *edge1;
 
+    if (npoints < 3) return 0;
+
+    edge0 = &points[npoints*2-2];
+    edge1 = &points[0];
+    ytest0 = (edge0[1] >= y);
+    inside = 0;
+
+    for (i=0; i<npoints; i++) {
+        ytest1 = (edge1[1] >= y);
+
+        if (ytest0 != ytest1) {
+            xtest0 = (edge0[0] >= x);
+            if (xtest0 == (edge1[0] >= x)) {
+                if (xtest0) inside = !inside;
+            } else {
+                if ((edge1[0] - (edge1[1] - y) *
+                    (edge0[0] - edge1[0]) / (edge0[1] - edge1[1])) >= x) {
+                    inside = !inside;
+                }
+            }
+        }
+
+        ytest0 = ytest1;
+        edge0 = edge1;
+        edge1 += 2;
+    }
+
+    return inside;
+}
+*/
 static void DrawPathElement(MsvgElement *el, MsvgPaintCtx *pctx)
 {
     MsvgElement *newel2;
@@ -259,9 +294,10 @@ static void DrawPathElement(MsvgElement *el, MsvgPaintCtx *pctx)
 
 static void sufn(MsvgElement *el, MsvgPaintCtx *pctx, void *udata)
 {
+    #define GDMODE (MSVGTCE_CIR2PATH | MSVGTCE_ELL2PATH)
     MsvgElement *newel;
 
-    newel = MsvgTransformCookedElement(el, pctx);
+    newel = MsvgTransformCookedElement(el, pctx, GDMODE);
     if (newel == NULL) return;
 
     switch (newel->eid) {

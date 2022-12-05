@@ -425,7 +425,7 @@ static void sufn(MsvgElement *el, MsvgPaintCtx *pctx, void *udata)
 
     //printf("id %s\n", el->id);
     //MsvgPrintCookedElement(stdout, el);
-    newel = MsvgTransformCookedElement(el, pctx);
+    newel = MsvgTransformCookedElement(el, pctx, 0);
     if (newel == NULL) return;
     //printf("after\n");
     //MsvgPrintCookedElement(stdout, newel);

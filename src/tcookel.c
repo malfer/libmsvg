@@ -212,6 +212,101 @@ static MsvgElement *transCookEllipse(MsvgElement *el, MsvgPaintCtx *cpctx)
     return newel;
 }
 
+static MsvgElement *transCookCircle2(MsvgElement *el, MsvgPaintCtx *cpctx)
+{
+    MsvgElement *newel, *auxel;
+    MsvgSubPath *sp;
+    int rx_x, rx_y, ry_x, ry_y, rx, ry;
+
+    // this version build a path element like a circle
+    // for graphics libraries without ellipses
+    #define KAPPA90 0.5522847493
+
+    auxel = MsvgNewElement(EID_PATH, NULL);
+    if (auxel == NULL) return NULL;
+
+    sp = MsvgNewSubPath(20);
+    if (sp == NULL) {
+        MsvgDeleteElement(auxel);
+        return NULL;
+    }
+    auxel->ppathattr->sp = sp;
+    rx_x = el->pcircleattr->r + el->pcircleattr->cx;
+    rx_y = el->pcircleattr->cy;
+    ry_x = el->pcircleattr->cx;
+    ry_y = el->pcircleattr->r + el->pcircleattr->cy;
+    rx = ry = el->pcircleattr->r;
+    MsvgAddPointToSubPath(sp, 'M', ry_x, ry_y-2*ry);
+    MsvgAddPointToSubPath(sp, 'C', ry_x+rx*KAPPA90, ry_y-2*ry);
+    MsvgAddPointToSubPath(sp, ' ', rx_x, rx_y-ry*KAPPA90);
+    MsvgAddPointToSubPath(sp, ' ', rx_x, rx_y);
+    MsvgAddPointToSubPath(sp, 'C', rx_x, rx_y+ry*KAPPA90);
+    MsvgAddPointToSubPath(sp, ' ', ry_x+rx*KAPPA90, ry_y);
+    MsvgAddPointToSubPath(sp, ' ', ry_x, ry_y);
+    MsvgAddPointToSubPath(sp, 'C', ry_x-rx*KAPPA90, ry_y);
+    MsvgAddPointToSubPath(sp, ' ', rx_x-2*rx, rx_y+ry*KAPPA90);
+    MsvgAddPointToSubPath(sp, ' ', rx_x-2*rx, rx_y);
+    MsvgAddPointToSubPath(sp, 'C', rx_x-2*rx, rx_y-ry*KAPPA90);
+    MsvgAddPointToSubPath(sp, ' ', ry_x-rx*KAPPA90, ry_y-2*ry);
+    MsvgAddPointToSubPath(sp, ' ', ry_x, ry_y-2*ry);
+    sp->closed = 1;
+
+    newel = transCookPath(auxel, cpctx);
+
+    MsvgDeleteElement(auxel);
+
+    return newel;
+}
+
+static MsvgElement *transCookEllipse2(MsvgElement *el, MsvgPaintCtx *cpctx)
+{
+    MsvgElement *newel, *auxel;
+    MsvgSubPath *sp;
+    int cx, cy, rx_x, rx_y, ry_x, ry_y, rx, ry;
+
+    // this version build a path element like an ellipse
+    // for graphics libraries without ellipses
+    #define KAPPA90 0.5522847493
+
+    auxel = MsvgNewElement(EID_PATH, NULL);
+    if (auxel == NULL) return NULL;
+
+    sp = MsvgNewSubPath(20);
+    if (sp == NULL) {
+        MsvgDeleteElement(auxel);
+        return NULL;
+    }
+    auxel->ppathattr->sp = sp;
+    cx = el->pellipseattr->cx;
+    cy = el->pellipseattr->cy;
+    rx_x = el->pellipseattr->rx_x;
+    rx_y = el->pellipseattr->rx_y;
+    ry_x = el->pellipseattr->ry_x;
+    ry_y = el->pellipseattr->ry_y;
+    rx = sqrt(pow(rx_x-cx, 2) + pow(rx_y-cy, 2));
+    ry = sqrt(pow(ry_x-cx, 2) + pow(ry_y-cy, 2));
+    MsvgAddPointToSubPath(sp, 'M', ry_x, ry_y-2*ry);
+    MsvgAddPointToSubPath(sp, 'C', ry_x+rx*KAPPA90, ry_y-2*ry);
+    MsvgAddPointToSubPath(sp, ' ', rx_x, rx_y-ry*KAPPA90);
+    MsvgAddPointToSubPath(sp, ' ', rx_x, rx_y);
+    MsvgAddPointToSubPath(sp, 'C', rx_x, rx_y+ry*KAPPA90);
+    MsvgAddPointToSubPath(sp, ' ', ry_x+rx*KAPPA90, ry_y);
+    MsvgAddPointToSubPath(sp, ' ', ry_x, ry_y);
+    MsvgAddPointToSubPath(sp, 'C', ry_x-rx*KAPPA90, ry_y);
+    MsvgAddPointToSubPath(sp, ' ', rx_x-2*rx, rx_y+ry*KAPPA90);
+    MsvgAddPointToSubPath(sp, ' ', rx_x-2*rx, rx_y);
+    MsvgAddPointToSubPath(sp, 'C', rx_x-2*rx, rx_y-ry*KAPPA90);
+    MsvgAddPointToSubPath(sp, ' ', ry_x-rx*KAPPA90, ry_y-2*ry);
+    MsvgAddPointToSubPath(sp, ' ', ry_x, ry_y-2*ry);
+    sp->closed = 1;
+
+    newel = transCookPath(auxel, cpctx);
+
+    MsvgDeleteElement(auxel);
+
+    return newel;
+}
+
 static MsvgElement *transCookLine(MsvgElement *el, MsvgPaintCtx *cpctx)
 {
     MsvgElement *newel;
@@ -346,15 +441,21 @@ static MsvgElement *transCookText(MsvgElement *el, MsvgPaintCtx *cpctx)
     return newel;
 }
 
-MsvgElement *MsvgTransformCookedElement(MsvgElement *el, MsvgPaintCtx *pctx)
+MsvgElement *MsvgTransformCookedElement(MsvgElement *el, MsvgPaintCtx *pctx, int mode)
 {
     switch (el->eid) {
         case EID_RECT :
             return transCookRect(el, pctx);
         case EID_CIRCLE :
-            return transCookCircle(el, pctx);
+            if (mode & MSVGTCE_CIR2PATH)
+                return transCookCircle2(el, pctx);
+            else
+                return transCookCircle(el, pctx);
         case EID_ELLIPSE :
-            return transCookEllipse(el, pctx);
+            if (mode & MSVGTCE_ELL2PATH)
+                return transCookEllipse2(el, pctx);
+            else
+                return transCookEllipse(el, pctx);
         case EID_LINE :
             return transCookLine(el, pctx);
         case EID_POLYLINE :

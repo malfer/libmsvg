@@ -466,7 +466,11 @@ int MsvgSerCookedTree(MsvgElement *root, MsvgSerUserFn sufn, void *udata);
 
 /* functions in tcookel.c */
 
-MsvgElement *MsvgTransformCookedElement(MsvgElement *el, MsvgPaintCtx *pctx);
+#define MSVGTCE_NORMAL 0
+#define MSVGTCE_CIR2PATH 1
+#define MSVGTCE_ELL2PATH 2
+
+MsvgElement *MsvgTransformCookedElement(MsvgElement *el, MsvgPaintCtx *pctx, int mode);
 
 /* functions in path2ply.c */
 
