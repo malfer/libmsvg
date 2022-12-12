@@ -6,9 +6,9 @@ render svg files using libmsvg and a specific graphics library.
 
 I have little knowledge of the GD library, in fact this is my first time using
 it to have another test case for libmsvg besides MGRX. At this moment, circles
-and ellipses remain to be rendered, since GD does not provide primitives to
-draw them with a thickness other than 1, nor rotated, it is also necessary to
-see how to render the PATH elements when they intersect their subPATHs.
+and ellipses are converted to path elementes, because GD does not provide primitives
+to draw them with a thickness other than 1, nor rotated. It is also necessary to
+see how to render PATH elements when their subPATHs intersect.
 
 Only checked on Linux, there is a simple makefile, run it by:
 

@@ -1,5 +1,7 @@
+2022-12-12
+    Updated docs to v0.72
 2022-12-05
-    Added the mod parameter to the MsvgTransformCookedElement function, it can be
+    Added the mode parameter to the MsvgTransformCookedElement function, it can be
     0 (or MSVGTCE_NORMAL) or a ored combination of MSVGTCE_CIR2PATH, MSVGTCE_ELL2PATH
     the first create path elements for circle elements, the second create path
     elements for ellipse elements. It can be used for graphics libraries that doesn't

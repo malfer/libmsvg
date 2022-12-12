@@ -6,9 +6,9 @@
 </head>
 
 <body>
-<h1>libmsvg v0.71</h1>
+<h1>libmsvg v0.72</h1>
 <h2>Programmer's guide</h2>
-<p>Last update: July 11, 2022</p>
+<p>Last update: December 11, 2022</p>
 
 <hr>
 <h2>Abstract</h2>
@@ -676,16 +676,23 @@ that will be passed to the supply user function.</p>
 <p>Another function that libmsvg provides can be called by the user function:</p>
 
 <pre>
-MsvgElement *MsvgTransformCookedElement(MsvgElement *el, MsvgPaintCtx *pctx,);
+MsvgElement *MsvgTransformCookedElement(MsvgElement *el, MsvgPaintCtx *pctx, int mode);
 </pre>
 
 <p>that process the cooked element parameters using the current transformation matrix
 (pctx->tmatrix) and returns a new drawable element that can be of different type
 that the original one, by example if an EID_RECT has to be rotated an EID_POLYGON
-or a EID_PATH (if it has rounded corners) is returned. . The function also adjust
+or a EID_PATH (if it has rounded corners) is returned. The function also adjust
 the element paint context parameters and sets the transformation matrix to
 the identity matrix. Note that you have to delete the new element returned after
 using it.</p>
+
+<p>The mode parameter can be set to 0 (or MSVGTCE_NORMAL) or to an ored combination
+of MSVGTCE_CIR2PATH and MSVGTCE_ELL2PATH. The first will returns path elements
+aproximating a circle for circle elements, the second returns path elements
+aproximating an ellipse for ellipse elements. It can be used for graphics libraries
+that doesn't have primitives to draw circles and/or ellipses. Other options can
+will be added in the future</p>
 
 <p>If MsvgTransformCookedElement cannot returns a properly transformed element it
 returns NULL and it is the user function responsability to manage correctly the
