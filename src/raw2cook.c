@@ -130,7 +130,7 @@ static double widthtof(char *value)
 static void getonetmatrix(char *value, TMatrix *t)
 {
     double rnum[6];
-    int n;
+    int n = 0;
 
     TMSetIdentity(t);
 

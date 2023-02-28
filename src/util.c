@@ -2,7 +2,8 @@
  * 
  * libmsvg, a minimal library to read and write svg files
  *
- * Copyright (C) 2010, 2020 Mariano Alvarez Fernandez (malfer at telefonica.net)
+ * Copyright (C) 2010, 2020, 2023 Mariano Alvarez Fernandez
+ * (malfer at telefonica.net)
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -28,24 +29,60 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-//#include <locale.h>
 #include <ctype.h>
 #include "util.h"
 
+static int get_ascii_number_len(char *s)
+{
+    int len = 0;
+    int dpfound = 0;
+    int expfound = 0;
+
+    if (*s == '-' || *s == '+') {
+        len++;
+        s++;
+    }
+    if (!isdigit(*s) && *s != '.') {
+        return 0;
+    }
+
+    while (*s) {
+        if (isdigit(*s)) {
+            len++;
+            s++;
+        } else if (!dpfound && *s == '.') {
+            len++;
+            s++;
+            dpfound = 1;
+        } else if (!expfound && (*s == 'e' || *s == 'E')) {
+            len++;
+            s++;
+            dpfound = 1;
+            expfound = 1;
+            if (*s == '-' || *s == '+') {
+                len++;
+                s++;
+            }
+        } else {
+            break;
+        }
+    }
+
+    return len;
+}
+
 int MsvgI_count_numbers(char *s)
 {
-    char *p;
     int n = 0;
-    
-    p = s;
-    while (*p != '\0') {
-        if (isdigit(*p) || *p == '.') {
+    int len;
+
+    while (*s) {
+        len = get_ascii_number_len(s);
+        if (len > 0) {
             n++;
-            p++;
-            while (isdigit(*p) || *p == '.')
-                p++;
+            s += len;
         } else {
-            p++;
+            s++;
         }
     }
     
@@ -54,36 +91,20 @@ int MsvgI_count_numbers(char *s)
 
 int MsvgI_read_numbers(char *s, double *df, int maxnumbers)
 {
-    #define MAX_DIGITS 100
-    char aux[MAX_DIGITS+1];
-    char *p;
     int n = 0;
-    int dig;
-    //struct lconv *lcv;
+    int len;
 
-    //lcv = localeconv();
-    p = s;
-    while (*p != '\0') {
-        if (isdigit(*p) || *p == '.' || *p == '-') {
-            if (n >= maxnumbers) break;
-            aux[0] = *p;
-            // better call setlocale(LC_NUMERIC, "C"); before calling Msvg functions
-            //if (aux[0] == '.') aux[0] = lcv->decimal_point[0];
-            dig = 1;
-            p++;
-            while (isdigit(*p) || *p == '.') {
-                if (dig < MAX_DIGITS) aux[dig] = *p;
-                //if (aux[dig] == '.') aux[dig] = lcv->decimal_point[0];
-                dig++;
-                p++;
-            }
-            aux[dig] = '\0';
-            df[n++] = atof(aux);
+    while (*s) {
+        if (n >= maxnumbers) break;
+        len = get_ascii_number_len(s);
+        if (len > 0) {
+            df[n++] = atof(s);
+            s += len;
         } else {
-            p++;
+            s++;
         }
     }
-    
+
     return n;
 }
 
