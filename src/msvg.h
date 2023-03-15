@@ -2,7 +2,7 @@
  * 
  * libmsvg, a minimal library to read and write svg files
  *
- * Copyright (C) 2010,2020-2022 Mariano Alvarez Fernandez
+ * Copyright (C) 2010,2020-2023 Mariano Alvarez Fernandez
  * (malfer at telefonica.net)
  *
  * Permission is hereby granted, free of charge, to any person obtaining
@@ -31,7 +31,7 @@
 
 #include <stdio.h>
 
-#define LIBMSVG_VERSION_API 0x0072
+#define LIBMSVG_VERSION_API 0x0073
 
 /* define id's for supported elements */
 
@@ -371,6 +371,12 @@ typedef struct _MsvgElement {
     };
 } MsvgElement;
 
+/* generic box structure, used for bounding box calculations and others */
+
+typedef struct _MsvgBox {
+    double gminx, gmaxx, gminy, gmaxy;
+} MsvgBox;
+
 /* functions in elements.c */
 
 MsvgElement *MsvgNewElement(enum EID eid, MsvgElement *father);
@@ -527,6 +533,7 @@ MsvgElement *MsvgFindIdTableId(const MsvgTableId *tid, char *id);
 
 /* functions in cokdims.c */
 
+int MsvgGetCookedBoundingBox(MsvgElement *el, MsvgBox *box, int inibox);
 int MsvgGetCookedDims(MsvgElement *root, double *minx, double *maxx,
                       double *miny, double *maxy);
 

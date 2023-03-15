@@ -1,3 +1,9 @@
+2023-03-15
+    New MsvgBox generic box structure, used for bounding box calculations and others
+    New function:
+        MsvgGetCookedBoundingBox(MsvgElement *el, MsvgBox *box, int inibox);
+        It will be necesary to convert gradient bbox units to user units.
+        Note, at this time it makes a rough estimation for PATH and TEXT elements
 2023-02-28
     Solved bug parsing compacted lists of points such as 8.2.3 (must be 8.2 and 0.3).
     Reported by gtoal.

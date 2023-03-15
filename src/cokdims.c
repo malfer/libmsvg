@@ -2,7 +2,7 @@
  * 
  * libmsvg, a minimal library to read and write svg files
  *
- * Copyright (C) 2022 Mariano Alvarez Fernandez
+ * Copyright (C) 2022-2023 Mariano Alvarez Fernandez
  * (malfer at telefonica.net)
  *
  * Permission is hereby granted, free of charge, to any person obtaining
@@ -30,77 +30,92 @@
 #include <string.h>
 #include "msvg.h"
 
-typedef struct {
-    double gminx, gmaxx, gminy, gmaxy;
-} UserData;
-
-static void setmaxmin(UserData *ud, double dx, double dy)
+static void iniboxmaxmin(MsvgBox *box)
 {
-    if (dx < ud->gminx) ud->gminx = dx;
-    if (dx > ud->gmaxx) ud->gmaxx = dx;
-    if (dy < ud->gminy) ud->gminy = dy;
-    if (dy > ud->gmaxy) ud->gmaxy = dy;
+    box->gminx = 1e9;
+    box->gmaxx = -1e9;
+    box->gminy = 1e9;
+    box->gmaxy = -1e9;
 }
 
-static void sufn(MsvgElement *el, MsvgPaintCtx *pctx, void *udata)
+static void setboxmaxmin(MsvgBox *box, double dx, double dy)
 {
-    MsvgElement *newel;
+    if (dx < box->gminx) box->gminx = dx;
+    if (dx > box->gmaxx) box->gmaxx = dx;
+    if (dy < box->gminy) box->gminy = dy;
+    if (dy > box->gmaxy) box->gmaxy = dy;
+}
+
+int MsvgGetCookedBoundingBox(MsvgElement *el, MsvgBox *box, int inibox)
+{
     MsvgSubPath *sp;
     int i;
-    UserData *ud;
 
-    ud = (UserData *)udata;
-    
-    newel = MsvgTransformCookedElement(el, pctx, 0);
-    if (newel == NULL) return;
+    if (inibox) iniboxmaxmin(box);
 
-    switch (newel->eid) {
+    switch (el->eid) {
         case EID_RECT :
-            setmaxmin(ud, newel->prectattr->x, newel->prectattr->y);
-            setmaxmin(ud, newel->prectattr->x+newel->prectattr->width,
-                      newel->prectattr->y+newel->prectattr->height);
+            setboxmaxmin(box, el->prectattr->x, el->prectattr->y);
+            setboxmaxmin(box, el->prectattr->x+el->prectattr->width,
+                      el->prectattr->y+el->prectattr->height);
             break;
         case EID_CIRCLE :
-            setmaxmin(ud, newel->pcircleattr->cx-newel->pcircleattr->r,
-                      newel->pcircleattr->cy-newel->pcircleattr->r);
-            setmaxmin(ud, newel->pcircleattr->cx+newel->pcircleattr->r,
-                      newel->pcircleattr->cy+newel->pcircleattr->r);
+            setboxmaxmin(box, el->pcircleattr->cx-el->pcircleattr->r,
+                      el->pcircleattr->cy-el->pcircleattr->r);
+            setboxmaxmin(box, el->pcircleattr->cx+el->pcircleattr->r,
+                      el->pcircleattr->cy+el->pcircleattr->r);
             break;
         case EID_ELLIPSE :
-            setmaxmin(ud, newel->pellipseattr->rx_x, newel->pellipseattr->rx_y);
-            setmaxmin(ud, newel->pellipseattr->ry_x, newel->pellipseattr->ry_y);
+            setboxmaxmin(box, el->pellipseattr->rx_x, el->pellipseattr->rx_y);
+            setboxmaxmin(box, el->pellipseattr->ry_x, el->pellipseattr->ry_y);
             break;
         case EID_LINE :
-            setmaxmin(ud, newel->plineattr->x1, newel->plineattr->y1);
-            setmaxmin(ud, newel->plineattr->x2, newel->plineattr->y2);
+            setboxmaxmin(box, el->plineattr->x1, el->plineattr->y1);
+            setboxmaxmin(box, el->plineattr->x2, el->plineattr->y2);
             break;
         case EID_POLYLINE :
-            for (i=0; i< newel->ppolylineattr->npoints; i++) {
-                setmaxmin(ud, newel->ppolylineattr->points[i*2],
-                          newel->ppolylineattr->points[i*2+1]);
+            for (i=0; i< el->ppolylineattr->npoints; i++) {
+                setboxmaxmin(box, el->ppolylineattr->points[i*2],
+                          el->ppolylineattr->points[i*2+1]);
             }
             break;
         case EID_POLYGON :
-            for (i=0; i< newel->ppolygonattr->npoints; i++) {
-                setmaxmin(ud, newel->ppolygonattr->points[i*2],
-                          newel->ppolygonattr->points[i*2+1]);
+            for (i=0; i< el->ppolygonattr->npoints; i++) {
+                setboxmaxmin(box, el->ppolygonattr->points[i*2],
+                          el->ppolygonattr->points[i*2+1]);
             }
             break;
         case EID_PATH :
-            sp = newel->ppathattr->sp;
+            // TODO do it well
+            sp = el->ppathattr->sp;
             while (sp) {
                 for (i=0; i<sp->npoints; i++) {
-                    setmaxmin(ud, sp->spp[i].x, sp->spp[i].y);
+                    setboxmaxmin(box, sp->spp[i].x, sp->spp[i].y);
                 }
                 sp = sp->next;
             }
             break;
         case EID_TEXT :
-            setmaxmin(ud, newel->ptextattr->x, newel->ptextattr->y);
+            // TODO do it well
+            setboxmaxmin(box, el->ptextattr->x, el->ptextattr->y);
             break;
         default :
-            break;
+            return 0;
     }
+    return 1;
+}
+
+static void sufn(MsvgElement *el, MsvgPaintCtx *pctx, void *udata)
+{
+    MsvgElement *newel;
+    MsvgBox *box;
+
+    box = (MsvgBox *)udata;
+    
+    newel = MsvgTransformCookedElement(el, pctx, 0);
+    if (newel == NULL) return;
+
+    MsvgGetCookedBoundingBox(newel, box, 0);
 
     MsvgDeleteElement(newel);
 }
@@ -110,14 +125,14 @@ int MsvgGetCookedDims(MsvgElement *root, double *minx, double *maxx,
 {
     // make a rough estimation of the svg dimensions in a cooked tree
     int ret;
-    UserData ud = {1e9, -1e9, 1e9, -1e9};
+    MsvgBox box = {1e9, -1e9, 1e9, -1e9};
     
-    ret = MsvgSerCookedTree(root, sufn, &ud);
+    ret = MsvgSerCookedTree(root, sufn, &box);
     if (ret) {
-        *minx = ud.gminx;
-        *maxx = ud.gmaxx;
-        *miny = ud.gminy;
-        *maxy = ud.gmaxy;
+        *minx = box.gminx;
+        *maxx = box.gmaxx;
+        *miny = box.gminy;
+        *maxy = box.gmaxy;
         return 1;
     } else {
         return 0;
