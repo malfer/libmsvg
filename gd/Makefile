@@ -5,8 +5,8 @@
 #
 .PHONY : clean
 
-LIBS=-lmsvg -lgd -lpng -lz -lm
-CFLAGS+= -Wall -g
+LIBS=-L../src -lmsvg -lgd -lpng -lz -lm
+CFLAGS+=-I../src -Wall -g
 
 all: rsvg gsvg svg2png
 

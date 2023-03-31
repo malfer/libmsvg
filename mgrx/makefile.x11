@@ -6,9 +6,9 @@
 .PHONY : clean
 
 #LIBS=../src/libmsvg.a -lmgrxX -lX11 -lm
-LIBS=-lmsvg -lmgrxX -lX11 -lm
+LIBS=-L../src -lmsvg -lmgrxX -lX11 -lm
 #CFLAGS+= -I../src -Wall -D__XWIN__
-CFLAGS+= -Wall -D__XWIN__ -g
+CFLAGS+= -I../src -Wall -D__XWIN__ -g
 
 all: gsvg rsvg showsvg svg2png
 
