@@ -11,6 +11,7 @@ test/tdel
 test/tcook
 test/tfont
 test/tpa2poly
+test/tbpsrv
 mgrx/rsvg
 mgrx/gsvg
 mgrx/showsvg

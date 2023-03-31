@@ -49,7 +49,7 @@ static void setboxmaxmin(MsvgBox *box, double dx, double dy)
 int MsvgGetCookedBoundingBox(MsvgElement *el, MsvgBox *box, int inibox)
 {
     MsvgSubPath *sp;
-    int i;
+    int i, dx, dy;
 
     if (inibox) iniboxmaxmin(box);
 
@@ -66,8 +66,10 @@ int MsvgGetCookedBoundingBox(MsvgElement *el, MsvgBox *box, int inibox)
                       el->pcircleattr->cy+el->pcircleattr->r);
             break;
         case EID_ELLIPSE :
-            setboxmaxmin(box, el->pellipseattr->rx_x, el->pellipseattr->rx_y);
-            setboxmaxmin(box, el->pellipseattr->ry_x, el->pellipseattr->ry_y);
+            dx = (el->pellipseattr->rx_x - el->pellipseattr->cx) * 2;
+            dy = (el->pellipseattr->ry_y - el->pellipseattr->cy) * 2;
+            setboxmaxmin(box, el->pellipseattr->rx_x, el->pellipseattr->ry_y);
+            setboxmaxmin(box, el->pellipseattr->rx_x-dx, el->pellipseattr->ry_y-dy);
             break;
         case EID_LINE :
             setboxmaxmin(box, el->plineattr->x1, el->plineattr->y1);

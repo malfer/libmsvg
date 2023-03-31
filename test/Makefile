@@ -16,7 +16,8 @@ SAMPLES=tread$(EXE) \
         tdel$(EXE) \
         tcook$(EXE) \
         tfont$(EXE) \
-        tpa2poly$(EXE)
+        tpa2poly$(EXE) \
+        tbpsrv$(EXE)
 
 ### LINUX VERSION
 

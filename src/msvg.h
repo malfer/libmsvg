@@ -31,7 +31,7 @@
 
 #include <stdio.h>
 
-#define LIBMSVG_VERSION_API 0x0073
+#define LIBMSVG_VERSION_API 0x0080
 
 /* define id's for supported elements */
 
@@ -175,6 +175,10 @@ typedef struct {
     double a, b, c, d, e, f;
 } TMatrix;
 
+/* binary paint server pointer */
+
+typedef struct _MsvgBPServer *MsvgBPServerPtr;
+
 /* paint context: cooked heritable attributes for some elements */
 
 typedef struct _MsvgPaintCtx *MsvgPaintCtxPtr;
@@ -182,9 +186,11 @@ typedef struct _MsvgPaintCtx *MsvgPaintCtxPtr;
 typedef struct _MsvgPaintCtx {
     rgbcolor fill;         /* fill color attribute */
     char *fill_iri;        /* paint server if fill == IRI_COLOR */
+    MsvgBPServerPtr fill_bps; /* binary paint server for fill */
     double fill_opacity;   /* fill-opacity attribute */
     rgbcolor stroke;       /* stroke color attribute */
     char *stroke_iri;      /* paint server if stroke == IRI_COLOR */
+    MsvgBPServerPtr stroke_bps; /* binary paint server for stroke */
     double stroke_width;   /* stroke-width attribute */
     double stroke_opacity; /* stroke-opacity attribute */
     TMatrix tmatrix;       /* transformation matrix */
@@ -278,7 +284,7 @@ typedef struct _MsvgSubPath {
     int npoints;             /* actual number of points */
     int closed;              /* 1 = yes, 0 = no */
     int failed_realloc;      /* 1 = yes, 0 = no */
-    MsvgSubPathPoint *spp;   /* SsubPath points */
+    MsvgSubPathPoint *spp;   /* SubPath points */
     MsvgSubPathPtr next;     /* next SubPath (can be NULL) */
 } MsvgSubPath;
 
@@ -462,27 +468,6 @@ void MsvgDestroySubPath(MsvgSubPath *sp);
 
 int MsvgCooked2RawTree(MsvgElement *root);
 
-/* functions in serializ.c */
-
-typedef void (*MsvgSerUserFn)(MsvgElement *el, MsvgPaintCtx *pctx, void *udata);
-
-#define MAX_NESTED_USE_ELEMENT 5
-
-int MsvgSerCookedTree(MsvgElement *root, MsvgSerUserFn sufn, void *udata);
-
-/* functions in tcookel.c */
-
-#define MSVGTCE_NORMAL 0
-#define MSVGTCE_CIR2PATH 1
-#define MSVGTCE_ELL2PATH 2
-
-MsvgElement *MsvgTransformCookedElement(MsvgElement *el, MsvgPaintCtx *pctx, int mode);
-
-/* functions in path2ply.c */
-
-MsvgElement *MsvgSubPathToPoly(MsvgElement *el, int nsp, double px_x_unit);
-MsvgElement *MsvgPathToPolyGroup(MsvgElement *el, double px_x_unit);
-
 /* functions in tmatrix.c */
 
 void TMSetIdentity(TMatrix *des);
@@ -530,6 +515,76 @@ MsvgTableId *MsvgBuildTableIdCookedTree(MsvgElement *el);
 MsvgTableId *MsvgBuildTableIdRawTree(MsvgElement *el);
 void MsvgDestroyTableId(MsvgTableId *tid);
 MsvgElement *MsvgFindIdTableId(const MsvgTableId *tid, char *id);
+
+/* binary paint servers types */
+
+#define BPSERVER_LINEARGRADIENT 1
+#define BPSERVER_RADIALGRADIENT 2
+
+/* max stops a binary gradient can have */
+
+#define BGRADIENT_MAXSTOPS 10
+
+/* binary paint server struct */
+
+typedef struct _MsvgBGradientStops {
+    int nstops;                             /* num stops */
+    double offset[BGRADIENT_MAXSTOPS];      /* offset [0..1] */
+    double sopacity[BGRADIENT_MAXSTOPS];    /* stop opacity attribute */
+    rgbcolor scolor[BGRADIENT_MAXSTOPS];    /* stop color attribute */
+} MsvgBGradientStops;
+
+typedef struct _MsvgBLinearGradient {
+    int gradunits;      /* Gradient units */
+    double x1;          /* grad vector x1 coordinate */
+    double y1;          /* grad vector y1 coordinate */
+    double x2;          /* grad vector x2 coordinate */
+    double y2;          /* grad vector y2 coordinate */
+    MsvgBGradientStops stops;  /* stops data */
+} MsvgBLinearGradient;
+
+typedef struct _MsvgBRadialGradient {
+    int gradunits;      /* Gradient units */
+    double cx;          /* x center coordinate */
+    double cy;          /* y center coordinate */
+    double r;           /* radius */
+    MsvgBGradientStops stops;  /* stops data */
+} MsvgBRadialGradient;
+
+typedef struct _MsvgBPServer {
+    int type;
+    union {
+        MsvgBLinearGradient blg;
+        MsvgBRadialGradient brg;
+    };
+} MsvgBPServer;
+
+/* functions in bpserver.c */
+
+MsvgBPServer *MsvgNewBPServer(MsvgElement *el);
+void MsvgDestroyBPServer(MsvgBPServer *bps);
+int MsvgCalcUnitsBPServer(MsvgBPServer *bps, MsvgBox *bbox, TMatrix *t);
+
+/* functions in serializ.c */
+
+typedef void (*MsvgSerUserFn)(MsvgElement *el, MsvgPaintCtx *pctx, void *udata);
+
+#define MAX_NESTED_USE_ELEMENT 5
+
+int MsvgSerCookedTree(MsvgElement *root, MsvgSerUserFn sufn, void *udata);
+
+/* functions in tcookel.c */
+
+#define MSVGTCE_NORMAL 0
+#define MSVGTCE_CIR2PATH 1
+#define MSVGTCE_ELL2PATH 2
+
+MsvgElement *MsvgTransformCookedElement(MsvgElement *el, MsvgPaintCtx *pctx, int mode);
+
+/* functions in path2ply.c */
+
+MsvgElement *MsvgSubPathToPoly(MsvgElement *el, int nsp, double px_x_unit);
+MsvgElement *MsvgPathToPolyGroup(MsvgElement *el, double px_x_unit);
 
 /* functions in cokdims.c */
 

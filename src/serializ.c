@@ -41,6 +41,20 @@ typedef struct {
 static void process_container(MsvgElement *el, SerData *sd,
                               MsvgPaintCtx *fath, int onlyfirstson);
 
+static void build_bps(MsvgPaintCtx *pctx, SerData *sd)
+{
+    MsvgElement *refel;
+
+    if (pctx->fill == IRI_COLOR) {
+        refel = MsvgFindIdTableId(sd->tid, pctx->fill_iri);
+        if (refel) pctx->fill_bps = MsvgNewBPServer(refel);
+    }
+    if (pctx->stroke == IRI_COLOR) {
+        refel = MsvgFindIdTableId(sd->tid, pctx->stroke_iri);
+        if (refel) pctx->stroke_bps = MsvgNewBPServer(refel);
+    }
+}
+
 static void process_use(MsvgElement *el, SerData *sd, MsvgPaintCtx *fath)
 {
     MsvgElement *refel, *ghostg;
@@ -107,6 +121,7 @@ static void process_container(MsvgElement *el, SerData *sd,
                 if (sonpctx) {
                     MsvgProcPaintCtxInheritance(sonpctx, mypctx);
                     MsvgProcPaintCtxDefaults(sonpctx);
+                    build_bps(sonpctx, sd);
                     sd->sufn(pel, sonpctx, sd->udata);
                     MsvgDestroyPaintCtx(sonpctx);
                 }

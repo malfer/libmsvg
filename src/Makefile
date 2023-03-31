@@ -28,6 +28,7 @@ LIBOBJS=tables.o \
         gradnorm.o \
         bfont.o \
         bfontlib.o \
+        bpserver.o \
         util.o
 
 LIB=libmsvg.a

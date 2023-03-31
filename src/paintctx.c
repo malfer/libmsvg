@@ -39,9 +39,11 @@ MsvgPaintCtx *MsvgNewPaintCtx(const MsvgPaintCtx *src)
 
     pctx->fill = NODEFINED_COLOR;
     pctx->fill_iri = NULL;
+    pctx->fill_bps = NULL;
     pctx->fill_opacity = NODEFINED_VALUE;
     pctx->stroke = NODEFINED_COLOR;
     pctx->stroke_iri = NULL;
+    pctx->stroke_bps = NULL;
     pctx->stroke_width = NODEFINED_VALUE;
     pctx->stroke_opacity = NODEFINED_VALUE;
     TMSetIdentity(&(pctx->tmatrix));
@@ -61,12 +63,22 @@ void MsvgCopyPaintCtx(MsvgPaintCtx *des, const MsvgPaintCtx *src)
 {
     if (!des || !src) return;
     if (des->fill_iri) free(des->fill_iri);
+    if (des->fill_bps) MsvgDestroyBPServer(des->fill_bps);
     if (des->stroke_iri) free(des->stroke_iri);
+    if (des->stroke_bps) MsvgDestroyBPServer(des->stroke_bps);
     if (des->sfont_family) free(des->sfont_family);
 
     *des = *src;
     if (src->fill_iri) des->fill_iri = strdup(src->fill_iri);
+    if (src->fill_bps) {
+        des->fill_bps = calloc(1, sizeof(MsvgBPServer));
+        if (des->fill_bps) *(des->fill_bps) = *(src->fill_bps);
+    }
     if (src->stroke_iri) des->stroke_iri = strdup(src->stroke_iri);
+    if (src->stroke_bps) {
+        des->stroke_bps = calloc(1, sizeof(MsvgBPServer));
+        if (des->stroke_bps) *(des->stroke_bps) = *(src->stroke_bps);
+    }
     if (src->sfont_family) des->sfont_family = strdup(src->sfont_family);
 }
 
@@ -74,7 +86,9 @@ void MsvgDestroyPaintCtx(MsvgPaintCtx *pctx)
 {
     if (!pctx) return;
     if (pctx->fill_iri) free(pctx->fill_iri);
+    if (pctx->fill_bps) MsvgDestroyBPServer(pctx->fill_bps);
     if (pctx->stroke_iri) free(pctx->stroke_iri);
+    if (pctx->stroke_bps) MsvgDestroyBPServer(pctx->stroke_bps);
     if (pctx->sfont_family) free(pctx->sfont_family);
     free(pctx);
 }

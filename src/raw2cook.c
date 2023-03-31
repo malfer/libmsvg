@@ -395,7 +395,7 @@ static void cookTextGenAttr(MsvgElement *el, char *key, char *value)
 static void cookLinearGradientGenAttr(MsvgElement *el, char *key, char *value)
 {
     if (strcmp(key, "gradientUnits") == 0) {
-        if (strcmp(value, "userSpaceOnUse"))
+        if (strcmp(value, "userSpaceOnUse") == 0)
             el->plgradattr->gradunits = GRADUNIT_USER;
         else
             el->plgradattr->gradunits = GRADUNIT_BBOX;
@@ -408,7 +408,7 @@ static void cookLinearGradientGenAttr(MsvgElement *el, char *key, char *value)
 static void cookRadialGradientGenAttr(MsvgElement *el, char *key, char *value)
 {
     if (strcmp(key, "gradientUnits") == 0) {
-        if (strcmp(value, "userSpaceOnUse"))
+        if (strcmp(value, "userSpaceOnUse") == 0)
             el->prgradattr->gradunits = GRADUNIT_USER;
         else
             el->prgradattr->gradunits = GRADUNIT_BBOX;
