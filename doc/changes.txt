@@ -1,3 +1,10 @@
+2023-04-01
+    Added genbps parameter to MsvgSerCookedTree to generate binary paint servers
+    when possible. MsvgTransformCookedElement adjust binary paint servers units
+    if they are present.
+2023-03-31
+    Modified gd and mgrx makefiles to use the include and library files in the src
+    subdirectory, so it isn't necesary to install the lib previosly.
 2023-03-31
     New MsvgBPServer structure to store a binary representation of a linear or radial
     gradient. Added fill_bps and stroke_bps members to the MsvgPaintCtx struct to

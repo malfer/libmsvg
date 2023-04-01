@@ -101,7 +101,7 @@ int main(int argc, char **argv)
     printf("===== Serialize cooked tree\n");
     if (ud.usetranscooked)
         printf("===== transforming elements\n");
-    MsvgSerCookedTree(root, sufn, &ud);
+    MsvgSerCookedTree(root, sufn, &ud, 0);
 
     if (writecook) {
         printf("===== Cooked to Raw =====\n");

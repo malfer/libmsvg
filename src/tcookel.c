@@ -75,10 +75,6 @@ static MsvgElement *transCookRect(MsvgElement *el, MsvgPaintCtx *cpctx)
                          &(cpctx->tmatrix));
         newel->prectattr->width -= zerox;
         newel->prectattr->height -= zeroy;
-        /*TMTransformCoord(&(newel->prectattr->rx), &(newel->prectattr->ry),
-                         &(cpctx->tmatrix));
-        newel->prectattr->rx -= zerox;
-        newel->prectattr->ry -= zeroy;*/
 
         return newel;
 
@@ -419,7 +415,6 @@ static MsvgElement *transCookPath(MsvgElement *el, MsvgPaintCtx *cpctx)
 static MsvgElement *transCookText(MsvgElement *el, MsvgPaintCtx *cpctx)
 {
     MsvgElement *newel;
-    //double zerox = 0, zeroy = 0, dummy = 0;
     TMatrix *t;
 
     newel = MsvgDupElement(el, 0);
@@ -432,9 +427,6 @@ static MsvgElement *transCookText(MsvgElement *el, MsvgPaintCtx *cpctx)
     TMTransformCoord(&(newel->ptextattr->x), &(newel->ptextattr->y),
                      &(cpctx->tmatrix));
 
-    //TMTransformCoord(&zerox, &zeroy, &(cpctx->tmatrix));
-    //TMTransformCoord(&dummy, &(newel->pctx->font_size), &(cpctx->tmatrix));
-    //newel->pctx->font_size -= zeroy;
     t = &(cpctx->tmatrix);
     newel->pctx->font_size *= sqrt(t->c*t->c + t->d*t->d);
 
@@ -443,30 +435,55 @@ static MsvgElement *transCookText(MsvgElement *el, MsvgPaintCtx *cpctx)
 
 MsvgElement *MsvgTransformCookedElement(MsvgElement *el, MsvgPaintCtx *pctx, int mode)
 {
+    MsvgElement *newel = NULL;
+    MsvgBox bbox;
+
+    if (pctx->fill_bps || pctx->stroke_bps) {
+        MsvgGetCookedBoundingBox(el, &bbox, 1);
+    }
+
     switch (el->eid) {
         case EID_RECT :
-            return transCookRect(el, pctx);
+            newel = transCookRect(el, pctx);
+            break;
         case EID_CIRCLE :
             if (mode & MSVGTCE_CIR2PATH)
-                return transCookCircle2(el, pctx);
+                newel = transCookCircle2(el, pctx);
             else
-                return transCookCircle(el, pctx);
+                newel = transCookCircle(el, pctx);
+            break;
         case EID_ELLIPSE :
             if (mode & MSVGTCE_ELL2PATH)
-                return transCookEllipse2(el, pctx);
+                newel = transCookEllipse2(el, pctx);
             else
-                return transCookEllipse(el, pctx);
+                newel = transCookEllipse(el, pctx);
+            break;
         case EID_LINE :
-            return transCookLine(el, pctx);
+            newel = transCookLine(el, pctx);
+            break;
         case EID_POLYLINE :
-            return transCookPolyline(el, pctx);
+            newel = transCookPolyline(el, pctx);
+            break;
         case EID_POLYGON :
-            return transCookPolygon(el, pctx);
+            newel = transCookPolygon(el, pctx);
+            break;
         case EID_PATH :
-            return transCookPath(el, pctx);
+            newel = transCookPath(el, pctx);
+            break;
         case EID_TEXT :
-            return transCookText(el, pctx);
+            newel = transCookText(el, pctx);
+            break;
         default :
             return NULL;
     }
+
+    if (newel) {
+        if (newel->pctx->fill_bps) {
+            MsvgCalcUnitsBPServer(newel->pctx->fill_bps, &bbox, &(pctx->tmatrix));
+        }
+        if (newel->pctx->stroke_bps) {
+            MsvgCalcUnitsBPServer(newel->pctx->stroke_bps, &bbox, &(pctx->tmatrix));
+        }
+    }
+    return newel;
 }

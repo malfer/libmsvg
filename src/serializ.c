@@ -36,6 +36,7 @@ typedef struct {
     MsvgTableId *tid;
     int nested_use;
     void *udata;
+    int genbps;
 } SerData;
 
 static void process_container(MsvgElement *el, SerData *sd,
@@ -44,6 +45,8 @@ static void process_container(MsvgElement *el, SerData *sd,
 static void build_bps(MsvgPaintCtx *pctx, SerData *sd)
 {
     MsvgElement *refel;
+
+    if (sd->tid == NULL) return;
 
     if (pctx->fill == IRI_COLOR) {
         refel = MsvgFindIdTableId(sd->tid, pctx->fill_iri);
@@ -121,7 +124,7 @@ static void process_container(MsvgElement *el, SerData *sd,
                 if (sonpctx) {
                     MsvgProcPaintCtxInheritance(sonpctx, mypctx);
                     MsvgProcPaintCtxDefaults(sonpctx);
-                    build_bps(sonpctx, sd);
+                    if (sd->genbps) build_bps(sonpctx, sd);
                     sd->sufn(pel, sonpctx, sd->udata);
                     MsvgDestroyPaintCtx(sonpctx);
                 }
@@ -136,7 +139,7 @@ static void process_container(MsvgElement *el, SerData *sd,
     MsvgDestroyPaintCtx(mypctx);
 }
 
-int MsvgSerCookedTree(MsvgElement *root, MsvgSerUserFn sufn, void *udata)
+int MsvgSerCookedTree(MsvgElement *root, MsvgSerUserFn sufn, void *udata, int genbps)
 {
     SerData sd;
 
@@ -148,6 +151,7 @@ int MsvgSerCookedTree(MsvgElement *root, MsvgSerUserFn sufn, void *udata)
     sd.tid = MsvgBuildTableIdCookedTree(root);
     sd.nested_use = 0;
     sd.udata = udata;
+    sd.genbps = genbps;
 
     process_container(root, &sd, NULL, 0);
 

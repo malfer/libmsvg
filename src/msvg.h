@@ -571,7 +571,7 @@ typedef void (*MsvgSerUserFn)(MsvgElement *el, MsvgPaintCtx *pctx, void *udata);
 
 #define MAX_NESTED_USE_ELEMENT 5
 
-int MsvgSerCookedTree(MsvgElement *root, MsvgSerUserFn sufn, void *udata);
+int MsvgSerCookedTree(MsvgElement *root, MsvgSerUserFn sufn, void *udata, int genbps);
 
 /* functions in tcookel.c */
 

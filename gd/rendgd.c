@@ -414,7 +414,7 @@ int GDDrawSVGtree(MsvgElement *root, GDSVGDrawMode *sdm, gdImagePtr im)
     tsave = root->pctx->tmatrix;
     TMMpy(&(root->pctx->tmatrix), &taux3, &tsave);
 
-    ret = MsvgSerCookedTree(root, sufn, NULL);
+    ret = MsvgSerCookedTree(root, sufn, NULL, 0);
     root->pctx->tmatrix = tsave;
     if (ret != 1) return -6;
 

@@ -88,7 +88,7 @@ int MsvgGetCookedBoundingBox(MsvgElement *el, MsvgBox *box, int inibox)
             }
             break;
         case EID_PATH :
-            // TODO do it well
+            // TODO do it right
             sp = el->ppathattr->sp;
             while (sp) {
                 for (i=0; i<sp->npoints; i++) {
@@ -98,7 +98,7 @@ int MsvgGetCookedBoundingBox(MsvgElement *el, MsvgBox *box, int inibox)
             }
             break;
         case EID_TEXT :
-            // TODO do it well
+            // TODO do it right
             setboxmaxmin(box, el->ptextattr->x, el->ptextattr->y);
             break;
         default :
@@ -129,7 +129,7 @@ int MsvgGetCookedDims(MsvgElement *root, double *minx, double *maxx,
     int ret;
     MsvgBox box = {1e9, -1e9, 1e9, -1e9};
     
-    ret = MsvgSerCookedTree(root, sufn, &box);
+    ret = MsvgSerCookedTree(root, sufn, &box, 0);
     if (ret) {
         *minx = box.gminx;
         *maxx = box.gmaxx;
