@@ -1,4 +1,6 @@
 2023-04-01
+    The MGRX test programs can render now gradients.
+2023-04-01
     Added genbps parameter to MsvgSerCookedTree to generate binary paint servers
     when possible. MsvgTransformCookedElement adjust binary paint servers units
     if they are present.

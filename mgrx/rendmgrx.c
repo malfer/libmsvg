@@ -34,9 +34,20 @@
 #include "rendmgrx.h"
 #include "pathmgrx.h"
 
+typedef struct {
+    GrColor cfill;
+    GrColor cstroke;
+    GrLineOption lopt;
+    GrPattern *fill_grd;
+    GrPattern *stroke_grd;
+    GrLinePattern lpat;
+    int istroke_width;
+} RenderCtx;
+
 static double glob_xorg;
 static double glob_yorg;
 static GrColor glob_bg;
+static TMatrix glob_tuser;
 
 static void get_icoord(int *x, int *y, double dx, double dy)
 {
@@ -44,75 +55,128 @@ static void get_icoord(int *x, int *y, double dx, double dy)
     *y = dy + 0.5 + glob_yorg;
 }
 
+static GrPattern *convert_gradient(MsvgBPServer *bps)
+{
+    GrPattern *grd;
+    MsvgBGradientStops *bstops;
+    int xi, yi, xf, yf, i;
+
+    if (bps->type == BPSERVER_LINEARGRADIENT) {
+        get_icoord(&xi, &yi, bps->blg.x1, bps->blg.y1);
+        get_icoord(&xf, &yf, bps->blg.x2, bps->blg.y2);
+        grd = GrCreateLinGradient(xi, yi, xf, yf);
+        bstops = &(bps->blg.stops);
+    } else if (bps->type == BPSERVER_RADIALGRADIENT) {
+        get_icoord(&xi, &yi, bps->brg.cx, bps->brg.cy);
+        grd = GrCreateRadGradient(xi, yi, bps->brg.r);
+        bstops = &(bps->brg.stops);
+    } else {
+        return NULL;
+    }
+
+    for (i=0; i<bstops->nstops; i++) {
+        GrAddGradientStop(grd, bstops->offset[i]*255, GrAllocColor2(bstops->scolor[i]));
+    }
+    GrGenGradientColorTbl(grd);
+    return grd;
+}
+
+static void build_renderctx(RenderCtx *r, MsvgPaintCtx *pctx)
+{
+    r->fill_grd = NULL;
+    r->stroke_grd = NULL;
+
+    if (pctx->fill != NO_COLOR) {
+        if (pctx->fill_bps) {
+            r->fill_grd = convert_gradient(pctx->fill_bps);
+        } else {
+            r->cfill = GrAllocColor2(pctx->fill);
+        }
+    }
+    if (pctx->stroke != NO_COLOR) {
+        if (pctx->stroke_bps) {
+            r->stroke_grd = convert_gradient(pctx->stroke_bps);
+            r->cstroke = GrBlack();
+        } else {
+            r->cstroke = GrAllocColor2(pctx->stroke);
+        }
+        r->istroke_width = pctx->stroke_width + 0.5;
+        if (r->istroke_width < 1) r->istroke_width = 1;
+        r->lopt.lno_color = r->cstroke;
+        r->lopt.lno_width = r->istroke_width;
+        r->lopt.lno_pattlen = 0;
+        r->lopt.lno_dashpat = NULL;
+        if (r->stroke_grd) {
+            r->lpat.lnp_pattern = r->stroke_grd;
+            r->lpat.lnp_option = &(r->lopt);
+        }
+    }
+}
+
+static void free_renderctx(RenderCtx *r)
+{
+    if (r->fill_grd) GrDestroyPattern(r->fill_grd);
+    if (r->stroke_grd) GrDestroyPattern(r->stroke_grd);
+}
+
 static void DrawRectElement(MsvgElement *el, MsvgPaintCtx *pctx)
 {
-    GrColor cfill;
-    GrColor cstroke;
-    GrLineOption lopt;
-    int istroke_width;
+    RenderCtx r;
     int x1, y1, x2, y2;
 
     get_icoord(&x1, &y1, el->prectattr->x, el->prectattr->y);
     get_icoord(&x2, &y2,
                el->prectattr->x+el->prectattr->width,
                el->prectattr->y+el->prectattr->height);
+    build_renderctx(&r, pctx);
 
     if (pctx->fill != NO_COLOR) {
-        cfill = GrAllocColor2(pctx->fill);
-        GrFilledBox(x1, y1, x2, y2, cfill);
+        if (r.fill_grd) {
+            GrPatternFilledBox(x1, y1, x2, y2, r.fill_grd);
+        } else {
+            GrFilledBox(x1, y1, x2, y2, r.cfill);
+        }
     }
     if (pctx->stroke != NO_COLOR) {
-        cstroke = GrAllocColor2(pctx->stroke);
-        istroke_width = pctx->stroke_width + 0.5;
-        if (istroke_width > 1) {
-            lopt.lno_color = cstroke;
-            lopt.lno_width = istroke_width;
-            lopt.lno_pattlen = 0;
-            lopt.lno_dashpat = NULL;
-            GrCustomBox(x1, y1, x2, y2, &lopt);
+        if (r.stroke_grd) {
+            GrPatternedBox(x1, y1, x2, y2, &(r.lpat));
         } else {
-            GrBox(x1, y1, x2, y2, cstroke);
+            GrCustomBox(x1, y1, x2, y2, &(r.lopt));
         }
-    } 
+    }
+    free_renderctx(&r);
 }
 
 static void DrawCircleElement(MsvgElement *el, MsvgPaintCtx *pctx)
 {
-    GrColor cfill;
-    GrColor cstroke;
-    GrLineOption lopt;
-    int istroke_width;
+    RenderCtx r;
     int cx, cy, rx, ry;
 
     get_icoord(&cx, &cy, el->pcircleattr->cx, el->pcircleattr->cy);
     rx = el->pcircleattr->r + 0.5;
     ry = el->pcircleattr->r + 0.5;
-    
+    build_renderctx(&r, pctx);
+
     if (pctx->fill != NO_COLOR) {
-        cfill = GrAllocColor2(pctx->fill);
-        GrFilledEllipse(cx, cy, rx, ry, cfill);
+        if (r.fill_grd) {
+            GrPatternFilledEllipse(cx, cy, rx, ry, r.fill_grd);
+        } else {
+            GrFilledEllipse(cx, cy, rx, ry, r.cfill);
+        }
     }
     if (pctx->stroke != NO_COLOR) {
-        cstroke = GrAllocColor2(pctx->stroke);
-        istroke_width = pctx->stroke_width + 0.5;
-        if (istroke_width > 1) {
-            lopt.lno_color = cstroke;
-            lopt.lno_width = istroke_width;
-            lopt.lno_pattlen = 0;
-            lopt.lno_dashpat = NULL;
-            GrCustomEllipse(cx, cy, rx, ry, &lopt);
+        if (r.stroke_grd) {
+            GrPatternedEllipse(cx, cy, rx, ry, &(r.lpat));
         } else {
-            GrEllipse(cx, cy, rx, ry, cstroke);
+            GrCustomEllipse(cx, cy, rx, ry, &(r.lopt));
         }
     } 
+    free_renderctx(&r);
 }
 
 static void DrawEllipseElement(MsvgElement *el, MsvgPaintCtx *pctx)
 {
-    GrColor cfill;
-    GrColor cstroke;
-    GrLineOption lopt;
-    int istroke_width;
+    RenderCtx r;
     int points[GR_MAX_ELLIPSE_POINTS][2];
     int npoints;
     int i, x, y;
@@ -142,57 +206,47 @@ static void DrawEllipseElement(MsvgElement *el, MsvgPaintCtx *pctx)
         points[i][0] = (cosang * x + sinang * y) + icx + 0.5;
         points[i][1] = (-sinang * x + cosang * y) + icy + 0.5;
     }
+    build_renderctx(&r, pctx);
 
     if (pctx->fill != NO_COLOR) {
-        cfill = GrAllocColor2(pctx->fill);
-        GrFilledPolygon(npoints, points, cfill);
-    }
-    if (pctx->stroke != NO_COLOR) {
-        cstroke = GrAllocColor2(pctx->stroke);
-        istroke_width = pctx->stroke_width + 0.5;
-        if (istroke_width > 1) {
-            lopt.lno_color = cstroke;
-            lopt.lno_width = istroke_width;
-            lopt.lno_pattlen = 0;
-            lopt.lno_dashpat = NULL;
-            GrCustomPolygon(npoints, points, &lopt);
+        if (r.fill_grd) {
+            GrPatternFilledPolygon(npoints, points, r.fill_grd);
         } else {
-            GrPolygon(npoints, points, cstroke);
+            GrFilledPolygon(npoints, points, r.cfill);
         }
     }
+    if (pctx->stroke != NO_COLOR) {
+        if (r.stroke_grd) {
+            GrPatternedPolygon(npoints, points, &(r.lpat));
+        } else {
+            GrCustomPolygon(npoints, points, &(r.lopt));
+        }
+    }
+    free_renderctx(&r);
 }
 
 static void DrawLineElement(MsvgElement *el, MsvgPaintCtx *pctx)
 {
-    GrColor cstroke;
-    GrLineOption lopt;
-    int istroke_width;
+    RenderCtx r;
     int x1, y1, x2, y2;
 
     get_icoord(&x1, &y1, el->plineattr->x1, el->plineattr->y1);
     get_icoord(&x2, &y2, el->plineattr->x2, el->plineattr->y2);
+    build_renderctx(&r, pctx);
 
     if (pctx->stroke != NO_COLOR) {
-        cstroke = GrAllocColor2(pctx->stroke);
-        istroke_width = pctx->stroke_width + 0.5;
-        if (istroke_width > 1) {
-            lopt.lno_color = cstroke;
-            lopt.lno_width = istroke_width;
-            lopt.lno_pattlen = 0;
-            lopt.lno_dashpat = NULL;
-            GrCustomLine(x1, y1, x2, y2, &lopt);
+        if (r.stroke_grd) {
+            GrPatternedLine(x1, y1, x2, y2, &(r.lpat));
         } else {
-            GrLine(x1, y1, x2, y2, cstroke);
+            GrCustomLine(x1, y1, x2, y2, &(r.lopt));
         }
-    } 
+    }
+    free_renderctx(&r);
 }
 
 static void DrawPolylineElement(MsvgElement *el, MsvgPaintCtx *pctx)
 {
-    GrColor cfill;
-    GrColor cstroke;
-    GrLineOption lopt;
-    int istroke_width;
+    RenderCtx r;
     int i, npoints, (*points)[2];
     
     npoints = el->ppolylineattr->npoints;
@@ -204,66 +258,57 @@ static void DrawPolylineElement(MsvgElement *el, MsvgPaintCtx *pctx)
                    el->ppolylineattr->points[i*2],
                    el->ppolylineattr->points[i*2+1]);
     }
-    
+    build_renderctx(&r, pctx);
+
     if (pctx->fill != NO_COLOR) {
-        cfill = GrAllocColor2(pctx->fill);
-        GrFilledPolygon(npoints, points, cfill);
+        if (r.fill_grd) {
+            GrPatternFilledPolygon(npoints, points, r.fill_grd);
+        } else {
+            GrFilledPolygon(npoints, points, r.cfill);
+        }
     }
     if (pctx->stroke != NO_COLOR) {
-        cstroke = GrAllocColor2(pctx->stroke);
-        istroke_width = pctx->stroke_width + 0.5;
-        if (istroke_width > 1) {
-            lopt.lno_color = cstroke;
-            lopt.lno_width = istroke_width;
-            lopt.lno_pattlen = 0;
-            lopt.lno_dashpat = NULL;
-            GrCustomPolyLine(npoints, points, &lopt);
+        if (r.stroke_grd) {
+            GrPatternedPolyLine(npoints, points, &(r.lpat));
         } else {
-            GrPolyLine(npoints, points, cstroke);
+            GrCustomPolyLine(npoints, points, &(r.lopt));
         }
-    } 
+    }
+    free_renderctx(&r);
     free(points);
 }
 
 static void DrawPolygonElement(MsvgElement *el, MsvgPaintCtx *pctx)
 {
-    GrColor cfill;
-    GrColor cstroke;
-    GrLineOption lopt;
-    int istroke_width;
+    RenderCtx r;
     int i, npoints, (*points)[2];
     
     npoints = el->ppolygonattr->npoints;
     points = calloc(npoints, sizeof(int[2]));
     if (points == NULL) return;
 
-    //printf("begin\n");
     for (i=0; i <npoints; i++) {
         get_icoord(&(points[i][0]), &(points[i][1]),
                    el->ppolygonattr->points[i*2],
                    el->ppolygonattr->points[i*2+1]);
-        //printf("%d %d\n", points[i][0], points[i][1]);
     }
-    //printf("end\n");
-    
+    build_renderctx(&r, pctx);
+
     if (pctx->fill != NO_COLOR) {
-        cfill = GrAllocColor2(pctx->fill);
-        GrFilledPolygon(npoints, points, cfill);
-    }
-    if (pctx->stroke != NO_COLOR) {
-        cstroke = GrAllocColor2(pctx->stroke);
-        istroke_width = pctx->stroke_width + 0.5;
-        //printf("%g %g %d\n", el->pctx.stroke_width, glob_thick1, istroke_width);
-        if (istroke_width > 1) {
-            lopt.lno_color = cstroke;
-            lopt.lno_width = istroke_width;
-            lopt.lno_pattlen = 0;
-            lopt.lno_dashpat = NULL;
-            GrCustomPolygon(npoints, points, &lopt);
+        if (r.fill_grd) {
+            GrPatternFilledPolygon(npoints, points, r.fill_grd);
         } else {
-            GrPolygon(npoints, points, cstroke);
+            GrFilledPolygon(npoints, points, r.cfill);
         }
     }
+    if (pctx->stroke != NO_COLOR) {
+        if (r.stroke_grd) {
+            GrPatternedPolygon(npoints, points, &(r.lpat));
+        } else {
+            GrCustomPolygon(npoints, points, &(r.lopt));
+        }
+    }
+    free_renderctx(&r);
     free(points);
 }
 /*
@@ -338,26 +383,14 @@ static void DrawPathElement(MsvgElement *el, MsvgPaintCtx *pctx)
  * by now we use a hack to detect if a polygon is inside of another one and
  * fill with the backgroud color, at least it works ok drawing glyphs like "ià"
  */
-    GrColor cfill, rcfill, bg;
-    GrColor cstroke;
-    GrLineOption lopt;
-    int istroke_width;
+    RenderCtx r;
+    GrColor rcfill, bg;
     MsvgSubPath *sp;
     GrPath *gp;
     GrExpPointArray *pa, *fpa;
     int x, y, i, inside;
 
-    if (pctx->fill != NO_COLOR) {
-        cfill = GrAllocColor2(pctx->fill);
-    }
-    if (pctx->stroke != NO_COLOR) {
-        cstroke = GrAllocColor2(pctx->stroke);
-        istroke_width = pctx->stroke_width + 0.5;
-        lopt.lno_color = cstroke;
-        lopt.lno_width = istroke_width;
-        lopt.lno_pattlen = 0;
-        lopt.lno_dashpat = NULL;
-    }
+    build_renderctx(&r, pctx);
 
     fpa = NULL;
     bg = glob_bg;
@@ -377,28 +410,34 @@ static void DrawPathElement(MsvgElement *el, MsvgPaintCtx *pctx)
                         inside = GrInsidePolygonTest(fpa->npoints, fpa->points, 
                                                      pa->points[0][0],
                                                      pa->points[0][1]);
-                        rcfill = inside ? bg : cfill;
+                        rcfill = inside ? bg : r.cfill;
                         if (!inside) {
                             GrDestroyExpPointArray(fpa);
                             fpa = NULL;
                         }
                     } else {
-                        bg = GrPixel(pa->points[0][0], pa->points[0][1]);
-                        rcfill = cfill;
+                        //bg = GrPixel(pa->points[0][0], pa->points[0][1]);
+                        rcfill = r.cfill;
                     }
-                    GrFilledPolygon(pa->npoints, pa->points, rcfill);
+                    if (r.fill_grd) {
+                        GrPatternFilledPolygon(pa->npoints, pa->points, r.fill_grd);
+                    } else {
+                        GrFilledPolygon(pa->npoints, pa->points, rcfill);
+                    }
                 }
                 if (pctx->stroke != NO_COLOR) {
                     if (pa->closed) {
-                        if (istroke_width > 1)
-                            GrCustomPolygon(pa->npoints, pa->points, &lopt);
-                        else
-                            GrPolygon(pa->npoints, pa->points, cstroke);
+                        if (r.stroke_grd) {
+                            GrPatternedPolygon(pa->npoints, pa->points, &(r.lpat));
+                        } else {
+                            GrCustomPolygon(pa->npoints, pa->points, &(r.lopt));
+                        }
                     } else {
-                        if (istroke_width > 1)
-                            GrCustomPolyLine(pa->npoints, pa->points, &lopt);
-                        else
-                            GrPolyLine(pa->npoints, pa->points, cstroke);
+                        if (r.stroke_grd) {
+                            GrPatternedPolyLine(pa->npoints, pa->points, &(r.lpat));
+                        } else {
+                            GrCustomPolyLine(pa->npoints, pa->points, &(r.lopt));
+                        }
                     }
                 }
                 if (!fpa) {
@@ -415,6 +454,7 @@ static void DrawPathElement(MsvgElement *el, MsvgPaintCtx *pctx)
     if (fpa) {
         GrDestroyExpPointArray(fpa);
     }
+    free_renderctx(&r);
 }
 
 static void sufn(MsvgElement *el, MsvgPaintCtx *pctx, void *udata)
@@ -548,12 +588,12 @@ int GrDrawSVGtree(MsvgElement *root, GrSVGDrawMode *sdm)
     TMMpy(&taux1, &taux3, &taux2);
 
     TMSetTranslation(&taux2, -root->psvgattr->vb_min_x, -root->psvgattr->vb_min_y);
-    TMMpy(&taux3, &taux1, &taux2);
+    TMMpy(&glob_tuser, &taux1, &taux2);
 
     tsave = root->pctx->tmatrix;
-    TMMpy(&(root->pctx->tmatrix), &taux3, &tsave);
+    TMMpy(&(root->pctx->tmatrix), &glob_tuser, &tsave);
 
-    ret = MsvgSerCookedTree(root, sufn, NULL);
+    ret = MsvgSerCookedTree(root, sufn, NULL, 1);
     root->pctx->tmatrix = tsave;
     if (ret != 1) return -6;
 
