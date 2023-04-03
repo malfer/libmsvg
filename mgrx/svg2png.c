@@ -5,7 +5,8 @@
  *
  * In the future this will be added to MGRX, this is why the LGPL is aplied
  *
- * Copyright (C) 2022 Mariano Alvarez Fernandez (malfer at telefonica.net)
+ * Copyright (C) 2022-2023 Mariano Alvarez Fernandez
+ * (malfer at telefonica.net)
  *
  * This is a test file of the libmsvg+MGRX libraries.
  * libmsvg+MGRX test files are in the Public Domain, this apply only to test
@@ -163,6 +164,8 @@ int main(int argc,char **argv)
     printf("FrameDriver: %s\n", GrFrameDriverName(GrScreenFrameMode()));
 
     ReplaceTextByPaths(root);
+    MsvgNormalizeRawGradients(root);
+
     error = GrDrawSVGtree(root, &sdm);
     if (error) {
         printf("Error %d rendering %s\n", error, argv[0]);

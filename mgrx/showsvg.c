@@ -5,7 +5,7 @@
  *
  * In the future this will be added to MGRX, this is why the LGPL is aplied
  *
- * Copyright (C) 2010, 2020-2022 Mariano Alvarez Fernandez
+ * Copyright (C) 2010, 2020-2023 Mariano Alvarez Fernandez
  * (malfer at telefonica.net)
  *
  * This is a test file of the libmsvg+MGRX libraries.
@@ -164,6 +164,7 @@ int main(int argc,char **argv)
     }
 
     ReplaceTextByPaths(root);
+    MsvgNormalizeRawGradients(root);
 
     // set default driver and ask for user window resize if it is supported
     GrSetDriverExt(NULL, "rszwin");

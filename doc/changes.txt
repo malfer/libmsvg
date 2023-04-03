@@ -1,3 +1,7 @@
+2023-04-03
+    The MGRX test programs showsvg and svg2png call MsvgNormalizeRawGradients
+    before render.
+    Added some gradient examples to svgpic subdir.
 2023-04-01
     The MGRX test programs can render now gradients.
 2023-04-01
