@@ -256,7 +256,7 @@ int main(int argc,char **argv)
                 else if (ev.p1 == GrKey_Up)  sdm.ydespl -= 10;
                 else if (ev.p1 == GrKey_Down)  sdm.ydespl += 10;
                 else if (ev.p1 == 'z') {
-                    sdm.bg = GrBlack();
+                    sdm.bg = GrWhite();
                     sdm.mode = SVGDRAWMODE_PAR;
                     sdm.adj = SVGDRAWADJ_LEFT;
                     sdm.zoom = 1.0;

@@ -6,9 +6,9 @@
 </head>
 
 <body>
-<h1>libmsvg v0.72</h1>
+<h1>libmsvg v0.80</h1>
 <h2>Programmer's guide</h2>
-<p>Last update: December 11, 2022</p>
+<p>Last update: April 1, 2023</p>
 
 <hr>
 <h2>Abstract</h2>
@@ -40,6 +40,7 @@ There are also a large number of introductory texts on the Internet.</p>
 <li><a href="#finding">Finding elements in a MsvgElement tree</a>
 <li><a href="#tmatrix">Working with cooked transformation matrix</a>
 <li><a href="#serialize">Serialize a COOKED MsvgElement tree</a>
+<li><a href="#bpserv">Binary paint servers</a>
 <li><a href="#text2path">Converting text elements to path elements</a>
 <li><a href="#path2poly">Converting path elements to poly elements</a>
 <li><a href="#writing">Writing SVG files</a>
@@ -168,7 +169,7 @@ elements that can be its children:
     EID_G, EID_RECT, EID_CIRCLE, EID_ELLIPSE, EID_LINE, EID_POLYLINE, EID_POLYGON,
     EID_PATH, EID_TEXT and EID_USE.
     <li>EID_RECT, EID_CIRCLE, EID_ELLIPSE, EID_LINE, EID_POLYLINE, EID_POLYGON,
-    EID_PATH and EID_TEXT define things to draw, they can not have children.
+    EID_PATH and EID_TEXT define things to be drawn, they can not have children.
     <li>EID_DEFS can contain elements that are not drawn immediately but can be
     referenced elsewhere in the element tree, also paint server definitions
     such as gradients and finally font definitions. Possible children are:
@@ -203,15 +204,15 @@ ones.</p>
 <h3>The RAW_SVGTREE tree type</h3>
 <p>After a SVG file is loaded to a MsvgElement tree by the MsvgReadSvgFile function
 it is marked as a RAW_SVGTREE. Only the supported elements are inserted in the tree,
-but all the read attributes are stored like raw attributes. This stage of the
-tree can suffice for some programs. Elements and attributes can be added, deleted or
+but all attributes read are stored as raw attributes. This stage of the
+tree may be enough for some programs. Elements and attributes can be added, deleted or
 reordered and finally be written to a file using the MsvgWriteSvgFile function.</p>
 
 <h3>The COOKED_SVGTREE tree type</h3>
 <p>Using the MsvgRaw2CookedTree funtion you
 can convert a MsvgElement tree to the COOKED_SVGTREE type. Only the supported
-attributes are processed and converted to cooked attributes. In this state the tree
-is easier to be manipulated and/or rasterized by a program.</p>
+attributes are processed and converted to cooked attributes. In this stage the tree
+is easier to manipulate and/or to rasterize by a program.</p>
 
 <p>Note that if we have a subtree whose parent is not an EID_SVG element, it is
 up to the programmer to know if it is a raw or cooked subtree.</p>
@@ -300,9 +301,11 @@ typedef struct {
 ttypedef struct _MsvgPaintCtx {
     rgbcolor fill;         /* fill color attribute */
     char *fill_iri;        /* paint server if fill == IRI_COLOR */
+    MsvgBPServerPtr fill_bps; /* binary paint server for fill */
     double fill_opacity;   /* fill-opacity attribute */
     rgbcolor stroke;       /* stroke color attribute */
     char *stroke_iri;      /* paint server if stroke == IRI_COLOR */
+    MsvgBPServerPtr stroke_bps; /* binary paint server for stroke */
     double stroke_width;   /* stroke-width attribute */
     double stroke_opacity; /* stroke-opacity attribute */
     TMatrix tmatrix;       /* transformation matrix */
@@ -316,8 +319,8 @@ ttypedef struct _MsvgPaintCtx {
 </pre>
 
 <p>it is important to note that all attributes in the MsvgPaintCtx can
-be inherited from his father element. This can be doing explicitly with the value
-INHERIT_COLOR (for colors) INHERIT_VALUE (for doubles) or INHERIT_IVALUE
+be inherited from his father element. This can be done explicitly when the value
+is INHERIT_COLOR (for colors) INHERIT_VALUE (for doubles) or INHERIT_IVALUE
 (for ints), that correspond to the raw keyword value "inherit", or implicitly
 when the value is NODEFINED_COLOR (for colors) NODEFINED_VALUE (for doubles)
 or NODEFINED_IVALUE (for ints), that occurs when the raw value is not defined
@@ -330,8 +333,11 @@ to the raw keyword value "none" that means fill or stroke must not be done.</p>
 to the raw keyword value "url(#iri)" that means fill or stroke with the paint
 server referenced, the iri value is stored in fill_iri or stroke_iri.</p>
 
+<p>fill_bps and stroke_bps can point to binary paint server structs, these variables
+are not filled by default and will be discussed later.</p>
+
 <p>tmatrix is special, if undefined it defaults to the identity matrix. Before
-rasterizing any element it is neceary to calculate the Current Transformation
+rasterizing any element it is necesary to calculate the Current Transformation
 Matrix, multiplying all the ancestors transformation matrix in order and
 finally with the own element transformation matrix.</p>
 
@@ -340,10 +346,11 @@ sfont_family, a processed integer based in the raw attribute will be stored in
 ifont_family, aside from INHERIT_IVALUE and NODEFINED_IVALUE it can be one
 of the values defined in msvg.h</p>
 
-<p>Values that can be converted from raw to cooked are listend in Appendix B.</p>
+<p>fill_bps and stroke_bps can hold a binary paint server struct, these variables
+are not populated normally and will be discussed later.</p>
 
 <p>Cooked specific attributes are different for each element type id (with some
-exceptions) and are stored in a union, you can inspect each one in the msvg.h
+exceptions) and are stored in an union, you can inspect each one in the msvg.h
 include file.</p>
 
 <p>Exceptions: EID_DEFS and EID_G don't have specific cooked attributes really,
@@ -351,9 +358,12 @@ in this version of libmsvg they have a dummy one but probably it will be deleted
 in future versions. EID_MISSINGGLYPH share sppecific cooked attributes with
 EID_GLYPH.
 
+<p>Values that can be converted from raw to cooked are listed in
+<a href="#appendixb">Appendix B</a>.</p>
+
 <hr>
 <h2><a name="reading">Reading SVG files</a></h2>
-<p>Using the MsvgReadSvgFile function you load a SVG file in a MsvgElement
+<p>Using the MsvgReadSvgFile function you can load a SVG file in a MsvgElement
 tree.</p>
 
 <pre>
@@ -366,8 +376,8 @@ tree.</p>
 and error will be filled with the error number, so you must check it. Only the
 supported elements are stored in the tree, the not supported ones are silently
 ignored. The tree will be a RAW tree, with all the element attributes stored as
-raw attributes. If you want a COOKED tree you can use the MsvgRaw2CookedTree
-funtion:</p>
+raw attributes. If you want a COOKED tree you need to use the MsvgRaw2CookedTree
+function after reading:</p>
 
 <pre>
     int result;
@@ -384,15 +394,18 @@ call the MsvgDelAllTreeRawAttributes function:</p>
     result = MsvgDelAllTreeRawAttributes(root);
 </pre>
 
-<p>result will be the number of raw parameters deleted.</p>
+<p>result will return the number of raw parameters deleted.</p>
 
 <hr>
 <h2><a name="buildraw">Building a RAW MsvgElement tree by program</a></h2>
 <p>Using only two function we can construct a MsvgElement tree by program. The
 MsvgNewElement function takes two parameters: the element type id and the father
-element, that can be NULL, it returns the pointer to the constructed
-element. The MsvgAddRawAttribute takes three parameters: an element pointer,
-a key and a value.</p>
+element, that can be NULL. It construct an element of the type id requested,
+adds that element to the father linked list of children (if it is not NULL) and
+returns the pointer to the constructed element. If there is any problem, like
+not enough memory or a type id not supported, it returns NULL, so in a real
+program the returned pointer must be checked. The MsvgAddRawAttribute takes
+three parameters: an element pointer, a key and a value.</p>
 <p>Let's see an example. We begin constructing the SVG element passing NULL in
 the father parameter, because it is the root element. By default the tree will be
 RAW_SVGTREE.</p> 
@@ -413,7 +426,9 @@ drawing limits using the MsvgAddRawAttribute function.</p>
     MsvgAddRawAttribute(root, "viewBox", "0 0 400 400");
 </pre>
 
-<p>We continue adding two child elements, a RECT element and a translated G element.</p>
+<p>We continue adding two child elements, a RECT element and a translated G element.
+Note that we can reuse the son variable after adding attributes, because the element
+itself is saved in the father linked list of children.</p>
 
 <pre>
     MsvgElement *son;
@@ -542,7 +557,7 @@ tree, so if you don't need it remeber to call MsvgDeleteElement to delete it.</p
 <h2><a name="finding">Finding elements in a MsvgElement tree</a></h2>
 <h3>Walking a tree</h3>
 <p>Walking a tree, visiting each element is easy using the element pointers,
-but if you prefer you can use a msvg funtion</p>
+but if you prefer you can use a libmsvg funtion</p>
 
 <pre>
 typedef void (*MsvgWalkUserFn)(MsvgElement *el, void *udata);
@@ -595,18 +610,29 @@ MsvgTableId *MsvgBuildTableIdCookedTree(MsvgElement *el);
 MsvgTableId *MsvgBuildTableIdRawTree(MsvgElement *el);
 </pre>
 
-<p>After that you can use next function to find elements (it does an
+<p>After that you can use the next function to find elements (it does an
 efficient binary search):</p>
 <pre>
 MsvgElement *MsvgFindIdTableId(const MsvgTableId *tid, char *id);
 </pre>
 
 <p>Note that if you add or delete elements in the tree you have to build
-a new MsvgTableId structure. when it is no longer necessary use next function
-to free memory:</p>
+a new MsvgTableId structure. when it is no longer necessary use the function
+bellow to free memory:</p>
 <pre>
 void MsvgDestroyTableId(MsvgTableId *tid);
 </pre>
+
+<h3>Calculating the image dimensions</h3>
+<p>Sometimes the image dimensions declared in the EID_SVG are incorrect, if
+necesary you can use the next function to have a rough estimation:</p>
+<pre>
+int MsvgGetCookedDims(MsvgElement *root, double *minx, double *maxx,
+                      double *miny, double *maxy);
+</pre>
+Internally this function serialize a cooked tree, do all necesary coordinate
+transformation and returns the max and min coordinates found. We will speak
+about serialization later.</p>
 
 <hr>
 <h2><a name="tmatrix">Working with cooked transformation matrix</a></h2>
@@ -635,8 +661,8 @@ void TMTransformCoord(double *x, double *y, const TMatrix *ctm);
 </pre>
 
 <p>TMSetIdentity stores in des the identity matrix (1 0 0 1 0 0)<br>
-TMIsIdentity returns 1 if it is the identity matrix<br>
-TMHaveRotation returns 1 if it includes a rotation (b or c != 0)<br>
+TMIsIdentity returns 1 if t is the identity matrix<br>
+TMHaveRotation returns 1 if t includes a rotation (b or c != 0)<br>
 TMSetFromArray set des from the double array p of dimension 6<br>
 TMMpy multiply op1 by op2 and stores the result in des<br>
 TMSetTranslation sets des with a traslation<br>
@@ -651,7 +677,7 @@ TMTransformCoord changes x, y coordinates using ctm<br>
 this function is the easier way to rasterize a MsvgElement tree.</p>
 
 <pre>
-int MsvgSerCookedTree(MsvgElement *root, MsvgSerUserFn sufn, void *udata);
+int MsvgSerCookedTree(MsvgElement *root, MsvgSerUserFn sufn, void *udata, int genbps);
 </pre>
 
 <p>this function will process the tree and call the supply user function
@@ -672,6 +698,10 @@ with the referenced element (that can be a subtree).</p>
 
 <p>When calling MsvgSerCookedTree a pointer to a user-data variable can be provided,
 that will be passed to the supply user function.</p>
+
+<p>The genbps parameter indicates to generate or not binary paint servers when
+possible and link there to the pctx struct passed to the user function, we will speak
+later about this.</p>
 
 <p>Another function that libmsvg provides can be called by the user function:</p>
 
@@ -748,9 +778,88 @@ static void userfn(MsvgElement *el, MsvgPaintCtx *pctx, void *udata)
 ...
 // set the graphics coordinates using the information in the EID_SVG element
 ...
-    MsvgSerCookedTree(root, userfn, NULL);
+    MsvgSerCookedTree(root, userfn, NULL, 0);
 ...
 </pre>
+
+<hr>
+<h2><a name="bpserv">Binary paint servers</a></h2>
+<p>To help a graphics library to rasterize gradients libmsvg includes a struct
+that can hold a binary representation of a gradient:</p>
+
+<pre>
+/* binary paint servers types */
+
+#define BPSERVER_LINEARGRADIENT 1
+#define BPSERVER_RADIALGRADIENT 2
+
+/* max stops a binary gradient can have */
+
+#define BGRADIENT_MAXSTOPS 10
+
+/* binary paint server struct */
+
+typedef struct _MsvgBGradientStops {
+    int nstops;                             /* num stops */
+    double offset[BGRADIENT_MAXSTOPS];      /* offset [0..1] */
+    double sopacity[BGRADIENT_MAXSTOPS];    /* stop opacity attribute */
+    rgbcolor scolor[BGRADIENT_MAXSTOPS];    /* stop color attribute */
+} MsvgBGradientStops;
+
+typedef struct _MsvgBLinearGradient {
+    int gradunits;      /* Gradient units */
+    double x1;          /* grad vector x1 coordinate */
+    double y1;          /* grad vector y1 coordinate */
+    double x2;          /* grad vector x2 coordinate */
+    double y2;          /* grad vector y2 coordinate */
+    MsvgBGradientStops stops;  /* stops data */
+} MsvgBLinearGradient;
+
+typedef struct _MsvgBRadialGradient {
+    int gradunits;      /* Gradient units */
+    double cx;          /* x center coordinate */
+    double cy;          /* y center coordinate */
+    double r;           /* radius */
+    MsvgBGradientStops stops;  /* stops data */
+} MsvgBRadialGradient;
+
+typedef struct _MsvgBPServer {
+    int type;
+    union {
+        MsvgBLinearGradient blg;
+        MsvgBRadialGradient brg;
+    };
+} MsvgBPServer;
+</pre>
+
+<p>You can create a binary paint server from a cooked EID_LINEARGRADIENT or
+EID_RADIALGRADIENT element and their EID_STOP children:</p>
+<pre>
+MsvgBPServer *MsvgNewBPServer(MsvgElement *el);
+</pre>
+<p>And destroy it when you don't need it anymore:</p>
+<pre>
+void MsvgDestroyBPServer(MsvgBPServer *bps);
+</pre>
+<p>There is a special function that, given the bounding box of an element and
+its transformation matrix, calculates the real units of the gradient (if these
+are GRADUNIT_BBOX), and then transforms them according to the matrix. Both bbox
+or t can be NULL and the corresponding operation is not applied.</p>
+<pre>
+int MsvgCalcUnitsBPServer(MsvgBPServer *bps, MsvgBox *bbox, TMatrix *t);
+</pre>
+
+<h3>Automatic generation of binary paint servers when serializing</h3>
+<p>Remember the MsvgSerCookedTree genbps parameter? If it is true (not 0) the
+function will generate binary paint servers and populates the fill_bps and
+stroke_bps variables of the MsvgPaintCtx struct passed to the user function
+when possible. Namelly if the fill variable value is IRI_COLOR and it is found
+a corresponding gradient element to the fill_iri variable the fill_bps variable
+will be filled with a point to the generate binary paint server. The same for the
+stroke variable. After that if we call MsvgTransformCookedElement in the user
+function it will recognize the variables and will call MsvgCalcUnitsBPServer with
+the element properties, so that the binary paint servers are ready for the graphics
+library to render.</p>
 
 <hr>
 <h2><a name="text2path">Converting text elements to path elements</a></h2>
@@ -758,9 +867,9 @@ static void userfn(MsvgElement *el, MsvgPaintCtx *pctx, void *udata)
 instead they recommend to use external fonts. The result is that drawing text
 elements in a svg file is not predictable, it depends of the render program and
 the fonts instaled in the rendering machine. Even if you provides a svg font
-in your svg file and point text elements to that font most svg renderer programs
+in your svg file and point text elements to that font most svg render programs
 use external fonts. Anyway one thing you can do is to convert text elements to
-path elements before render. Msvg provides some functions to help do that.</p>
+path elements before render. libsvg provides some functions to help do that.</p>
 
 <h3>Create a MsvgBFont structure</h3>
 <p>Msvg provides the MsvgBFont structure to hold a binary representation for a
@@ -771,7 +880,7 @@ MsvgBFont *MsvgNewBFont(MsvgElement *el);
 void MsvgDestroyBFont(MsvgBFont *bfont);
 </pre>
 <p>MsvgNewBFont cretes a new MsvgBFont from an EID_FONT element. It the element
-is not a EID_FONT element or there are problems creating the struct it returns
+is not an EID_FONT element or there are problems creating the struct it returns
 NULL. Use MsvgDestroyBFont to destroy the MsvgBFont when you don't need it
 anymore</p>
 
@@ -779,7 +888,7 @@ anymore</p>
 <pre>
 MsvgElement *MsvgCharToPath(long unicode, double font_size, double *advx, MsvgBFont *bfont);
 </pre>
-<p>This function return a EID_PATH element for the unicode char and the bfont
+<p>This function return an EID_PATH element for the unicode char and the bfont
 provided, it needs the required font_size too and returns in advx the advance
 distance necesary to draw the next character.</p>
 
@@ -818,7 +927,7 @@ by example:
  </pre>
 
 <h3>SVG fonts</h3>
-<p>Obviusly to make use of the above functions you need SVG fonts, linmsvg came with some
+<p>Obviusly to make use of the above functions you need SVG fonts, libmsvg came with some
 SVG fonts in the "gfont" subdirectory, they are subsets (covering Latin, Greek, Cyrilic
 and some other chars) of the Free GNU Fonts, but they are not part of libmsvg really,
 like the original ones they are covered by the GPLv3 but with an exception that let you
@@ -1710,7 +1819,8 @@ to the Tiny 1.2 specs:</p>
 <pre>
 int MsvgNormalizeRawGradients(MsvgElement *el);
 </pre>
-<p>Call it after reading a svg file and before cooking the tree.</p>
+<p>Call it on the root element after reading a svg file and before cooking the tree.
+The function returns the number of gradients normalized.</p>
 
 </body>
 </html>

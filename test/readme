@@ -31,3 +31,8 @@ tfont file.svg [font.svg] -> load the internal svg fonts in "file.svg", load the
 tpa2poly file.svg -> read the svg file, find <path> elements and change them by
                      groups of <polygon> or <polyline> elements and finally write
                      "msvgt6.svg"
+
+tbpsrv [-ng] file.svg -> read the svg file, convert to cooked, find gradients and
+                         generate binary paint servers
+                         if "-ng" is provided MsvgNormalizeRawGradients
+                           is called before converting to cooked tree
