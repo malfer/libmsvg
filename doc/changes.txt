@@ -1,3 +1,10 @@
+2023-04-10
+    In the GD example programs use the gdImageSX and gdImageSY funtions to
+    get the image dimensions.
+2023-04-11
+    The MGRX example programs are using the new multi-polygon functions in
+    MGRX v1.4.3 if available, so paths with multiple subpaths are filled at
+    once like it must be.
 2023-04-03
     Updated docs to v0.80
 2023-04-03
