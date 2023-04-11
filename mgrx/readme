@@ -6,6 +6,9 @@ you can use it as an example of how render svg files using libmsvg and a specifi
 graphics library.
 
 To make the example programs you need both libmsvg and mgrx installed first.
+MGRX version >= 1.35 is needed, because we need gradients, better use MGRX >= 1.43
+to have multipolygons so we be able to fill paths with multiple subpaths at once.
+
 Them do that:
 
 Linux X11:

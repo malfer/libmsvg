@@ -5,7 +5,7 @@
  *
  * In the future this will be added to MGRX, this is why the LGPL is aplied
  *
- * Copyright (C) 2010, 2020-2022 Mariano Alvarez Fernandez
+ * Copyright (C) 2010, 2020-2023 Mariano Alvarez Fernandez
  * (malfer at telefonica.net)
  *
  * This source is free software; you can redistribute it and/or
@@ -33,6 +33,10 @@
 #include <msvg.h>
 #include "rendmgrx.h"
 #include "pathmgrx.h"
+
+#if MGRX_VERSION_API < 0x0135
+    #error "MGRX version >= 1.35 is nedded, better >= 1.43"
+#endif
 
 typedef struct {
     GrColor cfill;
@@ -311,35 +315,29 @@ static void DrawPolygonElement(MsvgElement *el, MsvgPaintCtx *pctx)
     free_renderctx(&r);
     free(points);
 }
-/*
+
+#if MGRX_VERSION_API >= 0x0143
 static void DrawPathElement(MsvgElement *el, MsvgPaintCtx *pctx)
 {
-    GrColor cfill, rcfill;
-    GrColor cstroke;
-    GrLineOption lopt;
-    int istroke_width;
+/* we have MGRX multipolygons :-) */
+    RenderCtx r;
     MsvgSubPath *sp;
     GrPath *gp;
     GrExpPointArray *pa;
-    int x, y, i;
-    int changercfill = 0;
+    int x, y, i, k, nsp;
+    GrMultiPointArray *mpa = NULL;
 
-    if (pctx->fill != NO_COLOR) {
-        cfill = GrAllocColor2(pctx->fill);
-        rcfill = cfill;
-        changercfill = 1;
-    }
-    if (pctx->stroke != NO_COLOR) {
-        cstroke = GrAllocColor2(pctx->stroke);
-        istroke_width = pctx->stroke_width + 0.5;
-        lopt.lno_color = cstroke;
-        lopt.lno_width = istroke_width;
-        lopt.lno_pattlen = 0;
-        lopt.lno_dashpat = NULL;
-    }
+    nsp = MsvgCountSubPaths(el->ppathattr->sp);
+    if (nsp < 1) return;
+
+    mpa = malloc(sizeof(GrMultiPointArray)+sizeof(GrPointArray)*(nsp-1));
+    if (mpa == NULL) return;
+    mpa->npa = nsp;
 
     sp = el->ppathattr->sp;
-    while (sp) {
+    for (k=0; k<nsp; k++) {
+        mpa->p[k].npoints = 0;
+        mpa->p[k].points = NULL;
         gp = GrNewPath(sp->npoints);
         if (gp) {
             for (i=0; i< sp->npoints; i++) {
@@ -349,39 +347,58 @@ static void DrawPathElement(MsvgElement *el, MsvgPaintCtx *pctx)
             gp->closed = sp->closed;
             pa = GrPathToExpPointArray2(gp);
             if (pa) {
-                if (pctx->fill != NO_COLOR) {
-                    GrFilledPolygon(pa->npoints, pa->points, rcfill);
-                }
-                if (pctx->stroke != NO_COLOR) {
-                    if (pa->closed) {
-                        if (istroke_width > 1)
-                            GrCustomPolygon(pa->npoints, pa->points, &lopt);
-                        else
-                            GrPolygon(pa->npoints, pa->points, cstroke);
-                    } else {
-                        if (istroke_width > 1)
-                            GrCustomPolyLine(pa->npoints, pa->points, &lopt);
-                        else
-                            GrPolyLine(pa->npoints, pa->points, cstroke);
-                    }
-                }
-                GrDestroyExpPointArray(pa);
+                mpa->p[k].npoints = pa->npoints;
+                mpa->p[k].closed = pa->closed;
+                mpa->p[k].points = pa->points;
+                free(pa); // we don't free pa->points!!
             }
             GrDestroyPath(gp);
         }
-        if (changercfill) {
-            rcfill = glob_bg;
-            changercfill = 0;
-        }
         sp = sp->next;
     }
+
+    build_renderctx(&r, pctx);
+
+    if (pctx->fill != NO_COLOR) {
+        if (r.fill_grd) {
+            GrPatternFilledMultiPolygon(mpa, r.fill_grd);
+        } else {
+            GrFilledMultiPolygon(mpa, r.cfill);
+        }
+    }
+
+    if (pctx->stroke != NO_COLOR) {
+        for (k=0; k<nsp; k++) {
+            if (mpa->p[k].closed) {
+                if (r.stroke_grd) {
+                    GrPatternedPolygon(mpa->p[k].npoints, mpa->p[k].points, &(r.lpat));
+                } else {
+                    GrCustomPolygon(mpa->p[k].npoints, mpa->p[k].points, &(r.lopt));
+                }
+            } else {
+                if (r.stroke_grd) {
+                    GrPatternedPolyLine(mpa->p[k].npoints, mpa->p[k].points, &(r.lpat));
+                } else {
+                    GrCustomPolyLine(mpa->p[k].npoints, mpa->p[k].points, &(r.lopt));
+                }
+            }
+        }
+    }
+
+    for (k=0; k<nsp; k++)
+        if (mpa->p[k].points) free(mpa->p[k].points);
+    free(mpa);
+
+    free_renderctx(&r);
 }
-*/
+
+#else
+
 static void DrawPathElement(MsvgElement *el, MsvgPaintCtx *pctx)
 {
-/* we really need here to modify MGRX to be able to fill multipolygons at once,
- * by now we use a hack to detect if a polygon is inside of another one and
- * fill with the backgroud color, at least it works ok drawing glyphs like "ià"
+/* if we don't have MGRX multipolygons we use a hack to detect if a polygon is
+ * inside of another one and fill with the backgroud color, at least it works
+ * ok drawing glyphs like "ià"
  */
     RenderCtx r;
     GrColor rcfill, bg;
@@ -457,18 +474,14 @@ static void DrawPathElement(MsvgElement *el, MsvgPaintCtx *pctx)
     free_renderctx(&r);
 }
 
+#endif
+
 static void sufn(MsvgElement *el, MsvgPaintCtx *pctx, void *udata)
 {
     MsvgElement *newel;
-    //MsvgElement *newel2;
-    //int i, nsp;
 
-    //printf("id %s\n", el->id);
-    //MsvgPrintCookedElement(stdout, el);
     newel = MsvgTransformCookedElement(el, pctx, 0);
     if (newel == NULL) return;
-    //printf("after\n");
-    //MsvgPrintCookedElement(stdout, newel);
 
     switch (newel->eid) {
         case EID_RECT :
@@ -491,17 +504,6 @@ static void sufn(MsvgElement *el, MsvgPaintCtx *pctx, void *udata)
             break;
         case EID_PATH :
             DrawPathElement(newel, newel->pctx);
-            /*nsp = MsvgCountSubPaths(newel->ppathattr->sp);
-            for (i=0; i<nsp; i++) {
-                newel2 = MsvgPathEltoPolyEl(newel, i, 4);
-                if (newel2) {
-                    if (newel2->eid == EID_POLYGON)
-                        DrawPolygonElement(newel2, &(newel2->pctx));
-                    else if (newel2->eid == EID_POLYLINE)
-                        DrawPolylineElement(newel2, &(newel2->pctx));
-                    MsvgDeleteElement(newel2);
-                }
-            }*/
             break;
         default :
             break;
