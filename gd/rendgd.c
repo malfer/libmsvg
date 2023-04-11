@@ -3,7 +3,8 @@
  * This is a dirty hack to test the libmsvg librarie with the GD
  * graphics library. It is NOT part of the libmsvg librarie really.
  *
- * Copyright (C) 2022 Mariano Alvarez Fernandez (malfer at telefonica.net)
+ * Copyright (C) 2022-2023 Mariano Alvarez Fernandez
+ * (malfer at telefonica.net)
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -356,18 +357,18 @@ int GDDrawSVGtree(MsvgElement *root, GDSVGDrawMode *sdm, gdImagePtr im)
 
     switch (sdm->mode) {
         case SVGDRAWMODE_FIT :
-            scale_x = rvb_width / sdm->width;
-            scale_y = rvb_height / sdm->height;
+            scale_x = rvb_width / gdImageSX(im);
+            scale_y = rvb_height / gdImageSY(im);
             break;
         case SVGDRAWMODE_PAR :
-            ratiow = sdm->width / rvb_width;
-            ratioh = sdm->height / rvb_height;
+            ratiow = gdImageSX(im) / rvb_width;
+            ratioh = gdImageSY(im) / rvb_height;
             if (ratiow > ratioh) {
-                scale_x = rvb_height / sdm->height;
-                scale_y = rvb_height / sdm->height;
+                scale_x = rvb_height / gdImageSY(im);
+                scale_y = rvb_height / gdImageSY(im);
             } else {
-                scale_x = rvb_width / sdm->width;
-                scale_y = rvb_width / sdm->width;
+                scale_x = rvb_width / gdImageSX(im);
+                scale_y = rvb_width / gdImageSX(im);
             }
             break;
         case SVGDRAWMODE_SCOORD :
@@ -382,21 +383,21 @@ int GDDrawSVGtree(MsvgElement *root, GDSVGDrawMode *sdm, gdImagePtr im)
         glob_xorg = 0;
         glob_yorg = 0;
     } else if (sdm->adj == SVGDRAWADJ_CENTER) {
-        glob_xorg = (sdm->width - rvb_width * sdm->zoom / scale_x) / 2;
-        glob_yorg = (sdm->height - rvb_height * sdm->zoom / scale_y) / 2;
+        glob_xorg = (gdImageSX(im) - rvb_width * sdm->zoom / scale_x) / 2;
+        glob_yorg = (gdImageSY(im) - rvb_height * sdm->zoom / scale_y) / 2;
     } else if (sdm->adj == SVGDRAWADJ_RIGHT) {
-        glob_xorg = (sdm->width - rvb_width * sdm->zoom / scale_x);
-        glob_yorg = (sdm->height - rvb_height * sdm->zoom / scale_y);
+        glob_xorg = (gdImageSX(im) - rvb_width * sdm->zoom / scale_x);
+        glob_yorg = (gdImageSY(im) - rvb_height * sdm->zoom / scale_y);
     } else
         return -5;
 
     glob_bg = sdm->bg;
     if (root->psvgattr->vp_fill != NO_COLOR) {
         cfill = root->psvgattr->vp_fill;
-        gdImageFilledRectangle(glob_im, 0, 0, sdm->width-1, sdm->height-1, cfill);
+        gdImageFilledRectangle(glob_im, 0, 0, gdImageSX(im)-1, gdImageSY(im)-1, cfill);
         glob_bg = cfill;
     } else if (sdm->bg != NO_COLOR) {
-        gdImageFilledRectangle(glob_im, 0, 0, sdm->width-1, sdm->height-1, sdm->bg);
+        gdImageFilledRectangle(glob_im, 0, 0, gdImageSX(im)-1, gdImageSY(im)-1, sdm->bg);
     }
 
     TMSetTranslation(&taux1, sdm->xdespl, sdm->ydespl);

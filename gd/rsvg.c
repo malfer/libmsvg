@@ -57,11 +57,11 @@ static int TestFunc(gdImagePtr im, GDSVGDrawMode *sdm)
 int main(int argc,char **argv)
 {
     gdImagePtr im;
-    GDSVGDrawMode sdm = {500, 1000, SVGDRAWMODE_FIT, SVGDRAWADJ_LEFT, 1.0, 0, 0, 0, 0};
+    GDSVGDrawMode sdm = {SVGDRAWMODE_FIT, SVGDRAWADJ_LEFT, 1.0, 0, 0, 0, 0};
     FILE *pngout;
     int ret;
 
-    im = gdImageCreateTrueColor(sdm.width, sdm.height);
+    im = gdImageCreateTrueColor(500, 1000);
     if (im == NULL) {
         printf("Error creating GD image\n");
         return 1;

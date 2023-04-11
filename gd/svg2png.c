@@ -108,11 +108,13 @@ static void ReplaceTextByPaths(MsvgElement *root)
 
 int main(int argc,char **argv)
 {
-    GDSVGDrawMode sdm = {0, 0, SVGDRAWMODE_PAR, SVGDRAWADJ_LEFT, 1.0, 0, 0, 0, 0xFFFFFF};
+    GDSVGDrawMode sdm = {SVGDRAWMODE_PAR, SVGDRAWADJ_LEFT, 1.0, 0, 0, 0, 0xFFFFFF};
     MsvgElement *root;
     int error;
     gdImagePtr im;
     FILE *pngout;
+    int width = 0;
+    int height = 0;
 
     // Get parameters
     if (argc > 0) {
@@ -123,8 +125,8 @@ int main(int argc,char **argv)
     while (argc > 0 && argv[0][0] == '-') {
         if (strcmp(argv[0], "-gd") == 0) {
             if (argc > 2) {
-                sdm.width = atoi(argv[1]);
-                sdm.height = atoi(argv[2]);
+                width = atoi(argv[1]);
+                height = atoi(argv[2]);
                 argv += 2;
                 argc -= 2;
             }
@@ -161,13 +163,13 @@ int main(int argc,char **argv)
         printf("Error cooking root element\n");
         return EXIT_FAILURE;
     }
-    if (sdm.width == 0 || sdm.height == 0) {
-        sdm.width = root->psvgattr->vb_width;
-        sdm.height = root->psvgattr->vb_height;
+    if (width == 0 || height == 0) {
+        width = root->psvgattr->vb_width;
+        height = root->psvgattr->vb_height;
     }
 
     // Create the image and do the magic
-    im = gdImageCreateTrueColor(sdm.width, sdm.height);
+    im = gdImageCreateTrueColor(width, height);
     if (im == NULL) {
         printf("Error creating GD image\n");
         return EXIT_FAILURE;
