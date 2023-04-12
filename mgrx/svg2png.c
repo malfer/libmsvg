@@ -3,8 +3,6 @@
  * This is a dirty hack to test the libmsvg librarie with the MGRX
  * graphics library. It is NOT part of the libmsvg librarie really.
  *
- * In the future this will be added to MGRX, this is why the LGPL is aplied
- *
  * Copyright (C) 2022-2023 Mariano Alvarez Fernandez
  * (malfer at telefonica.net)
  *
@@ -118,6 +116,25 @@ int main(int argc,char **argv)
                 argv += 2;
                 argc -= 2;
             }
+        } if (strcmp(argv[0], "-z") == 0) {
+            if (argc > 1) {
+                sdm.zoom = atof(argv[1]);
+                argv += 1;
+                argc -= 1;
+            }
+        } if (strcmp(argv[0], "-rt") == 0) {
+            if (argc > 1) {
+                sdm.rotang = atof(argv[1]);
+                argv += 1;
+                argc -= 1;
+            }
+        } if (strcmp(argv[0], "-dp") == 0) {
+            if (argc > 2) {
+                sdm.xdespl = atof(argv[1]);
+                sdm.ydespl = atof(argv[2]);
+                argv += 2;
+                argc -= 2;
+            }
         } else if (strcmp(argv[0], "-f") == 0) {
             sdm.mode = SVGDRAWMODE_FIT;
         } else if (strcmp(argv[0], "-p") == 0) {
@@ -136,7 +153,8 @@ int main(int argc,char **argv)
     }
 
     if (argc < 2) {
-        printf("Usage: svg2png [-f|p|s] [-l|c|r] [-gd width height] file.svg file.png\n");
+        printf("Usage: svg2png [-f|p|s] [-l|c|r] [-gd width height] [-z zoom]\n");
+        printf("               [-rt angle] [-dp xdespl ydespl] file.svg file.png\n");
         return EXIT_FAILURE;
     }
 

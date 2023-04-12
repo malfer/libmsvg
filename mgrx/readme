@@ -1,13 +1,14 @@
-Files in this directory are test programs to render svg files using the mgrx
+Files in this directory are test programs to render svg files using the MGRX
 graphics library (http://mgrx.fgrim.com) and libmsvg of course.
 
-They are not part of libmsvg really, some day they will be added to mgrx, but
+They are not part of libmsvg really, some day they will be added to MGRX, but
 you can use it as an example of how render svg files using libmsvg and a specific
 graphics library.
 
-To make the example programs you need both libmsvg and mgrx installed first.
+To make the example programs you need both libmsvg and MGRX installed first.
 MGRX version >= 1.35 is needed, because we need gradients, better use MGRX >= 1.43
 to have multipolygons so we be able to fill paths with multiple subpaths at once.
+Opacity is not taken into account by now.
 
 Them do that:
 
@@ -52,13 +53,17 @@ showsvg -> is a more elaborated svg visor that can zoomm and rotate,
            run it by: showsvg filename.svg [width height bpp]
            for example: showsvg ../svgpics/gtiger.svg
 svg2png -> generates a png file from a svg one
-           run it with: svg2png [-f|p|s] [-l|c|r] [-gd width height] file.svg file.png
+           run it with: svg2png [-f|p|s] [-l|c|r] [-gd width height] [-z zoom]
+                                [-rt angle] [-dp xdespl ydespl] file.svg file.png
            file.svg will be rendered to file.png
            options:
                 -f|p|s => FIT, PAR(default) or SCOORD
                 -l|c|r => LEFT(default), CENTER or RIGHT
                 -gd width height => use the given dimensions for the output file,
                                     by default it uses the svg file dimensions
+                -z zoom => apply a zoom before rendering
+                -rt angle => apply a rotation before rendering
+                -dp xdespl y despl => apply a displacement begore rendering
            example: ./svg2png ../svgpics/gtiger.svg gtiger.png
 
 License

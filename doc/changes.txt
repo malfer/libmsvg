@@ -1,3 +1,7 @@
+2023-04-12
+    Added -z -rt and -dp parameters to gd/svg2png.c and mgrx/svg2png.c
+    in GD rendering use a gray color when a gradient is nedeed for fill or stroke.
+    in GD rendering calculate the pixel per unit instead of using a fixed value.
 2023-04-10
     In the GD example programs use the gdImageSX and gdImageSY funtions to
     get the image dimensions.

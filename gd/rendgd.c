@@ -39,6 +39,7 @@
 
 static double glob_xorg;
 static double glob_yorg;
+static double glob_px_x_unit;
 static int glob_bg;
 static gdImagePtr glob_im;
 
@@ -74,89 +75,11 @@ static void DrawRectElement(MsvgElement *el, MsvgPaintCtx *pctx)
 }
 
 static void DrawCircleElement(MsvgElement *el, MsvgPaintCtx *pctx)
-{/*
-    GrColor cfill;
-    GrColor cstroke;
-    GrLineOption lopt;
-    int istroke_width;
-    int cx, cy, rx, ry;
-
-    get_icoord(&cx, &cy, el->pcircleattr->cx, el->pcircleattr->cy);
-    rx = el->pcircleattr->r + 0.5;
-    ry = el->pcircleattr->r + 0.5;
-    
-    if (pctx->fill != NO_COLOR) {
-        cfill = GrAllocColor2(pctx->fill);
-        GrFilledEllipse(cx, cy, rx, ry, cfill);
-    }
-    if (pctx->stroke != NO_COLOR) {
-        cstroke = GrAllocColor2(pctx->stroke);
-        istroke_width = pctx->stroke_width + 0.5;
-        if (istroke_width > 1) {
-            lopt.lno_color = cstroke;
-            lopt.lno_width = istroke_width;
-            lopt.lno_pattlen = 0;
-            lopt.lno_dashpat = NULL;
-            GrCustomEllipse(cx, cy, rx, ry, &lopt);
-        } else {
-            GrEllipse(cx, cy, rx, ry, cstroke);
-        }
-    } */
+{
 }
 
 static void DrawEllipseElement(MsvgElement *el, MsvgPaintCtx *pctx)
-{/*
-    GrColor cfill;
-    GrColor cstroke;
-    GrLineOption lopt;
-    int istroke_width;
-    int points[GR_MAX_ELLIPSE_POINTS][2];
-    int npoints;
-    int i, x, y;
-    double rx, ry, d1, d2;
-    double rotang, sinang, cosang;
-    int icx, icy, irx, iry;
-
-    d1 = el->pellipseattr->rx_x - el->pellipseattr->cx;
-    d2 = el->pellipseattr->rx_y - el->pellipseattr->cy;
-    rotang = atan2(d2, d1);
-    rx = sqrt(d1 * d1 + d2 * d2);
-    d1 = el->pellipseattr->ry_x - el->pellipseattr->cx;
-    d2 = el->pellipseattr->ry_y - el->pellipseattr->cy;
-    ry = sqrt(d1 * d1 + d2 * d2);
-
-    get_icoord(&icx, &icy, el->pellipseattr->cx, el->pellipseattr->cy);
-    irx = rx  + 0.5;
-    iry = ry  + 0.5;
-    
-    npoints = GrGenerateEllipse(icx, icy, irx, iry, points);
-
-    sinang = sin(-rotang);
-    cosang = cos(-rotang);
-    for (i=0; i<npoints; i++) {
-        x = points[i][0] - icx;
-        y = points[i][1] - icy;
-        points[i][0] = (cosang * x + sinang * y) + icx + 0.5;
-        points[i][1] = (-sinang * x + cosang * y) + icy + 0.5;
-    }
-
-    if (pctx->fill != NO_COLOR) {
-        cfill = GrAllocColor2(pctx->fill);
-        GrFilledPolygon(npoints, points, cfill);
-    }
-    if (pctx->stroke != NO_COLOR) {
-        cstroke = GrAllocColor2(pctx->stroke);
-        istroke_width = pctx->stroke_width + 0.5;
-        if (istroke_width > 1) {
-            lopt.lno_color = cstroke;
-            lopt.lno_width = istroke_width;
-            lopt.lno_pattlen = 0;
-            lopt.lno_dashpat = NULL;
-            GrCustomPolygon(npoints, points, &lopt);
-        } else {
-            GrPolygon(npoints, points, cstroke);
-        }
-    }*/
+{
 }
 
 static void DrawLineElement(MsvgElement *el, MsvgPaintCtx *pctx)
@@ -282,7 +205,7 @@ static void DrawPathElement(MsvgElement *el, MsvgPaintCtx *pctx)
 
     nsp = MsvgCountSubPaths(el->ppathattr->sp);
     for (i=0; i<nsp; i++) {
-        newel2 = MsvgSubPathToPoly(el, i, 4);
+        newel2 = MsvgSubPathToPoly(el, i, glob_px_x_unit);
         if (newel2) {
             if (newel2->eid == EID_POLYGON)
                 DrawPolygonElement(newel2, newel2->pctx);
@@ -295,11 +218,16 @@ static void DrawPathElement(MsvgElement *el, MsvgPaintCtx *pctx)
 
 static void sufn(MsvgElement *el, MsvgPaintCtx *pctx, void *udata)
 {
-    #define GDMODE (MSVGTCE_CIR2PATH | MSVGTCE_ELL2PATH)
     MsvgElement *newel;
 
+    #define GDMODE (MSVGTCE_CIR2PATH | MSVGTCE_ELL2PATH)
     newel = MsvgTransformCookedElement(el, pctx, GDMODE);
     if (newel == NULL) return;
+
+    // I don't know how to draw gradients with GD, so at least
+    // draw something
+    if (newel->pctx->fill == IRI_COLOR) newel->pctx->fill = SILVER_COLOR;
+    if (newel->pctx->stroke == IRI_COLOR) newel->pctx->stroke = GRAY_COLOR;
 
     switch (newel->eid) {
         case EID_RECT :
@@ -378,6 +306,10 @@ int GDDrawSVGtree(MsvgElement *root, GDSVGDrawMode *sdm, gdImagePtr im)
         default:
             return -5;
     }
+
+    //glob_px_x_unit = 4;
+    glob_px_x_unit = sdm->zoom / scale_x;
+    //printf("scale_x %f  scale_y  %f px_unit %f\n", scale_x, scale_y, glob_px_x_unit);
 
     if (sdm->adj == SVGDRAWADJ_LEFT) {
         glob_xorg = 0;

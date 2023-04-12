@@ -16,14 +16,14 @@ mgrx/rsvg
 mgrx/gsvg
 mgrx/showsvg
 mgrx/svg2png
-mgrx/*.png
 gd/rsvg
 gd/gsvg
 gd/svg2png
-gd/*.png
 # Ignore graphics files from test programs
 test/msvgt*.svg
 mgrx/tgsvg.svg
+mgrx/*.png
+gd/*.png
 # Others
 svgexpls
 grad

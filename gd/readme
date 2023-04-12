@@ -7,8 +7,10 @@ render svg files using libmsvg and a specific graphics library.
 I have little knowledge of the GD library, in fact this is my first time using
 it to have another test case for libmsvg besides MGRX. At this moment, circles
 and ellipses are converted to path elementes, because GD does not provide primitives
-to draw them with a thickness other than 1, nor rotated. It is also necessary to
-see how to render PATH elements when their subPATHs intersect.
+to draw them with a thickness other than 1, nor rotated. It is necessary to see
+how to render PATH elements when their subPATHs intersect. I don't know how
+to draw gradients with GD, so a gray color is used instead. Opacity is not taken
+into account by now.
 
 Only checked on Linux, there is a simple makefile, run it by:
 
@@ -18,11 +20,15 @@ Test programs:
 
 rsvg -> read ../svgpics/test.svg and renders it to test.png
 gsvg -> generates a MsvgElemnt tree programmatically and renders it to test2.png
-svg2png -> run it with: svg2png [-f|p|s] [-l|c|r] [-gd width height] file.svg file.png
+svg2png -> run it with: svg2png [-f|p|s] [-l|c|r] [-gd width height] [-z zoom]
+                                [-rt angle] [-dp xdespl ydespl] file.svg file.png
            file.svg will be rendered to file.png
            options:
-                -f|p|s => FIT, PAR(default) or SCOORD
-                -l|c|r => LEFT(default), CENTER or RIGHT
+                -f|p|s => Fit, fit Preserving aspect ratio(default) or uSe image coord.
+                -l|c|r => align LEFT(default), CENTER or RIGHT
                 -gd width height => use the given dimensions for the output file,
                                     by default it uses the svg file dimensions
+                -z zoom => apply a zoom before rendering
+                -rt angle => apply a rotation before rendering
+                -dp xdespl y despl => apply a displacement begore rendering
            example: ./svg2png ../svgpics/gtiger.svg gtiger.png

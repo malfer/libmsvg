@@ -3,8 +3,6 @@
  * This is a dirty hack to test the libmsvg librarie with the MGRX
  * graphics library. It is NOT part of the libmsvg librarie really.
  *
- * In the future this will be added to MGRX, this is why the LGPL is aplied
- *
  * Copyright (C) 2010, 2020-2023 Mariano Alvarez Fernandez
  * (malfer at telefonica.net)
  *
