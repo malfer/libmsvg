@@ -1,3 +1,6 @@
+2023-04-17
+    Solved problem rendering with GD, it seems that fill primitives take the
+    stroke width in account ¿why? so set it to "1" before fill.
 2023-04-12
     Added -z -rt and -dp parameters to gd/svg2png.c and mgrx/svg2png.c
     in GD rendering use a gray color when a gradient is nedeed for fill or stroke.

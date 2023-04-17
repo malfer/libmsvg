@@ -63,6 +63,7 @@ static void DrawRectElement(MsvgElement *el, MsvgPaintCtx *pctx)
 
     if (pctx->fill != NO_COLOR) {
         cfill = pctx->fill;
+        gdImageSetThickness(glob_im, 1);
         gdImageFilledRectangle(glob_im, x1, y1, x2, y2, cfill);
     }
     if (pctx->stroke != NO_COLOR) {
@@ -119,6 +120,7 @@ static void DrawPolylineElement(MsvgElement *el, MsvgPaintCtx *pctx)
 
     if (pctx->fill != NO_COLOR) {
         cfill = pctx->fill;
+        gdImageSetThickness(glob_im, 1);
         gdImageFilledPolygon(glob_im, points, npoints, cfill);
     }
     if (pctx->stroke != NO_COLOR) {
@@ -151,6 +153,7 @@ static void DrawPolygonElement(MsvgElement *el, MsvgPaintCtx *pctx)
 
     if (pctx->fill != NO_COLOR) {
         cfill = pctx->fill;
+        gdImageSetThickness(glob_im, 1);
         gdImageFilledPolygon(glob_im, points, npoints, cfill);
     }
     if (pctx->stroke != NO_COLOR) {
