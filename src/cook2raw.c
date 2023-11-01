@@ -2,7 +2,7 @@
  * 
  * libmsvg, a minimal library to read and write svg files
  *
- * Copyright (C) 2010, 2020-2022 Mariano Alvarez Fernandez
+ * Copyright (C) 2010, 2020-2023 Mariano Alvarez Fernandez
  * (malfer at telefonica.net)
  *
  * Permission is hereby granted, free of charge, to any person obtaining
@@ -50,13 +50,16 @@ static void addColorRawAttr(MsvgElement *el, char *key, rgbcolor color)
 
 static void addColorExtRawAttr(MsvgElement *el, char *key, rgbcolor color, char *iri)
 {
-    char s[41];
+    char *s;
     
     if (color != NODEFINED_COLOR) {
         if (color == IRI_COLOR) {
             if (iri != NULL) {
-                sprintf(s, "url(#%s", iri);
+                s = malloc(strlen(iri)+10);
+                if (s == NULL) return;
+                sprintf(s, "url(#%s)", iri);
                 MsvgAddRawAttribute(el, key, s);
+                free(s);
             }
         }
         else {
@@ -467,6 +470,11 @@ static void toRawElement(MsvgElement *el)
             break;
         case EID_GLYPH :
             toRawGlyphCookedAttr(el);
+            break;
+        case EID_TITLE :
+        case EID_DESC :
+        case EID_V_COMMENT :
+        case EID_V_CONTENT :
             break;
         default :
             break;
