@@ -2,7 +2,7 @@
  * 
  * libmsvg, a minimal library to read and write svg files
  *
- * Copyright (C) 2010, 2020-2022 Mariano Alvarez Fernandez
+ * Copyright (C) 2010, 2020-2023 Mariano Alvarez Fernandez
  * (malfer at telefonica.net)
  *
  * Permission is hereby granted, free of charge, to any person obtaining
@@ -467,11 +467,6 @@ static void cookGlyphGenAttr(MsvgElement *el, char *key, char *value)
     else if (strcmp(key, "d") == 0) el->pglyphattr->sp = MsvgScanPath(value);
 }
 
-static void cookVContentGenAttr(MsvgElement *el, char *key, char *value)
-{
-    return;
-}
-
 static void checkSvgCookedAttr(MsvgElement *el)
 {
     if (el->psvgattr->vb_width <= 0) el->psvgattr->vb_width = el->psvgattr->width;
@@ -582,8 +577,10 @@ static void cookElement(MsvgElement *el, int depth)
                 case EID_GLYPH :
                     cookGlyphGenAttr(el, pattr->key, pattr->value);
                     break;
+                case EID_TITLE :
+                case EID_DESC :
+                case EID_V_COMMENT :
                 case EID_V_CONTENT :
-                    cookVContentGenAttr(el, pattr->key, pattr->value);
                     break;
                 default :
                     break;

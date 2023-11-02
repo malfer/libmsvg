@@ -2,7 +2,7 @@
  * 
  * libmsvg, a minimal library to read and write svg files
  *
- * Copyright (C) 2010, 2020-2022 Mariano Alvarez Fernandez
+ * Copyright (C) 2010, 2020-2023 Mariano Alvarez Fernandez
  * (malfer at telefonica.net)
  *
  * Permission is hereby granted, free of charge, to any person obtaining
@@ -339,11 +339,6 @@ static void printMissingGlyphCookedAttr(FILE *f, MsvgElement *el)
     printPath(f, el->pglyphattr->sp);
 }
 
-static void printVContentCookedAttr(FILE *f, MsvgElement *el)
-{
-    return;
-}
-
 void MsvgPrintCookedElement(FILE *f, MsvgElement *el)
 {
     fprintf(f, "%s", MsvgFindElementName(el->eid));
@@ -410,8 +405,10 @@ void MsvgPrintCookedElement(FILE *f, MsvgElement *el)
         case EID_GLYPH :
             printGlyphCookedAttr(f, el);
             break;
+        case EID_TITLE :
+        case EID_DESC :
+        case EID_V_COMMENT :
         case EID_V_CONTENT :
-            printVContentCookedAttr(f, el);
             break;
         default :
             break;

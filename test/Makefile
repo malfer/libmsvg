@@ -25,8 +25,8 @@ ifeq ($(LINUX_VERSION),y)
 
 all: $(SAMPLES)
 
-$(SAMPLES): %$(EXE) : %.o $(LIBS)
-	$(CC) $(CFLAGS) -o $*$(EXE) $*.o $(LIBS)
+$(SAMPLES): %$(EXE) : %.c $(LIBS) ../src/msvg.h
+	$(CC) $(CFLAGS) -o $*$(EXE) $*.c $(LIBS)
 
 clean:
 	rm -f *.o $(SAMPLES)
@@ -38,8 +38,8 @@ else
 
 all: $(SAMPLES)
 
-$(SAMPLES): %$(EXE) : %.o $(LIBSdos)
-	$(CC) $(CFLAGS) -o $*$(EXE) $*.o $(LIBSdos)
+$(SAMPLES): %$(EXE) : %.c $(LIBSdos) ../src/msvg.h
+	$(CC) $(CFLAGS) -o $*$(EXE) $*.c $(LIBSdos)
 
 clean:
 	del *.o

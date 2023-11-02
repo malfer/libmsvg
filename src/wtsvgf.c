@@ -2,7 +2,8 @@
  * 
  * libmsvg, a minimal library to read and write svg files
  *
- * Copyright (C) 2010, 2020 Mariano Alvarez Fernandez (malfer at telefonica.net)
+ * Copyright (C) 2010, 2020-2023 Mariano Alvarez Fernandez
+ * (malfer at telefonica.net)
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -87,7 +88,17 @@ static void writeContent(FILE *f, char *s, int depth)
 static void writeElement(FILE *f, MsvgElement *el, int depth)
 {
     MsvgRawAttribute *pattr;
-    
+
+    if (el->eid == EID_V_COMMENT) {
+        for (int i=0; i<depth; i++) fputs("  ", f);
+        fputs("<!--", f);
+        if (el->fcontent != NULL) fputs(el->fcontent->s, f);
+        fputs("-->\n", f);
+        if (el->nsibling != NULL)
+            writeElement(f, el->nsibling, depth);
+        return;
+    }
+
     writeLabelElement(f, el->eid, 1, depth);
     if (el->frattr != NULL) {
         pattr = el->frattr;

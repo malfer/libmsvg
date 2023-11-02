@@ -2,7 +2,7 @@
  * 
  * libmsvg, a minimal library to read and write svg files
  *
- * Copyright (C) 2010, 2020-2002 Mariano Alvarez Fernandez
+ * Copyright (C) 2010, 2020-2023 Mariano Alvarez Fernandez
  * (malfer at telefonica.net)
  *
  * Permission is hereby granted, free of charge, to any person obtaining
@@ -192,6 +192,35 @@ static void data(void *userData, const char *s, int len)
     free(saux);
 }
 
+static void comment(void *userData, const char *s)
+{
+    MyUserData *mudptr = userData;
+    MsvgElement *ptr;
+    int len;
+
+    if (mudptr->process_finished) return;
+
+    if (mudptr->report)
+        fprintf(mudptr->report, "comment %s\n", s);
+
+    if (mudptr->skip_depth) return;
+    if (!mudptr->active_element) return;
+    if (!MsvgIsSupSonElement(mudptr->active_element->eid, EID_V_COMMENT)) return;
+
+    ptr = MsvgNewElement(EID_V_COMMENT, mudptr->active_element);
+    if (ptr == NULL) {
+        mudptr->mem_error = 1;
+        mudptr->process_finished = 1;
+        return;
+    }
+
+    if (mudptr->report)
+        fprintf(mudptr->report, "new v_comment element added\n");
+
+    len = strlen(s);
+    MsvgAddContent(ptr, len, s);
+}
+
 MsvgElement *MsvgReadSvgFile2(const char *fname, int *error, FILE *report)
 {
     #define BUFRSIZE 8192
@@ -224,6 +253,7 @@ MsvgElement *MsvgReadSvgFile2(const char *fname, int *error, FILE *report)
     XML_SetUserData(parser, &mud);
     XML_SetElementHandler(parser, startElement, endElement);
     XML_SetCharacterDataHandler(parser, data);
+    XML_SetCommentHandler(parser, comment);
 
     do {
         size_t len = fread(buf, 1, sizeof(buf), f);

@@ -2,7 +2,7 @@
  * 
  * libmsvg, a minimal library to read and write svg files
  * 
- * Copyright (C) 2010, 2020-2022 Mariano Alvarez Fernandez
+ * Copyright (C) 2010, 2020-2023 Mariano Alvarez Fernandez
  * (malfer at telefonica.net)
  *
  * This is a test file of the libmsvg library.
@@ -65,7 +65,8 @@ int main(int argc, char **argv)
     printf("==== Tree counts raw tree\n");
     MsvgCalcCountsRawTree(root, &tc);
     for (eid=EID_SVG+1; eid <= EID_LAST; eid++) {
-        printf("%-14s : %d\n", MsvgFindElementName(eid), tc.nelem[eid]);
+        if (tc.nelem[eid] > 0)
+            printf("%-14s : %d\n", MsvgFindElementName(eid), tc.nelem[eid]);
     }
     printf("Total          : %d\n", tc.totelem);
     printf("With Id        : %d\n", tc.totelwid);

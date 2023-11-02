@@ -2,7 +2,7 @@
  * 
  * libmsvg, a minimal library to read and write svg files
  *
- * Copyright (C) 2010, 2020-2022 Mariano Alvarez Fernandez
+ * Copyright (C) 2010, 2020-2023 Mariano Alvarez Fernandez
  * (malfer at telefonica.net)
  *
  * Permission is hereby granted, free of charge, to any person obtaining
@@ -322,16 +322,6 @@ static MsvgElement *MsvgNewTextElement(MsvgElement *father)
     return element;
 }
 
-static MsvgElement *MsvgNewVContentElement(MsvgElement *father)
-{
-    MsvgElement *element;
-
-    element = MsvgNewGenericElement(EID_V_CONTENT, father, 0);
-    if (element == NULL) return NULL;
-
-    return element;
-}
-
 static MsvgElement *MsvgNewLinearGradientElement(MsvgElement *father)
 {
     MsvgElement *element;
@@ -484,6 +474,46 @@ static MsvgElement *MsvgNewGlyphElement(MsvgElement *father)
     return element;
 }
 
+static MsvgElement *MsvgNewTitleElement(MsvgElement *father)
+{
+    MsvgElement *element;
+
+    element = MsvgNewGenericElement(EID_TITLE, father, 0);
+    if (element == NULL) return NULL;
+
+    return element;
+}
+
+static MsvgElement *MsvgNewDescElement(MsvgElement *father)
+{
+    MsvgElement *element;
+
+    element = MsvgNewGenericElement(EID_DESC, father, 0);
+    if (element == NULL) return NULL;
+
+    return element;
+}
+
+static MsvgElement *MsvgNewVCommentElement(MsvgElement *father)
+{
+    MsvgElement *element;
+
+    element = MsvgNewGenericElement(EID_V_COMMENT, father, 0);
+    if (element == NULL) return NULL;
+
+    return element;
+}
+
+static MsvgElement *MsvgNewVContentElement(MsvgElement *father)
+{
+    MsvgElement *element;
+
+    element = MsvgNewGenericElement(EID_V_CONTENT, father, 0);
+    if (element == NULL) return NULL;
+
+    return element;
+}
+
 MsvgElement *MsvgNewElement(enum EID eid, MsvgElement *father)
 {
     MsvgElement *element;
@@ -545,6 +575,15 @@ MsvgElement *MsvgNewElement(enum EID eid, MsvgElement *father)
             break;
         case EID_GLYPH :
             element = MsvgNewGlyphElement(father);
+            break;
+        case EID_TITLE :
+            element = MsvgNewTitleElement(father);
+            break;
+        case EID_DESC :
+            element = MsvgNewDescElement(father);
+            break;
+        case EID_V_COMMENT :
+            element = MsvgNewVCommentElement(father);
             break;
         case EID_V_CONTENT :
             element = MsvgNewVContentElement(father);

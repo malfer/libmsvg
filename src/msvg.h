@@ -56,6 +56,9 @@ enum EID {
     EID_FONTFACE,
     EID_MISSINGGLYPH,
     EID_GLYPH,
+    EID_TITLE,
+    EID_DESC,
+    EID_V_COMMENT, // XML comment managed as a virtual element
     EID_V_CONTENT, // defined but not used by now
     EID_LAST = EID_V_CONTENT
 };
@@ -417,7 +420,7 @@ MsvgPaintCtx *MsvgBuildPaintCtxInherited(MsvgElement *el);
 
 /* functions in content.c */
 
-int MsvgAddContent(MsvgElement *el, int len, char *cnt);
+int MsvgAddContent(MsvgElement *el, int len, const char *cnt);
 int MsvgDelContents(MsvgElement *el);
 int MsvgCopyContents(MsvgElement *desel, MsvgElement *srcel);
 
