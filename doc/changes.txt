@@ -1,9 +1,11 @@
-2023-10-02
+2023-11-11
+    Updated docs to v0.90
+2023-11-02
     Added support for comment elements, the EID_TITLE and EID_DESC elements defined
     in the SVG standard and also XML comments as the virtual element EID_V_COMMENT.
     Comment elements are supported only if they are direct children of a container
     element: EID_SVG, EID_DEFS, EID_G or EID_FONT.
-2023-10-01
+2023-11-01
     Solved stack buffer overflow in cook2raw.c in the addColorExtRawAttr function,
     reported by personnumber3377 (https://github.com/personnumber3377 )
 2023-05-08

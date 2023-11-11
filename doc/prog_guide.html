@@ -6,9 +6,9 @@
 </head>
 
 <body>
-<h1>libmsvg v0.81</h1>
+<h1>libmsvg v0.90</h1>
 <h2>Programmer's guide</h2>
-<p>Last update: April 1, 2023</p>
+<p>Last update: November 1, 2023</p>
 
 <hr>
 <h2>Abstract</h2>
@@ -191,6 +191,15 @@ elements that can be its children:
     <li>EID_GLYPH defines the path to draw for a specific code point. Childless.
 </ul>
 
+<h3>Comment elements</h3>
+<p>In addition to the elements mentioned previously, libmsvg supports several elements
+that are considered comments and do not intervene in the definition of the drawing,
+these are the EID_TITLE and EID_DESC elements defined in the SVG standard and also
+XML comments as the virtual element EID_V_COMMENT.
+
+<p>In this version of libsmvg comment elements are supported only if they are direct
+children of a container element: EID_SVG, EID_DEFS, EID_G or EID_FONT.</p>
+
 <h3>Element attributes</h3>
 <p>Every MsvgElement can have attributes, they can be of two types: raw or
 cooked. The type of MsvgElement attributes in a tree is determined by a variable in
@@ -218,9 +227,11 @@ is easier to manipulate and/or to rasterize by a program.</p>
 up to the programmer to know if it is a raw or cooked subtree.</p>
 
 <h3>Content</h3>
-<p>In addition to attributes an element can have content, content
-is stored in a MsvgContent variable, and it is shared by RAW and COOKED trees.
-In this version of the library only EID_TEXT element contents are stored in the
+<p>In addition to attributes an element can have content, content is stored in a
+MsvgContent variable, and it is shared by RAW and COOKED trees.<p>
+
+<p>In this version of the library only content for the EID_TEXT element (the text that
+must be draw) and for the three comment elements (the comment itself) are stored in the
 tree.</p>
 
 <hr>
@@ -1128,7 +1139,7 @@ can have any attribute.</p>
       <p>-- possible child elements --
       <p>&lt;defs&gt;, &lt;g&gt;, &lt;use&gt;, &lt;rect&gt;, &lt;circle&gt;,
       &lt;ellipse&gt;, &lt;line&gt;, &lt;polyline&gt;, &lt;polygon&gt;,
-      &lt;path&gt;, &lt;text&gt;</p>
+      &lt;path&gt;, &lt;text&gt;, &lt;title&gt;, &lt;desc&gt;, &lt;!-- --&gt;</p>
     </td>
   </tr>
   <tr valign=top>
@@ -1143,7 +1154,8 @@ can have any attribute.</p>
       <p>&lt;g&gt;, &lt;rect&gt;, &lt;circle&gt;, &lt;ellipse&gt;,
       &lt;line&gt;, &lt;polyline&gt;, &lt;polygon&gt;,
       &lt;path&gt;, &lt;text&gt;, &lt;linearGradient&gt;,
-      &lt;radialGradient&gt;, &lt;font&gt;</p>
+      &lt;radialGradient&gt;, &lt;font&gt;, &lt;title&gt;,
+      &lt;desc&gt;, &lt;!-- --&gt;</p>
     </td>
   </tr>
   <tr valign=top>
@@ -1169,7 +1181,8 @@ can have any attribute.</p>
       <p>-- possible child elements --
       <p>&lt;g&gt;, &lt;use&gt;, &lt;rect&gt;, &lt;circle&gt;,
       &lt;ellipse&gt;, &lt;line&gt;, &lt;polyline&gt;, &lt;polygon&gt;,
-      &lt;path&gt;, &lt;text&gt;</p>
+      &lt;path&gt;, &lt;text&gt;, &lt;title&gt;, &lt;desc&gt;,
+      &lt;!-- --&gt;</p>
     </td>
   </tr>
   <tr valign=top>
@@ -1425,7 +1438,8 @@ can have any attribute.</p>
     </td>
     <td width=31%>
       <p>-- possible child elements --</p>
-      <p>&lt;font-face&gt;, &lt;missing-glyph&gt;, &lt;glyph&gt;</p>
+      <p>&lt;font-face&gt;, &lt;missing-glyph&gt;, &lt;glyph&gt;,
+      &lt;title&gt;, &lt;desc&gt;, &lt;!-- --&gt;</p>
     </td>
   </tr>
   <tr valign=top>
@@ -1470,6 +1484,39 @@ can have any attribute.</p>
     </td>
     <td width=31%>
       <p><br></p>
+    </td>
+  </tr>
+  <tr valign=top>
+    <td width=25%>
+      <p>&lt;title&gt; (EID_TITLE)</p>
+    </td>
+    <td width=44%>
+      <p>id=&quot;value&quot;</p>
+    </td>
+    <td width=31%>
+      <p>The TITLE content will be stored in a MsvgContent variable.</p>
+    </td>
+  </tr>
+  <tr valign=top>
+    <td width=25%>
+      <p>&lt;desc&gt; (EID_DESC)</p>
+    </td>
+    <td width=44%>
+      <p>id=&quot;value&quot;</p>
+    </td>
+    <td width=31%>
+      <p>The DESC content will be stored in a MsvgContent variable.</p>
+    </td>
+  </tr>
+  <tr valign=top>
+    <td width=25%>
+      <p>&lt;!-- --&gt; (EID_V_COMMENT)</p>
+    </td>
+    <td width=44%>
+      <p></p>
+    </td>
+    <td width=31%>
+      <p>The XML comment content will be stored in a MsvgContent variable.</p>
     </td>
   </tr>
 </table>
